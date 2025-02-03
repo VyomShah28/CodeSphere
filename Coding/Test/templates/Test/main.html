@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contests</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);
+            color: #2d3748;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4a4a8f 0%, #6c63ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 20px 0;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6c63ff, #3f3d9f);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #6c63ff, #3f3d9f);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header h2 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+        }
+
+        .card-body {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card-detail {
+            color: #4a5568;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .card-link {
+            display: inline-block;
+            padding: 12px 40px; 
+            background: linear-gradient(135deg, #4a47d4, #6c63ff);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 25px; 
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(74, 71, 212, 0.3); 
+            text-align: center;
+        }
+
+        .card-link:hover {
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 20px rgba(74, 71, 212, 0.5); 
+            background: linear-gradient(135deg, #6c63ff, #4a47d4); 
+        }
+
+        .card-link:focus {
+            outline: none;
+            border: 2px solid #6c63ff; 
+        }
+
+        .home-button {
+            display: block;
+            margin: 0 auto;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #4a47d4, #6c63ff);
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .create-button {
+            display: inline-block;
+            margin: 0 auto;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #4a47d4, #6c63ff);
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .delete-button {
+            display: inline-block;
+            margin: 0 auto;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #d44747, #ff6363);
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .edit-button {
+            display: inline-block;
+            margin: 0 auto;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .create-button:hover .delete-button .edit-button .home-button{
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(74, 71, 212, 0.3);
+        }
+
+        .create-button::after,.home-button::after{
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+        }
+
+        .delete-button::after{
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+        }
+
+        .edit-button::after{
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+        }
+
+        .create-button:hover::after , .home-button:hover::after{
+            transform: rotate(45deg) translate(50%, 50%);
+        }
+
+        .delete-button:hover::after{
+            transform: rotate(45deg) translate(50%, 50%);   
+        }
+
+        .edit-button:hover::after{
+            transform: rotate(45deg) translate(50%, 50%);   
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                gap: 20px;
+            }
+
+            .card-header {
+                padding: 20px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form method="POST" id="form">
+        {% csrf_token %}
+        <input name="user" id="user" value="{{user}}" hidden/>
+        <input name="source" id="source" value="main" hidden/>
+        <input name="contest" id="id" hidden/>
+        <div class="container">
+            <div class="header">
+                <h1>Explore Exciting Contests</h1>
+                <p>Join our community of innovators and showcase your skills in these challenging competitions</p>
+            </div>
+            <div class="grid" id="contestGrid"></div>
+            <button type="button" class="home-button" onclick="Sidebar()" style="margin-top: 10px;">DashBoard</button>
+        </div>
+    </form>
+    <script>
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const grid = document.querySelector('.grid');
+        fetch("{% url 'Find_Contest' %}",
+            {
+                method:"POST",
+                headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                body: "user={{user}}"
+            }
+        ).then(response=>response.json())
+        .then(data=>{
+                data.forEach(contest => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                card.innerHTML = `
+                    <form method="POST" action="{% url 'Contest' %}">
+                        {% csrf_token %}
+                        <input name="user" value="{{user}}" hidden>
+                        <input type="hidden" name="source" value="main">
+                        <div class="card-header">
+                            <h2 style="text-align:center;"><b>Contest Name</b> : ${contest.contest_name}</h2>
+                            <input name="contest" value='${contest.contest_id}' hidden>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-detail"><b>Contest Start Date</b> : ${contest.start_date}</div>
+                            <div class="card-detail"><b>Contest Start Time</b> : ${contest.start_time}</div>
+                            <div class="card-detail"><b>Contest End Date</b> : ${contest.end_date}</div>
+                            <div class="card-detail"><b>Contest End Time</b> : ${contest.end_time}</div>
+                            <div class="card-detail"> <b>Contest Link</b> : ${call(contest.contest_id)} </div>
+                            <button type="submit" class="create-button">View Contest</button>
+                            <button type="button" class="delete-button" style="margin-top:10px;" onclick="Delete(${contest.contest_id})">Delete Contest</button>
+                            <button type="button" class="edit-button" style="margin-top:10px;" onclick="Edit(${contest.contest_id})">Edit Contest</button>
+                        </div>
+                    </form>
+                `;
+                grid.appendChild(card);
+            });
+        })
+
+        function call(element){
+            const user = document.getElementById("user").value;
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 10; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                result += characters.charAt(randomIndex);
+            }
+            return "http://127.0.0.1:8000" + "/" + result + "/" + element; 
+        }
+
+        function Delete(value){
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch("{% url 'delete_contest' %}",{
+                method:"POST",
+                headers:{
+                    'Content-Type':"application/json",
+                    'X-CSRFToken':csrfToken
+                },
+                body:JSON.stringify({
+                    "id":value
+                })
+            })
+            .then(data=>data.json())
+            .then(data=>{
+                if(data.success){
+                    window.location.reload();
+                }
+            })
+        }
+        function Sidebar(request){
+            const form=document.getElementById('form');
+            form.action="{% url 'Sidebar' %}";
+            form.submit();
+        }
+        function Edit(value){
+            const form=document.getElementById('form');
+            const contest=document.getElementById('id');
+            contest.value=value;
+            form.action="{% url 'Home' %}";
+            form.submit();
+        }
+    </script>
+</body>
+</html>

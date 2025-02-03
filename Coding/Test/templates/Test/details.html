@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Creator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .container {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .editor-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .preview-button {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            z-index: 1000;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .preview-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        input[type="text"], 
+        select, 
+        textarea, 
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background-color: white;
+        }
+
+        input[type="text"]:focus, 
+        select:focus, 
+        textarea:focus, 
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .file-upload-container {
+            border: 2px dashed var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .file-upload-container:hover {
+            border-color: var(--primary-color);
+        }
+
+        .file-upload-input {
+            display: none;
+        }
+
+        .sample-file-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: block;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .sample-file-link:hover {
+            text-decoration: underline;
+        }
+
+        .submit-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .submit-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 50px auto;
+            padding: 24px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .close-button {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .close-button:hover {
+            background: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <form action="{% url 'Test' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input name="user" value="{{user}}" hidden/>
+        <input name="contest" value="{{contest}}" hidden/>
+        {% if challenge %}
+            <input type="hidden" name="challenge" value="{{challenge.id}}"/>
+        {% else %}
+            <input type="hidden" name="challenge"/>
+        {% endif %}
+        
+        <div class="container">
+            <h2>Challenge Details</h2>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="challengeName">Challenge Name</label>
+                    {% if challenge %}
+                        <input type="text" id="challengeName" name="challengeName" required value="{{challenge.challenge_name}}">
+                    {% else %}
+                        <input type="text" id="challengeName" name="challengeName" required placeholder="Enter challenge name">
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="Max_score">Score per Testcase</label>
+                    {% if challenge %}
+                        <input type="number" id="Max_score" name="Max_score" required value="{{challenge.max_score}}">
+                    {% else %}
+                        <input type="number" id="Max_score" name="Max_score" required placeholder="Enter the score per Testcase">
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Difficulty Level</label>
+                    <select id="difficulty" name="difficulty" required>
+                    {% if challenge %}
+                        <option value="{{ challenge.difficulty_level }}" selected>{{ challenge.difficulty_level }}</option>
+                    {% else %}
+                        <option value="">Select Difficulty</option>
+                    {% endif %}
+                        
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <div class="editor-wrapper">
+                    {% if challenge %}
+                        <textarea id="description" name="description">{{challenge.description}}</textarea>
+                    {% else %}
+                        <textarea id="description" name="description"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Problem Statement</label>
+                <div class="editor-wrapper">
+                    <button type="button" class="preview-button" onclick="showPreview('problemStatement', 'Problem Statement Preview')">Preview</button>
+                    {% if challenge %}
+                        <textarea id="problemStatement" name="problemStatement">{{challenge.problem_statement | linebreaks}}</textarea>
+                    {% else %}
+                        <textarea id="problemStatement" name="problemStatement"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Constraints</label>
+                <div class="editor-wrapper">
+                    <button type="button" class="preview-button" onclick="showPreview('constraints', 'Constraints Preview')">Preview</button>
+                    {% if challenge %}
+                        <textarea id="constraints" name="constraints">{{challenge.constraints | linebreaks}}</textarea>
+                    {% else %}
+                        <textarea id="constraints" name="constraints"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Input Format</label>
+                <div class="editor-wrapper">
+                    <button type="button" class="preview-button" onclick="showPreview('input', 'Input Format Preview')">Preview</button>
+                    {% if challenge %}
+                        <textarea id="input" name="input">{{challenge.input_form | linebreaks}}</textarea>
+                    {% else %}
+                        <textarea id="input" name="input"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Output Format</label>
+                <div class="editor-wrapper">
+                    <button type="button" class="preview-button" onclick="showPreview('output', 'Output Format Preview')">Preview</button>
+                    {% if challenge %}
+                        <textarea id="output" name="output">{{challenge.output_form | linebreaks}}</textarea>
+                    {% else %}
+                        <textarea id="output" name="output"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Test Cases File</label>
+                <div class="file-upload-container" onclick="document.getElementById('testcaseFile').click()">
+                    {% if challenge %}
+                        <div class="existing-file">
+                            <p>Current file: <a href="{{ challenge.testcase.url }}" onclick="event.stopPropagation()">{{ challenge.testcase.name }}</a></p>
+                        </div>
+                    {% endif %}
+                    <p style="margin-top:5px;">Click to upload test cases file</p>
+                    <input type="file" id="testcaseFile" name="testcaseFile" class="file-upload-input" accept=".txt" oninput="size1(this)">
+                    <a href="#" class="sample-file-link" onclick="event.stopPropagation(); showSampleFile('testcase')" style="margin-top: 5px;">View sample test case file format</a>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Output File</label>
+                <div class="file-upload-container" onclick="document.getElementById('outputFile').click()">
+                    {% if challenge %}
+                        <div class="existing-file">
+                            <p>Current file: <a href="{{ challenge.output.url }}" onclick="event.stopPropagation()">{{ challenge.output.name }}</a></p>
+                        </div>
+                    {% endif %}
+                    <p style="margin-top: 5px;">Click to upload test cases file</p>
+                    <input type="file" id="outputFile" name="outputFile" class="file-upload-input" accept=".txt" oninput="size1(this)">
+                    <a href="#" class="sample-file-link" onclick="event.stopPropagation(); showSampleFile('output')" style="margin-top: 5px;">View sample output file format</a>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Sample TestCase</label>
+                <div class="editor-wrapper">
+                    {% if challenge %}
+                    <textarea id="sample_testcase" name="sample_testcase">{{challenge.sample_testcase | linebreaks}}</textarea>
+                    {% else %}
+                    <textarea id="sample_testcase" name="sample_testcase"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Sample TestCase Output</label>
+                <div class="editor-wrapper">
+                    {% if challenge %}
+                    <textarea id="sample_out" name="sample_out">{{challenge.sample_output | linebreaks}}</textarea>
+                    {% else %}
+                    <textarea id="sample_out" name="sample_out"></textarea>
+                    {% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">Create Challenge</button>
+        </div>
+    </form>
+
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Preview</h2>
+                <button type="button" class="close-button" onclick="closeModal()">Close</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const editorConfig = {
+            height: 300,
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | formatselect | ' +
+                'bold italic backcolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help',
+            content_style: 'body { font-family:Inter,-apple-system,sans-serif; font-size:14px }',
+            forced_root_block: false
+        };
+
+        ['description', 'problemStatement', 'constraints', 'input', 'output','sample_testcase','sample_out'].forEach(id => {
+            tinymce.init({
+                ...editorConfig,
+                selector: `#${id}`
+            });
+        });
+
+        function size1(input){
+            if(input.files && input.files[0]){
+                let size=input.files[0].size;
+                let maxSize=5*1024*1024;
+                if(size>maxSize){
+                    alert("File size exceeds 5 MB. Please select a smaller file.");
+                    input.value = "";
+                }
+                else{
+                    alert("File Uploaded Succesfully");
+                }
+            }
+        }
+
+        function showPreview(editorId, title) {
+            const modal = document.getElementById('previewModal');
+            const modalTitle = document.querySelector('.modal-title');
+            const modalContent = document.getElementById('modalContent');
+            const editor = tinymce.get(editorId);
+            
+            modalTitle.textContent = title;
+            modalContent.innerHTML = editor.getContent();
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'none';
+        }
+
+        function showSampleFile(type) {
+            const modal = document.getElementById('previewModal');
+            const modalTitle = document.querySelector('.modal-title');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (type === 'testcase') {
+                modalTitle.textContent = 'Sample Test Case File Format';
+                modalContent.innerHTML = `
+                    <pre>
+3
+4 5
+7 8
+10 12
+                    </pre>
+                    <p>Format explanation:</p>
+                    <ul>
+                        <li><b>All the inputs of one testcase should be in single line only.</b></li>
+                        <li>First line: number of test cases (n)</li>
+                        <li>Following n lines: space-separated input values. Doesn't Matter if the input is 1D array or 2D array
+                            or nD array.Input will be always spaced separated values.</li>
+                        <li>For a nD array you need to specify the first size of each dimension and then values of the array.</li>
+                    </ul>
+                `;
+            } else {
+                modalTitle.textContent = 'Sample Output File Format';
+                modalContent.innerHTML = `
+                    <pre>
+9
+15
+22
+                    </pre>
+                    <p>Format explanation:</p>
+                    <ul>
+                        <li>Each line contains the expected output for corresponding test case</li>
+                        <li>Number of lines should match number of test cases</li>
+                    </ul>
+                `;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        document.querySelectorAll('.file-upload-container').forEach(container => {
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                container.style.borderColor = '#2563eb';
+            });
+
+            container.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                container.style.borderColor = '#e2e8f0';
+            });
+
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                container.style.borderColor = '#e2e8f0';
+                const input = container.querySelector('input[type="file"]');
+                input.files = e.dataTransfer.files;
+            });
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

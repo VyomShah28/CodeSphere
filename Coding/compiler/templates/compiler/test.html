@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Code Challenge</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+    <div class="container mx-auto px-4 py-8 flex-grow">
+        <div class="grid grid-cols-12 gap-6 h-full">
+            <div class="col-span-5 bg-white shadow-md rounded-lg p-6 overflow-y-auto scrollbar-thin">
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-blue-600 border-b-2 border-blue-600 pb-2 mb-4">Problem Description</h2>
+                        <p class="text-gray-700">{{problem_statement | linebreaks}}</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold text-green-600 border-b border-green-600 pb-1 mb-3">Testcases</h3>
+                        <div class="testcase space-y-3 text-sm">
+                            
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold text-red-600 border-b border-red-600 pb-1 mb-3">Constraints</h3>
+                        <p class="text-gray-700">{{constraints | linebreaks}}</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold text-purple-600 border-b border-purple-600 pb-1 mb-3">Input Format</h3>
+                        <p class="text-gray-700">{{input | linebreaks}}</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold text-indigo-600 border-b border-indigo-600 pb-1 mb-3">Output Format</h3>
+                        <p class="text-gray-700">{{output | linebreaks}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-7 h-full flex flex-col">
+                <input type="hidden" id="csrf" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" id="challenge_id" value="{{challenge}}">
+                <input type="hidden" id="action">
+                <input type="hidden" id="user" value="{{user}}">
+
+                <div class="bg-white shadow-md rounded-lg p-4 flex-grow flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-4">
+                            <label class="text-gray-700 font-medium">Language:</label>
+                            <select id="language" class="form-select border rounded px-3 py-2 ">
+                                <option value="java">Java</option>
+                                <option value="python">Python</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-4 mt-4" style="border-left: 400px;">
+                            <button onclick="Run('run')" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition">
+                                Run
+                            </button>
+                            <button onclick="Run('submit')" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition">
+                                Submit
+                            </button>
+                            <button id='reset-button' class="bg-red-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <textarea id="compiler" class="w-full border rounded p-3 font-mono text-sm flex-grow bg-gray-50"></textarea>
+
+                    <div id="outputMessage" class="mt-4 p-3 rounded hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Display(`{{sample}}`, `{{sample_out}}`);
+        });
+
+        document.addEventListener('DOMContentLoaded',()=>{
+
+            const compilerTextarea = document.getElementById('compiler');
+            const languageSelect = document.getElementById('language');
+            const resetButton = document.getElementById('reset-button');
+            const challenge=document.getElementById('challenge_id').value;
+            const user=document.getElementById('user').value;
+
+            const defaultCode = {
+                'java': 'import java.util.*; \npublic class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
+                'python': 'def solution():\n    # Your code here\n    pass'
+            };
+            Object.keys(defaultCode).forEach((key)=>{
+                const storageKey = `${challenge}_${key}_${user}`;
+                if(!localStorage.getItem(storageKey)){
+                    localStorage.setItem(storageKey,defaultCode[`${key}`]);
+                }
+            })
+            function loadSavedCode() {
+                const currentLanguage = languageSelect.value;
+                const storageKey = `${challenge}_${currentLanguage}_${user}`;
+                const savedCode = localStorage.getItem(storageKey);
+                compilerTextarea.value = savedCode || defaultCode[currentLanguage];
+            }
+
+            compilerTextarea.addEventListener('input', () => {
+                const currentLanguage = languageSelect.value;
+                const storageKey = `${challenge}_${currentLanguage}_${user}`;
+                localStorage.setItem(storageKey, compilerTextarea.value);
+            });
+
+            languageSelect.addEventListener('change', loadSavedCode);
+            resetButton.addEventListener('click', () => {
+                const currentLanguage = languageSelect.value;
+                const storageKey = `${challenge}_${currentLanguage}_${user}`;
+                compilerTextarea.value = def.value;
+                localStorage.removeItem(storageKey);
+            });
+
+            loadSavedCode();
+        });
+
+        function Display(test, output) {
+            const div = document.querySelector('.testcase');
+            const sample = test.split('\n');
+            const out = output.split('\n');
+            sample.forEach((test1, index) => {
+                const div1 = document.createElement('div');
+                div1.className = 'bg-gray-100 p-3 rounded';
+                div1.innerHTML = `
+                    <div class="font-semibold text-gray-700 mb-2">TestCase ${index + 1}</div>
+                    <div class="text-sm">
+                        <p><span class="font-medium text-gray-600">Input:</span> ${test1}</p>
+                        <p><span class="font-medium text-gray-600">Expected Output:</span> ${out[index]}</p>
+                    </div>
+                `;
+                div.appendChild(div1);
+            });
+        }
+
+        const csrfToken = document.getElementById("csrf").value;
+        function Run(action) {
+            const language = document.getElementById("language").value;
+            const code = document.getElementById("compiler").value;
+            const outputMessage = document.getElementById("outputMessage");
+            const challenge_id = document.getElementById("challenge_id").value;
+            const user = document.getElementById("user").value;
+            fetch("{% url 'Compile' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    user:user,
+                    action: action,
+                    language: language,
+                    code: code,
+                    challenge_id: challenge_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                outputMessage.style.display = "block";
+                outputMessage.classList.remove('bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700');
+                outputMessage.style.whiteSpace = "pre-line"
+                
+                if (data.success) {
+                    outputMessage.classList.add('bg-green-100', 'text-green-700');
+                    outputMessage.textContent = data.msg;
+                } else {
+                    outputMessage.classList.add('bg-red-100', 'text-red-700');
+                    outputMessage.textContent = data.Error;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

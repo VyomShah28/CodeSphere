@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(120deg, #8e2de2, #4a00e0);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .form-container {
+            background: #fff;
+            color: #333;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 450px;
+            position: relative;
+        }
+
+        .form-header {
+            background: linear-gradient(120deg, #8e2de2, #4a00e0);
+            padding: 20px 30px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .form-header p {
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .form-body {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-body input {
+            width: 90%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-body input:focus {
+            border-color: #8e2de2;
+            box-shadow: 0 0 10px rgba(142, 45, 226, 0.3);
+        }
+
+        .form-body button {
+            width: 90%;
+            padding: 15px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(120deg, #8e2de2, #4a00e0);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .form-body button:hover {
+            background: linear-gradient(120deg, #4a00e0, #8e2de2);
+            transform: scale(1.05);
+        }
+
+        .form-footer {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .form-footer span {
+            color: #8e2de2;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-footer span:hover {
+            text-decoration: underline;
+        }
+
+        @media screen and (max-width: 480px) {
+            .form-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header" id="formHeader" style="background:linear-gradient(120deg, #4a00e0, #8e2de2);">
+            <h2 id="formTitle">Join Us Today!</h2>
+            <p id="formSubtitle">"Create an account and start exploring"</p>
+        </div>
+        <div class="form-body">
+            <form id="signupForm" action="{% url 'Sidebar' %}" method="POST">
+                {% csrf_token %}
+                <input type="source" name="source" value="signup" hidden>
+                <input type="text" placeholder="Enter your full name" name="name" required>
+                <input type="email" placeholder="Enter your email" name="email" class="email" required>
+                <input type="password" placeholder="Enter your password" name="password" class="password" required>
+                <button type="button" onclick="check()">Sign Up</button>
+            </form>
+        </div>
+        <div class="form-footer" style="padding-bottom: 30px;">
+            <span id="toggleForm"><a href="{% url 'Login' %}">Already have an account? Login</a></span>
+        </div>
+    </div>
+</body>
+<script>
+    const csrfToken=document.querySelector('[name=csrfmiddlewaretoken]').value
+    function check(){
+        const doc=document.querySelector('.email').value;
+        const form=document.querySelector('#signupForm')
+        fetch("{% url 'Check_email' %}",{
+            method:"POST",
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `email=${encodeURIComponent(doc)}`
+        }).then(response=>response.json())
+        .then(data=>{
+            if(data.success){
+                alert("Email Already Exists");
+            }
+            else{
+                form.submit();
+            }
+        })
+    }
+</script>
+</html>

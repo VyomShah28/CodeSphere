@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeSphere</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(90deg, #6c63ff, #4e54c8);
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        nav {
+            background-color: #343a40;
+            padding: 0.5rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin: 0 1.5rem;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #6c63ff;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            background-color: #e9ecef;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero a {
+            font-size: 1rem;
+            text-decoration: none;
+            background: linear-gradient(90deg, #6c63ff, #4e54c8);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .hero button:hover {
+            transform: scale(1.05);
+        }
+
+        .cards {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin: 3rem auto;
+            max-width: 1200px;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .card p {
+            margin-bottom: 1.5rem;
+            color: #6c757d;
+        }
+
+        .card a {
+            font-size: 1rem;
+            text-decoration: none;
+            background-color: #6c63ff;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+
+        footer p {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CodeSphere</h1>
+        <p>Challenge yourself, compete with the best, and improve your skills</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="{% url 'Login' %}">Contests</a></li>
+            <li><a href="{% url 'Login' %}">Leaderboard</a></li>
+            <li><a href="#">About Us</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <h2>Welcome to the Future of Competitive Coding</h2>
+        <p>Join coding contests, analyze your progress, and become a coding champion.</p>
+        <a href="{% url 'Login' %}">Track Now</a>
+    </section>
+
+    <section class="cards">
+        <div class="card">
+            <h3>Create a Contest</h3>
+            <p>Organize your own coding challenges and invite participants worldwide.</p>
+            <a href="{% url 'Login' %}" style="text-decoration: none; color: #f8f9fa;">Create Now</a>
+        </div>
+
+        <div class="card">
+            <h3>Join a Contest</h3>
+            <p>Participate in diverse challenges and compete with coders globally.</p>
+            <a href="{% url 'Login' %}">Join Now</a>
+        </div>
+
+        <div class="card">
+            <h3>Track Your Progress</h3>
+            <p>View detailed stats and see how you rank against others.</p>
+            <a href="{% url 'Login' %}">Track Now</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 CodeSphere. All rights reserved.</p>
+    </footer>
+</body>
+</html>
