@@ -46,6 +46,7 @@ It is recommended to use a virtual environment to manage dependencies.<br>
        source env/bin/activate</pre>
 
 <h3><b>4. Install Dependencies</b></h3>
+
 All required packages are listed in requirements.txt. Install them using:
 
   <pre>pip install -r requirements.txt</pre>
