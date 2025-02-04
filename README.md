@@ -20,13 +20,13 @@ cd CodeSphere
 Since the website uses subprocess.popen() for executing code in different languages, ensure that both Java and Python are installed on your system.
 
 <b>Install Java</b>
-* Download and install Java from <a href=https://www.oracle.com/java/technologies/downloads/?er=221886>Oracle</a> or OpenJDK.
+* Download and install Java from [Oracle](https://www.oracle.com/java/technologies/downloads/?er=221886).
 * Verify installation:
 
   <pre>java -version</pre>
 
 <b>Install Python</b>
-* Download and install Python from Python.org.
+* Download and install Python from [Python.org](https://www.python.org/downloads/).
 * Verify installation:
 
   <pre>python --version</pre>
