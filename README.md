@@ -20,26 +20,26 @@ cd CodeSphere
 Since the website uses subprocess.popen() for executing code in different languages, ensure that both Java and Python are installed on your system.
 
 <b>Install Java</b>
-** Download and install Java from Oracle or OpenJDK.
-** Verify installation:
+* Download and install Java from Oracle or OpenJDK.
+* Verify installation:
 
-** <pre>java -version</pre>
+  <pre>java -version</pre>
 
 <b>Install Python</b>
-**Download and install Python from Python.org.
-**Verify installation:
+*Download and install Python from Python.org.
+*Verify installation:
 
-**<pre>python --version</pre>
+  <pre>python --version</pre>
 
 <h3><b>3. Create and Activate Virtual Environment</b></h3>
 
 It is recommended to use a virtual environment to manage dependencies.<br>
-**Windows
+*Windows
 
 <pre>python -m venv env
 env\Scripts\activate</pre>
 
-**Mac/Linux
+*Mac/Linux
 
 <pre>python3 -m venv env
 source env/bin/activate</pre>
