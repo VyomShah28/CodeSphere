@@ -17,41 +17,42 @@ cd CodeSphere
 </pre>
 
 <h3><b>2. Install Java and Python</b></h3>
-* Since the website uses subprocess.popen() for executing code in different languages, ensure that both Java and Python are installed on your system.
+Since the website uses subprocess.popen() for executing code in different languages, ensure that both Java and Python are installed on your system.
 
 <b>Install Java</b>
 * Download and install Java from [Oracle](https://www.oracle.com/java/technologies/downloads/?er=221886).
 * Verify installation:
 
-  <pre>java -version</pre>
+<pre>java -version</pre>
 
 <b>Install Python</b>
 * Download and install Python from [Python.org](https://www.python.org/downloads/).
 * Verify installation:
 
-  <pre>python --version</pre>
+<pre>python --version</pre>
 
 <h3><b>3. Create and Activate Virtual Environment</b></h3>
 
-* It is recommended to use a virtual environment to manage dependencies.<br>
-  * Windows
+It is recommended to use a virtual environment to manage dependencies.<br>
 
-    <pre>python -m venv env
-         env\Scripts\activate</pre>
+* Windows
 
-  *Mac/Linux
+  <pre>python -m venv env
+       env\Scripts\activate</pre>
 
-    <pre>python3 -m venv env
-source env/bin/activate</pre>
+* Mac/Linux
+
+  <pre>python3 -m venv env
+       source env/bin/activate</pre>
 
 <h3><b>4. Install Dependencies</b></h3>
-* All required packages are listed in requirements.txt. Install them using:
+All required packages are listed in requirements.txt. Install them using:
 
   <pre>pip install -r requirements.txt</pre>
 
 <h3><b>5. Database Setup</b></h3>
 
-* Since the database is not included in the repository (ignored via .gitignore), you need to set up a new database manually.
+Since the database is not included in the repository (ignored via .gitignore), you need to set up a new database manually.
 
   <b>a) Apply Migrations</b>
 
@@ -63,12 +64,12 @@ source env/bin/activate</pre>
 
 <h3><b>6. Running the Project</b></h3>
 
-* Start the Django development server:
+Start the Django development server:
 
-  <pre>python manage.py runserver</pre>
+<pre>python manage.py runserver</pre>
 
 <h3><b>7. Environment Variables</b></h3>
 
-* As the project requires environment variables (e.g., database credentials, API keys), create a .env file in the root directory and define them there.
+As the project requires environment variables (e.g., database credentials, API keys), create a .env file in the root directory and define them there.
 
 </p>
