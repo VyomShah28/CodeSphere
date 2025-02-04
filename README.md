@@ -62,6 +62,7 @@ Since the database is not included in the repository (ignored via .gitignore), y
 <pre>python manage.py createsuperuser</pre>
 
 <h3><b>6. Running the Project</b></h3>
+
 Start the Django development server:
 
 <pre>python manage.py runserver</pre>
