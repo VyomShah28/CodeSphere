@@ -10,7 +10,6 @@ it offers real-time code execution, test case evaluations, and a leaderboard sys
 <p>
 Follow these steps to set up the project on your local machine.
 <h3><b>1. Clone the Repository</b></h3>
-```sh 
-git clone https://github.com/yourusername/CodeSphere.git
+git clone https://github.com/yourusername/CodeSphere.git<br>
 cd CodeSphere
 </p>
