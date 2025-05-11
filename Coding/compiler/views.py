@@ -14,6 +14,7 @@ def test(request):
         user=request.POST.get('user')
         challenge=get_object_or_404(Challenges,id=challenge_id)
         return render(request,'test.html',{
+            "name":challenge.challenge_name,
             "challenge":challenge_id,
             "problem_statement":challenge.problem_statement,
             "constraints":challenge.constraints,

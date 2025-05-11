@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from .models import Challenges,Contest,User
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,redirect
+from django.urls import reverse
 import json
 from bs4 import BeautifulSoup
 from django.http import JsonResponse
@@ -8,7 +9,7 @@ from django.contrib.auth.hashers import check_password,make_password
 import re
 # Create your views here.
 def Test_View(request):
-    if request.POST:
+    if request.method=="POST":
         contest=request.POST.get('contest')
         user=request.POST.get('user')
         print(user)
@@ -59,8 +60,15 @@ def Test_View(request):
             )
             challenge.save()
         challenges=Challenges.objects.filter(contest=contest)
-        return render(request,'contest.html',{"challenges":challenges,"contest":contest,"user":user})
-    return render(request,'contest.html',{"challenge":-1,"contest":-1})
+        return redirect(f"{reverse('Test')}?contest={contest}&user={user}")
+    contest_id = request.GET.get('contest')
+    user = request.GET.get('user')
+    if not contest_id:
+        return render(request, 'contest.html', {"challenge": -1, "contest": -1})
+
+    contest_instance = get_object_or_404(Contest, id=contest_id)
+    challenges = Challenges.objects.filter(contest=contest_instance)
+    return render(request, 'contest.html', {"challenges": challenges, "contest": contest_id, "user": user})
 
 def Details(request):
     if request.POST:
