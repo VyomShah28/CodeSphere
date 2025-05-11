@@ -3,171 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Signup</title>
+    <title>Login - CodeSphere</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color-start: #4da6a6;
+            --primary-color-end: #70cfcf;
+            --primary-gradient: linear-gradient(120deg, #4da6a6, #70cfcf);
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(120deg, #8e2de2, #4a00e0);
-            height: 100vh;
+            background: #faf7f1;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #fff;
+            padding: 20px;
+            color: #444;  
         }
 
-        .form-container {
+        .auth-container {
             background: #fff;
             color: #333;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
             overflow: hidden;
-            width: 450px;
-            position: relative;
+            width: 100%;
+            max-width: 480px; /* Slightly wider for better spacing */
+            animation: fadeIn 0.5s ease-out;
         }
 
-        .form-header {
-            background: linear-gradient(120deg, #8e2de2, #4a00e0);
-            padding: 20px 30px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .auth-header {
+            background: var(--primary-gradient);
+            padding: 30px; /* Increased padding */
             text-align: center;
             color: #fff;
         }
 
-        .form-header h2 {
-            font-size: 2rem;
-            font-weight: bold;
+        .auth-header h2 {
+            font-size: 2.2rem; /* Slightly larger */
+            font-weight: 700; /* Bolder */
+            margin-bottom: 0.5rem;
         }
 
-        .form-header p {
+        .auth-header p {
             font-size: 1rem;
-            margin-top: 5px;
+            font-weight: 300; /* Lighter subtitle */
+            margin: 0;
         }
 
-        .form-body {
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .auth-body {
+            padding: 35px 40px; /* Increased padding */
         }
 
-        .form-body input {
-            width: 90%;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
+        .form-floating>.form-control {
+            height: calc(3.5rem + 2px); /* Bootstrap default */
+            line-height: 1.25;
+        }
+
+        .form-floating>label {
+            padding: 1rem 1.5rem; /* Adjust padding for floating labels */
+        }
+        
+        .form-control {
+            border-radius: 30px; /* Pill-shaped inputs */
+            padding: 1rem 1.5rem;
             font-size: 1rem;
-            outline: none;
+            border: 1px solid #e0e0e0;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .form-body input:focus {
-            border-color: #8e2de2;
-            box-shadow: 0 0 10px rgba(142, 45, 226, 0.3);
+        .form-control:focus {
+            border-color: var(--primary-color-start);
+            box-shadow: 0 0 0 0.25rem rgba(142, 45, 226, 0.25); /* Focus ring matching theme */
         }
 
-        .form-body button {
-            width: 90%;
-            padding: 15px;
+        .btn-auth {
+            width: 100%;
+            padding: 0.85rem 1.5rem; /* Adjusted padding */
             border: none;
-            border-radius: 25px;
-            background: linear-gradient(120deg, #8e2de2, #4a00e0);
+            border-radius: 30px; /* Pill-shaped button */
+            background: var(--primary-gradient);
             color: #fff;
             font-size: 1.1rem;
-            font-weight: bold;
+            font-weight: 600; /* Bolder button text */
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease; /* Smooth transition for multiple properties */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .form-body button:hover {
-            background: linear-gradient(120deg, #4a00e0, #8e2de2);
-            transform: scale(1.05);
+        .btn-auth:hover, .btn-auth:focus {
+            background: var(--primary-gradient); /* Reversed gradient on hover */
+            transform: translateY(-3px); /* Slight lift */
+            box-shadow: 0 6px 20px rgba(142, 45, 226, 0.4);
+            color: #fff;
         }
 
-        .form-footer {
-            margin-top: 10px;
-            font-size: 0.9rem;
+        .auth-footer {
+            margin-top: 1.5rem; /* More space above footer */
+            font-size: 0.95rem;
             text-align: center;
         }
 
-        .form-footer span {
-            color: #8e2de2;
-            cursor: pointer;
-            font-weight: bold;
+        .auth-footer a {
+            color: var(--primary-color-start);
+            font-weight: 600; /* Bolder link text */
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
 
-        .form-footer span:hover {
+        .auth-footer a:hover {
+            color: var(--primary-color-end);
             text-decoration: underline;
         }
-
-        @media screen and (max-width: 480px) {
-            .form-container {
-                width: 90%;
-            }
+        .alert-custom {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
+
+        /* Make Django error messages look better */
+        .errorlist {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+            color: #dc3545; /* Bootstrap danger color */
+            font-size: 0.875em;
+        }
+        .errorlist li {
+            padding: 0.25rem 0;
+        }
+
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <div class="form-header" id="formHeader" style="background: linear-gradient(120deg, #8e2de2, #4a00e0);">
-            <h2 id="formTitle">Welcome Back!</h2>
-            <p id="formSubtitle">Login to access your account</p>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h2>Welcome Back!</h2>
+            <p>Login to access your CodeSphere account</p>
         </div>
-        <div class="form-body">
-            <form id="loginForm" method="POST">
+        <div class="auth-body">
+            <form id="loginForm" method="POST" novalidate>
                 {% csrf_token %}
-                <input name="user" id="user" hidden>
-                <input type="source" name="source" value="login" hidden>
-                <input type="email" placeholder="Enter your email" class="email" required>
-                <input type="password" placeholder="Enter your password" class="password" required>
-                <button type="button" onclick="Call()">Login</button>
+                <input name="user" id="user" type="hidden">
+                <input type="hidden" name="source" value="login">
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <input type="email" name="email" placeholder="Enter your email" class="form-control email" id="loginEmail" required>
+                    {% if form.email.errors %}
+                        <div class="errorlist">
+                            {% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <input type="password" name="password" placeholder="Enter your password" class="form-control password" id="loginPassword" required>
+                     {% if form.password.errors %}
+                        <div class="errorlist">
+                            {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="button" class="btn-auth" onclick="Call()">Login</button>
             </form>
+            <div id="loginAlert" class="alert-custom mt-3 d-none" role="alert">
+                </div>
         </div>
-        <div class="form-footer" style="padding-bottom: 30px;">
-            <span id="toggleForm"><a href="{% url 'Signup' %}">Don't have an account? Sign up</a></span>
+        <div class="auth-footer pb-4">
+            <span>Don't have an account? <a href="{% url 'Signup' %}">Sign up</a></span>
         </div>
     </div>
-</body>
-<script>
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const form=document.querySelector('#loginForm');
-    const user=document.querySelector('#user');
-    function Call(){    
-        const password = document.querySelector('.password').value;
-        const email = document.querySelector('.email').value;
-        fetch("{% url 'Check' %}", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrfToken
-            },
-            body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data);
-            if (data.flag) {
-                user.value=data.user;
-                form.action="{% url 'Sidebar' %}";
-                form.submit()
-            } else {
-                alert(data.msg);
-            }
-        })
-        .catch(error => {
-            console.error("There was an error with the fetch operation:", error);
-        });
-    }
-</script>
-</html>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const loginForm = document.getElementById('loginForm');
+        const userInput = document.getElementById('user');
+        const loginAlert = document.getElementById('loginAlert');
+
+        function Call() {
+            const passwordInput = document.getElementById('loginPassword');
+            const emailInput = document.getElementById('loginEmail');
+            const password = passwordInput.value;
+            const email = emailInput.value;
+
+            // Basic frontend validation
+            if (!email || !password) {
+                showAlert('Please enter both email and password.', false);
+                if(!email) emailInput.focus();
+                else passwordInput.focus();
+                return;
+            }
+            if (!isValidEmail(email)) {
+                showAlert('Please enter a valid email address.', false);
+                emailInput.focus();
+                return;
+            }
+
+            fetch("{% url 'Check' %}", { // Assuming 'Check' is your login check URL
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Try to get error message from server if possible
+                    return response.json().then(errData => {
+                        throw new Error(errData.msg || "Network response was not ok");
+                    }).catch(() => { // Fallback if response is not JSON
+                        throw new Error("Network response was not ok. Status: " + response.status);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+                if (data.flag) { // Assuming 'flag' indicates success
+                    userInput.value = data.user;
+                    loginForm.action = "{% url 'Sidebar' %}"; // Assuming 'Sidebar' is your redirect URL
+                    loginForm.submit();
+                } else {
+                    showAlert(data.msg || 'Login failed. Please check your credentials.', false);
+                }
+            })
+            .catch(error => {
+                console.error("There was an error with the fetch operation:", error);
+                showAlert(error.message || 'An error occurred. Please try again.', false);
+            });
+        }
+
+        function isValidEmail(email) {
+            // Basic email validation regex
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showAlert(message, isSuccess) {
+            loginAlert.textContent = message;
+            loginAlert.className = `alert-custom mt-3 ${isSuccess ? 'alert-success-custom' : 'alert-danger-custom'}`; // You'd define these or use Bootstrap's
+            loginAlert.classList.remove('d-none');
+            // For Bootstrap alert classes:
+            // loginAlert.className = `alert mt-3 ${isSuccess ? 'alert-success' : 'alert-danger'}`;
+        }
+    </script>
+</body>
+</html>

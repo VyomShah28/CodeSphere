@@ -507,5 +507,47 @@
             }
         }
     </script>
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            // Get TinyMCE content and manually validate
+            const editorFields = ['description', 'problemStatement', 'constraints', 'input', 'output', 'sample_testcase', 'sample_out'];
+            for (const id of editorFields) {
+                const content = tinymce.get(id)?.getContent({ format: 'text' }).trim();
+                if (!content) {
+                    alert(`Please fill in the "${id}" field.`);
+                    e.preventDefault();
+                    return;
+                }
+            }
+    
+            // Validate standard inputs and selects
+            const requiredFields = ['challengeName', 'Max_score', 'difficulty'];
+            for (const id of requiredFields) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) {
+                    alert(`Please fill in the "${el.name}" field.`);
+                    el.focus();
+                    e.preventDefault();
+                    return;
+                }
+            }
+    
+            // Validate file inputs
+            const testcaseFile = document.getElementById('testcaseFile');
+            const outputFile = document.getElementById('outputFile');
+            const hasChallenge = Boolean(document.querySelector('input[name="challenge"]').value);
+    
+            if (!hasChallenge && !testcaseFile.files.length) {
+                alert("Please upload the Test Cases file.");
+                e.preventDefault();
+                return;
+            }
+            if (!hasChallenge && !outputFile.files.length) {
+                alert("Please upload the Output file.");
+                e.preventDefault();
+                return;
+            }
+        });
+    </script>    
 </body>
 </html>

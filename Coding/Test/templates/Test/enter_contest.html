@@ -10,61 +10,71 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            font-family: 'Poppins', sans-serif;
             margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fffdf2, #fef9e7); /* Creamy pale yellow */
+            color: #2d3748;
         }
+
         .container {
             background: white;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 400px;
             animation: fadeIn 0.5s ease-in-out;
         }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
         h2 {
-            color: #333;
-            margin-bottom: 15px;
+            color: #444;
+            margin-bottom: 20px;
+            font-size: 22px;
         }
+
         input {
-            width: calc(100% - 20px);
-            padding: 12px;
+            width: 100%;
+            padding: 14px;
             margin-top: 10px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+            border: 2px solid #e6e6e6;
+            border-radius: 50px;
             font-size: 16px;
             outline: none;
-            transition: border 0.3s;
+            transition: border 0.3s ease;
         }
+
         input:focus {
-            border-color: #667eea;
+            border-color: #ffd27f;
         }
+
         button {
-            margin-top: 15px;
-            padding: 12px;
+            margin-top: 20px;
+            padding: 14px;
             width: 100%;
-            background: #667eea;
+            background: linear-gradient(to right, #fcd77f, #f5c26b);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 50px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             transition: background 0.3s, transform 0.2s;
         }
+
         button:hover {
-            background: #5a67d8;
+            background: linear-gradient(to right, #fbc362, #f3b94e);
             transform: scale(1.05);
         }
+
         .message {
             margin-top: 15px;
             font-size: 14px;
-            color: #333;
+            color: #555;
         }
     </style>
 </head>
@@ -75,18 +85,19 @@
         <input type="hidden" name="contest" id="contest"/>
         <div class="container">
             <h2>Enter Contest URL</h2>
-            <input type="text" id="contestUrl" placeholder="Paste contest URL here...">
+            <input type="text" id="contestUrl" placeholder="Paste contest URL here..."style="width:90%;">
             <button type="button" onclick="submitUrl()">Submit</button>
         </div>
     </form>
     <script>
         function submitUrl() {
             const url = document.getElementById('contestUrl').value.trim().split('/');
-            const contest=document.getElementById('contest');
-            const form=document.getElementById('form');
-            contest.value=url[4];
+            const contest = document.getElementById('contest');
+            const form = document.getElementById('form');
+            contest.value = url[4];
             form.submit();
         }
     </script>
 </body>
 </html>
+

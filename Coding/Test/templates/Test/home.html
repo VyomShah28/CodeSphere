@@ -3,198 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeSphere</title>
+    <title>CodeSphere - Modern UI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0;
+            --accent: #f72585;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --light-gray: #f0f2f5;
+            --text-dark: #333;
+            --text-muted: #6c757d;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9fa;
-            color: #343a40;
+            font-family: 'Poppins', 'Arial', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-dark);
             line-height: 1.6;
         }
 
-        header {
-            background: linear-gradient(90deg, #6c63ff, #4e54c8);
+        /* Header */
+        .custom-header {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); /* New vibrant gradient */
             color: white;
-            padding: 1.5rem 0;
+            padding: 3rem 0;
             text-align: center;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
         }
 
-        header h1 {
-            font-size: 2.8rem;
+        .custom-header h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+        }
+        
+
+        .custom-header p {
+            font-size: 1.3rem;
+            margin-top: 0.75rem;
+            font-weight: 300;
+            opacity: 0.9;
         }
 
-        header p {
-            font-size: 1.2rem;
-            margin-top: 0.5rem;
+        /* Navbar */
+        .custom-navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            padding: 0.75rem 0;
+            border-radius: 8px;
+            margin-top: 15px;
         }
 
-        nav {
-            background-color: #343a40;
-            padding: 0.5rem 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        nav ul {
-            display: flex;
-            justify-content: center;
-            list-style: none;
-        }
-
-        nav ul li {
-            margin: 0 1.5rem;
-        }
-
-        nav ul li a {
-            color: white;
-            text-decoration: none;
+        .custom-navbar .nav-link {
+            color: var(--dark);
             font-size: 1.1rem;
-            transition: color 0.3s;
+            font-weight: 500;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
         }
 
-        nav ul li a:hover {
-            color: #6c63ff;
+        .custom-navbar .nav-link:hover {
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.08);
+            transform: translateY(-2px);
         }
 
-        .hero {
+        .custom-navbar .nav-link.active {
+            color: white;
+            background-color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero-section {
             text-align: center;
             padding: 4rem 2rem;
-            background-color: #e9ecef;
+            background-color: #ffffff;
+            margin-top: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
-        .hero h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        .hero-section h2 {
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            position: relative;
+        }
+        
+        .hero-section h2:after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 4px;
         }
 
-        .hero p {
+        .hero-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            color: var(--text-muted);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-custom-primary {
+            text-decoration: none;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.9rem 2.2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
 
-        .hero a {
+        .btn-custom-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+            color: white;
+        }
+
+        /* Cards Section */
+        .cards-section {
+            padding: 3rem 0;
+        }
+
+        .custom-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            height: 100%;
+            border: none;
+            position: relative;
+        }
+
+        .custom-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .custom-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-card:hover:before {
+            opacity: 1;
+        }
+
+        .custom-card .card-body {
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .custom-card .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-left: auto;
+            margin-right: auto;
+            transition: all 0.3s ease;
+        }
+
+        .custom-card:hover .card-icon {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .custom-card .card-title {
+            margin-bottom: 1rem;
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .custom-card .card-text {
+            margin-bottom: 2rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+            flex-grow: 1;
+        }
+
+        .btn-card {
             font-size: 1rem;
             text-decoration: none;
-            background: linear-gradient(90deg, #6c63ff, #4e54c8);
-            color: white;
-            padding: 0.8rem 2rem;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
+            background-color: transparent;
+            color: var(--primary);
+            padding: 0.7rem 1.8rem;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin-top: auto;
         }
 
-        .hero button:hover {
+        .btn-card:hover {
+            background-color: var(--primary);
+            color: white;
             transform: scale(1.05);
         }
 
-        .cards {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            margin: 3rem auto;
-            max-width: 1200px;
-            padding: 0 1rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            padding: 1.5rem;
+        /* Footer */
+        .custom-footer {
+            background-color: var(--dark);
+            color: rgba(255, 255, 255, 0.7);
             text-align: center;
-            transition: transform 0.2s;
+            padding: 2.5rem 0;
+            margin-top: 3rem;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
 
-        .card:hover {
-            transform: translateY(-10px);
-        }
-
-        .card h3 {
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
-        }
-
-        .card p {
-            margin-bottom: 1.5rem;
-            color: #6c757d;
-        }
-
-        .card a {
+        .custom-footer p {
             font-size: 1rem;
-            text-decoration: none;
-            background-color: #6c63ff;
-            color: white;
-            padding: 0.6rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            margin: 0;
         }
 
-        footer {
-            background-color: #343a40;
-            color: white;
-            text-align: center;
-            padding: 1rem 0;
-            margin-top: 2rem;
+        .heart {
+            color: var(--accent);
+            display: inline-block;
+            animation: heartbeat 1.5s infinite;
         }
 
-        footer p {
-            font-size: 0.9rem;
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 991.98px) {
+            .custom-card .card-text {
+                min-height: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .custom-header h1 {
+                font-size: 2.5rem;
+            }
+            .custom-header p {
+                font-size: 1.1rem;
+            }
+            .hero-section h2 {
+                font-size: 2.2rem;
+            }
+            .custom-navbar .navbar-nav {
+                align-items: center;
+                padding-top: 0.5rem;
+            }
+            .custom-navbar .nav-item {
+                margin-bottom: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>CodeSphere</h1>
-        <p>Challenge yourself, compete with the best, and improve your skills</p>
+    <header class="custom-header">
+        <div class="container">
+            <h1>CodeSphere</h1>
+            <p>Challenge yourself, compete with the best, and improve your skills</p>
+        </div>
     </header>
 
-    <nav>
-        <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="{% url 'Login' %}">Contests</a></li>
-            <li><a href="{% url 'Login' %}">Leaderboard</a></li>
-        </ul>
-    </nav>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg custom-navbar sticky-top">
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="{% url 'Home' %}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'Login' %}">Contests</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'Login' %}">Leaderboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'Login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'Signup' %}">SignUp</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
 
-    <section class="hero">
-        <h2>Welcome to the Future of Competitive Coding</h2>
-        <p>Join coding contests, analyze your progress, and become a coding champion.</p>
-        <a href="{% url 'Login' %}">Track Now</a>
-    </section>
+    <main class="container">
+        <section class="hero-section mt-4 mb-5">
+            <h2>Welcome to the Future of Competitive Coding</h2>
+            <div data-aos="fade-up" data-aos-delay="100">
+                <p>
+                    Step into a world where coders rise through challenges, not just ranks. CodeSphere offers a dynamic platform where you can sharpen your skills, face real-world coding problems, and benchmark your progress against a global community. Whether you're a beginner or a seasoned programmer, our contests, analytics, and leaderboard will help you evolve from a coder to a coding champion.
+                </p>
+            </div>
+            <a href="#" class="btn btn-custom-primary">Explore Challenges</a>
+        </section>
+        
+        <section class="cards-section my-5">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4 d-flex align-items-stretch">
+                    <div class="card custom-card w-100" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="bi bi-trophy"></i>
+                            </div>
+                            <h3 class="card-title">Create a Contest</h3>
+                            <p class="card-text">Organize your own coding challenges and invite participants worldwide.</p>
+                            <a href="#" class="btn btn-card">Create Now</a>
+                        </div>
+                    </div>
+                </div>
 
-    <section class="cards">
-        <div class="card">
-            <h3>Create a Contest</h3>
-            <p>Organize your own coding challenges and invite participants worldwide.</p>
-            <a href="{% url 'Login' %}" style="text-decoration: none; color: #f8f9fa;">Create Now</a>
+                <div class="col-lg-4 col-md-6 mb-4 d-flex align-items-stretch">
+                    <div class="card custom-card w-100" data-aos="fade-up" data-aos-delay="200">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="bi bi-code-square"></i>
+                            </div>
+                            <h3 class="card-title">Join a Contest</h3>
+                            <p class="card-text">Participate in diverse challenges and compete with coders globally.</p>
+                            <a href="#" class="btn btn-card">Join Now</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4 d-flex align-items-stretch">
+                    <div class="card custom-card w-100" data-aos="fade-up" data-aos-delay="300">
+                        <div class="card-body">
+                            <div class="card-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <h3 class="card-title">Track Your Progress</h3>
+                            <p class="card-text">View detailed stats and see how you rank against others.</p>
+                            <a href="#" class="btn btn-card">Track Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="custom-footer">
+        <div class="container">
+            <p>&copy; 2025 CodeSphere. All rights reserved. Designed with <span class="heart">&hearts;</span></p>
         </div>
-
-        <div class="card">
-            <h3>Join a Contest</h3>
-            <p>Participate in diverse challenges and compete with coders globally.</p>
-            <a href="{% url 'Login' %}">Join Now</a>
-        </div>
-
-        <div class="card">
-            <h3>Track Your Progress</h3>
-            <p>View detailed stats and see how you rank against others.</p>
-            <a href="{% url 'Login' %}">Track Now</a>
-        </div>
-    </section>
-
-    <footer>
-        <p>&copy; 2025 CodeSphere. All rights reserved.</p>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+    </script>
 </body>
 </html>

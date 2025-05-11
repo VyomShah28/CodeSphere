@@ -3,157 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Signup</title>
+    <title>Sign Up - CodeSphere</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-color-start: #4da6a6;
+            --primary-color-end: #70cfcf;
+            --primary-gradient: linear-gradient(120deg, #4da6a6, #70cfcf);
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(120deg, #8e2de2, #4a00e0);
-            height: 100vh;
+            background: #faf7f1;  /* Soft cream */
+            color: #444;  
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #fff;
+            padding: 20px;
         }
 
-        .form-container {
+        .auth-container {
             background: #fff;
             color: #333;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
             overflow: hidden;
-            width: 450px;
-            position: relative;
+            width: 100%;
+            max-width: 480px;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        .form-header {
-            background: linear-gradient(120deg, #8e2de2, #4a00e0);
-            padding: 20px 30px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .auth-header {
+            background: var(--primary-gradient);
+            padding: 30px;
             text-align: center;
             color: #fff;
         }
 
-        .form-header h2 {
-            font-size: 2rem;
-            font-weight: bold;
+        .auth-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
-        .form-header p {
+        .auth-header p {
             font-size: 1rem;
-            margin-top: 5px;
+            font-weight: 300;
+            margin: 0;
         }
 
-        .form-body {
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .auth-body {
+            padding: 35px 40px;
         }
-
-        .form-body input {
-            width: 90%;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
+        
+        .form-control {
+            border-radius: 30px;
+            padding: 1rem 1.5rem;
             font-size: 1rem;
-            outline: none;
+            border: 1px solid #e0e0e0;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .form-body input:focus {
-            border-color: #8e2de2;
-            box-shadow: 0 0 10px rgba(142, 45, 226, 0.3);
+        .form-control:focus {
+            border-color: var(--primary-color-start);
+            box-shadow: 0 0 0 0.25rem rgba(142, 45, 226, 0.25);
         }
 
-        .form-body button {
-            width: 90%;
-            padding: 15px;
+        .btn-auth {
+            width: 100%;
+            padding: 0.85rem 1.5rem;
             border: none;
-            border-radius: 25px;
-            background: linear-gradient(120deg, #8e2de2, #4a00e0);
+            border-radius: 30px;
+            background: var(--primary-gradient);
             color: #fff;
             font-size: 1.1rem;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .form-body button:hover {
-            background: linear-gradient(120deg, #4a00e0, #8e2de2);
-            transform: scale(1.05);
+        .btn-auth:hover, .btn-auth:focus {
+            background: var(--primary-gradient);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(142, 45, 226, 0.4);
+            color: #fff;
         }
 
-        .form-footer {
-            margin-top: 10px;
-            font-size: 0.9rem;
+        .auth-footer {
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
             text-align: center;
         }
 
-        .form-footer span {
-            color: #8e2de2;
-            cursor: pointer;
-            font-weight: bold;
+        .auth-footer a {
+            color: var(--primary-color-start);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
         }
 
-        .form-footer span:hover {
+        .auth-footer a:hover {
+            color: var(--primary-color-end);
             text-decoration: underline;
         }
-
-        @media screen and (max-width: 480px) {
-            .form-container {
-                width: 90%;
-            }
+        .alert-custom { /* Shared with login, can be in a global CSS */
+            background-color: #f8d7da; /* Default to danger for errors */
+            color: #721c24;
+            border-color: #f5c6cb;
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
+        /* Make Django error messages look better */
+        .errorlist {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+            color: #dc3545; /* Bootstrap danger color */
+            font-size: 0.875em;
+        }
+        .errorlist li {
+            padding: 0.25rem 0;
+        }
+
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <div class="form-header" id="formHeader" style="background:linear-gradient(120deg, #4a00e0, #8e2de2);">
-            <h2 id="formTitle">Join Us Today!</h2>
-            <p id="formSubtitle">"Create an account and start exploring"</p>
+    <div class="auth-container">
+        <div class="auth-header" style="background: var(--primary-gradient);">
+            <h2>Join Us Today!</h2>
+            <p>Create an account and start exploring CodeSphere</p>
         </div>
-        <div class="form-body">
-            <form id="signupForm" action="{% url 'Sidebar' %}" method="POST">
+        <div class="auth-body">
+            <form id="signupForm" action="{% url 'Sidebar' %}" method="POST" novalidate>
                 {% csrf_token %}
-                <input type="source" name="source" value="signup" hidden>
-                <input type="text" placeholder="Enter your full name" name="name" required>
-                <input type="email" placeholder="Enter your email" name="email" class="email" required>
-                <input type="password" placeholder="Enter your password" name="password" class="password" required>
-                <button type="button" onclick="check()">Sign Up</button>
+                <input type="hidden" name="source" value="signup">
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <input type="text" name="name" placeholder="Enter your full name" class="form-control" id="signupName" required>
+                     {% if form.name.errors %}
+                        <div class="errorlist">
+                            {% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <input type="email" name="email" placeholder="Enter your email" class="form-control email" id="signupEmail" required>
+                    {% if form.email.errors %}
+                        <div class="errorlist">
+                            {% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4"> <input type="password" name="password" placeholder="Enter your password" class="form-control password" id="signupPassword" required>
+                    {% if form.password.errors %}
+                        <div class="errorlist">
+                            {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn-auth" onclick="check()">Sign Up</button>
             </form>
+            <div id="signupAlert" class="alert-custom mt-3 d-none" role="alert">
+                </div>
         </div>
-        <div class="form-footer" style="padding-bottom: 30px;">
-            <span id="toggleForm"><a href="{% url 'Login' %}">Already have an account? Login</a></span>
+        <div class="auth-footer pb-4">
+            <span>Already have an account? <a href="{% url 'Login' %}">Login</a></span>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const csrfTokenSignup = document.querySelector('[name=csrfmiddlewaretoken]').value; // Ensure unique const name if in same scope
+        const signupFormElement = document.getElementById('signupForm');
+        const signupAlert = document.getElementById('signupAlert');
+
+
+        function check() { // Renamed from 'check' to avoid conflict if scripts were combined
+            const nameInput = document.getElementById('signupName');
+            const emailInput = document.getElementById('signupEmail');
+            const passwordInput = document.getElementById('signupPassword');
+
+            const name = nameInput.value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            // Basic frontend validation
+            if (!name || !email || !password) {
+                showAlertSignup('Please fill in all fields.', false);
+                 if(!name) nameInput.focus();
+                 else if(!email) emailInput.focus();
+                 else passwordInput.focus();
+                return;
+            }
+            if (!isValidEmailSignup(email)) {
+                 showAlertSignup('Please enter a valid email address.', false);
+                 emailInput.focus();
+                 return;
+            }
+            if (password.length < 6) { // Example: Minimum password length
+                showAlertSignup('Password must be at least 6 characters long.', false);
+                passwordInput.focus();
+                return;
+            }
+
+
+            fetch("{% url 'Check_email' %}", { // Assuming 'Check_email' is your email check URL
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfTokenSignup
+                },
+                body: `email=${encodeURIComponent(email)}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                     return response.json().then(errData => {
+                        throw new Error(errData.msg || "Network response was not ok");
+                    }).catch(() => {
+                        throw new Error("Network response was not ok. Status: " + response.status);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) { // Assuming 'success' being true means email exists
+                    showAlertSignup("Email Already Exists. Please try a different email or login.", false);
+                    emailInput.focus();
+                } else {
+                    // If email does not exist, proceed to submit the form for actual signup
+                    signupFormElement.submit();
+                }
+            })
+            .catch(error => {
+                console.error("There was an error with the fetch operation:", error);
+                showAlertSignup(error.message || 'An error occurred. Please try again.', false);
+            });
+        }
+
+        function isValidEmailSignup(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showAlertSignup(message, isSuccess) {
+            signupAlert.textContent = message;
+            // You might want different alert styles for success (e.g. after successful signup before redirect)
+            signupAlert.className = `alert-custom mt-3 ${isSuccess ? 'alert-success-custom' : 'alert-danger-custom'}`;
+            signupAlert.classList.remove('d-none');
+        }
+    </script>
 </body>
-<script>
-    const csrfToken=document.querySelector('[name=csrfmiddlewaretoken]').value
-    function check(){
-        const doc=document.querySelector('.email').value;
-        const form=document.querySelector('#signupForm')
-        fetch("{% url 'Check_email' %}",{
-            method:"POST",
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrfToken
-            },
-            body: `email=${encodeURIComponent(doc)}`
-        }).then(response=>response.json())
-        .then(data=>{
-            if(data.success){
-                alert("Email Already Exists");
-            }
-            else{
-                form.submit();
-            }
-        })
-    }
-</script>
 </html>

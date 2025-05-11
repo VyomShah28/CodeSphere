@@ -1,119 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Code Challenge</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Code Challenge: Engage!</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
     <style>
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            font-family: 'Poppins', sans-serif;
+            background-color: #0B1120; 
+            color: #CCD6F6;
+            line-height: 1.6;
         }
+        .container {
+            background-color: #1E293B; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: minmax(300px, 40%) 1fr; 
+        }
+        .problem-panel {
+            background-color: #111827;
+            color: #E0E6F1;
+            padding: 2rem;
+            border-right: 1px solid #334155;
+            overflow-y: auto;
+        }
+        .problem-panel h2 {
+            margin-top:1rem;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #64FFDA;
+            border-bottom: 3px solid #43A085;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .problem-panel h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #A8B2D1;
+            border-bottom: 1px dashed #4A5568; /* Dashed separator */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .testcase {
+            margin-bottom: 1.5rem;
+        }
+        .testcase div {
+            background-color: #1C2536; /* Darker test case block */
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #5CB85C; /* Green indicator */
+        }
+        .code-editor-panel {
+            display: flex;
+            flex-direction: column;
+            background-color: #1A202C; /* Dark editor background */
+            overflow: hidden;
+        }
+        .code-header {
+            background-color: #2D3748; /* Darker header */
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #4A5568;    
+        }
+        .language-select {
+            display: flex;
+            align-items: center;
+        }
+        .language-select label {
+            color: #CBD5E0;
+            margin-right: 0.75rem;
+            font-family: 'JetBrains Mono', monospace; /* Sharp coding font */
+            font-weight: 500;
+        }
+        .language-select select {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #4A5568;
+            background-color: #1A202C;
+            color: #F9FAFB;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .code-buttons button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: #F9FAFB;
+            font-family: sans-serif;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            font-size: 0.9rem;
+        }
+        .code-buttons .run-button {
+            background-color: #2D8654; /* Deeper green */
+        }
+        .code-buttons .run-button:hover {
+            background-color: #226F43;
+        }
+        .code-buttons .submit-button {
+            background-color: #2B6CB0; /* Deeper blue */
+        }
+        .code-buttons .submit-button:hover {
+            background-color: #1A436D;
+        }
+        .code-buttons .reset-button {
+            background-color: #C53030; /* Stronger red */
+        }
+        .code-buttons .reset-button:hover {
+            background-color: #A31F34;
+        }
+        .code-area {
+            flex-grow: 1;
+            overflow: hidden;
+            width: 100%;          
+            display: flex;  
+            
+        }
+        #outputMessage {
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+        }
+        .output-success {
+            background-color: #38A169; /* Brighter success green */
+            color: #F0FFF4;
+            border-left: 4px solid #68D391;
+        }
+        .output-error {
+            background-color: #E53E3E; /* Stronger error red */
+            color: #FFF5F5;
+            border-left: 4px solid #FC8181;
+        }
+        /* Scrollbar styles for WebKit browsers */
         .scrollbar-thin::-webkit-scrollbar {
-            width: 6px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            width: 10px;
         }
         .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 3px;
+            background-color: #4A5568;
+            border-radius: 5px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background-color: #2D3748;
+            border-radius: 5px;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex">
-    <div class="container mx-auto px-4 py-8 flex-grow">
-        <div class="grid grid-cols-12 gap-6 h-full">
-            <div class="col-span-5 bg-white shadow-md rounded-lg p-6 overflow-y-auto scrollbar-thin">
-                <div class="space-y-6">
-                    <div>
-                        <h2 class="text-2xl font-bold text-blue-600 border-b-2 border-blue-600 pb-2 mb-4">Problem Description</h2>
-                        <p class="text-gray-700">{{problem_statement | linebreaks}}</p>
-                    </div>
-
-                    <div>
-                        <h3 class="text-xl font-semibold text-green-600 border-b border-green-600 pb-1 mb-3">Testcases</h3>
-                        <div class="testcase space-y-3 text-sm">
-                            
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-xl font-semibold text-red-600 border-b border-red-600 pb-1 mb-3">Constraints</h3>
-                        <p class="text-gray-700">{{constraints | linebreaks}}</p>
-                    </div>
-
-                    <div>
-                        <h3 class="text-xl font-semibold text-purple-600 border-b border-purple-600 pb-1 mb-3">Input Format</h3>
-                        <p class="text-gray-700">{{input | linebreaks}}</p>
-                    </div>
-
-                    <div>
-                        <h3 class="text-xl font-semibold text-indigo-600 border-b border-indigo-600 pb-1 mb-3">Output Format</h3>
-                        <p class="text-gray-700">{{output | linebreaks}}</p>
-                    </div>
-                </div>
+<body class="scrollbar-thin;">
+    <div class="container">
+        <input type="hidden" id="csrf" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" id="challenge_id" value="{{challenge}}">
+        <input type="hidden" id="action">
+        <input type="hidden" id="user" value="{{user}}">
+        <div class="problem-panel scrollbar-thin">
+            <div>
+                <h2 class="text-xl font-bold text-teal-300 border-b-2 border-teal-500 pb-2 mb-4">{{name}}</h2>
+                <p class="text-gray-400 leading-relaxed">{{problem_statement | linebreaks}}</p>
             </div>
-
-            <div class="col-span-7 h-full flex flex-col">
-                <input type="hidden" id="csrf" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                <input type="hidden" id="challenge_id" value="{{challenge}}">
-                <input type="hidden" id="action">
-                <input type="hidden" id="user" value="{{user}}">
-
-                <div class="bg-white shadow-md rounded-lg p-4 flex-grow flex flex-col">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-4">
-                            <label class="text-gray-700 font-medium">Language:</label>
-                            <select id="language" class="form-select border rounded px-3 py-2 ">
-                                <option value="java">Java</option>
-                                <option value="python">Python</option>
-                            </select>
-                        </div>
-                        <div class="flex justify-end space-x-4 mt-4" style="border-left: 400px;">
-                            <button onclick="Run('run')" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition">
-                                Run
-                            </button>
-                            <button onclick="Run('submit')" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition">
-                                Submit
-                            </button>
-                            <button id='reset-button' class="bg-red-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition">
-                                Reset
-                            </button>
-                        </div>
-                    </div>
-
-                    <textarea id="compiler" class="w-full border rounded p-3 font-mono text-sm flex-grow bg-gray-50"></textarea>
-
-                    <div id="outputMessage" class="mt-4 p-3 rounded hidden"></div>
-                </div>
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-green-300 border-b border-green-500 pb-1 mb-3">Test Cases</h3>
+                <div class="testcase space-y-3 text-sm text-gray-400"></div>
+            </div>
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-yellow-300 border-b border-yellow-500 pb-1 mb-3">Constraints</h3>
+                <p class="text-gray-400 leading-relaxed">{{constraints | linebreaks}}</p>
+            </div>
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-blue-300 border-b border-blue-500 pb-1 mb-3">Input Format</h3>
+                <p class="text-gray-400 leading-relaxed">{{input | linebreaks}}</p>
+            </div>
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-purple-300 border-b border-purple-500 pb-1 mb-3">Output Format</h3>
+                <p class="text-gray-400 leading-relaxed">{{output | linebreaks}}</p>
             </div>
         </div>
-    </div>
 
+        <div class="code-editor-panel flex flex-col">
+            <div class="code-header">
+                <div class="language-select">
+                    <label for="language">Lang:</label>
+                    <select id="language" class="rounded-md border border-gray-700 bg-gray-800 text-gray-300 focus:outline-none">
+                        <option value="java">Java</option>
+                        <option value="python">Python</option>
+                    </select>
+                </div>
+                <div class="code-buttons">
+                    <button onclick="Run('run')" class="run-button">Run Code</button>
+                    <button onclick="Run('submit')" class="submit-button ml-3">Submit Solution</button>
+                    <button id="reset-button" class="reset-button ml-3">Reset Code</button>
+                </div>
+            </div>
+
+            <div class="code-area">
+                <textarea id="compiler" spellcheck="false" class="m-4 w-full h-80 border border-gray-700 rounded-xl p-4 bg-gray-900 text-green-100 text-teal-300 resize-none shadow-inner" ></textarea>
+            </div>
+            <div class="code-area">
+                <div class="m-4 w-full h-60 rounded-xl border border-gray-700 bg-gray-900 flex flex-col">
+                    <div class="bg-gray-800 text-teal-300 font-semibold px-4 py-2 border-b border-gray-700 rounded-t-xl">
+                        Output Console
+                    </div>
+                    <div id="outputMessage" class="flex-1 p-4 text-sm font-mono overflow-auto" style="display: block;">
+                        <!-- Output will appear here after running code -->
+                        <span class="text-gray-500 italic">Run code to see output...</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             Display(`{{sample}}`, `{{sample_out}}`);
         });
 
-        document.addEventListener('DOMContentLoaded',()=>{
-
+        document.addEventListener('DOMContentLoaded', () => {
             const compilerTextarea = document.getElementById('compiler');
             const languageSelect = document.getElementById('language');
             const resetButton = document.getElementById('reset-button');
-            const challenge=document.getElementById('challenge_id').value;
-            const user=document.getElementById('user').value;
+            const challenge = document.getElementById('challenge_id').value;
+            const user = document.getElementById('user').value;
 
             const defaultCode = {
-                'java': 'import java.util.*; \npublic class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
-                'python': 'def solution():\n    # Your code here\n    pass'
+                'java': 'public class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
+                'python': 'def solve():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    solve()'
             };
-            Object.keys(defaultCode).forEach((key)=>{
+
+            Object.keys(defaultCode).forEach((key) => {
                 const storageKey = `${challenge}_${key}_${user}`;
-                if(!localStorage.getItem(storageKey)){
-                    localStorage.setItem(storageKey,defaultCode[`${key}`]);
+                if (!localStorage.getItem(storageKey)) {
+                    localStorage.setItem(storageKey, defaultCode[key]);
                 }
-            })
+            });
+
             function loadSavedCode() {
                 const currentLanguage = languageSelect.value;
                 const storageKey = `${challenge}_${currentLanguage}_${user}`;
@@ -128,11 +254,12 @@
             });
 
             languageSelect.addEventListener('change', loadSavedCode);
+
             resetButton.addEventListener('click', () => {
                 const currentLanguage = languageSelect.value;
                 const storageKey = `${challenge}_${currentLanguage}_${user}`;
-                compilerTextarea.value = def.value;
                 localStorage.removeItem(storageKey);
+                compilerTextarea.value = defaultCode[currentLanguage];
             });
 
             loadSavedCode();
@@ -144,33 +271,32 @@
             const out = output.split('\n');
             sample.forEach((test1, index) => {
                 const div1 = document.createElement('div');
-                div1.className = 'bg-gray-100 p-3 rounded';
                 div1.innerHTML = `
-                    <div class="font-semibold text-gray-700 mb-2">TestCase ${index + 1}</div>
-                    <div class="text-sm">
-                        <p><span class="font-medium text-gray-600">Input:</span> ${test1}</p>
-                        <p><span class="font-medium text-gray-600">Expected Output:</span> ${out[index]}</p>
-                    </div>
+                    <div class="font-bold text-green-300 mb-2">Case ${index + 1}</div>
+                    <p class="mb-1"><span class=" font-bold text-yellow-400">Input:</span> <code class="text-blue-400 font-sans">${test1}</code></p>
+                    <p><span class="font-bold text-yellow-400">Expected:</span> <code class="text-purple-400 font-sans">${out[index]}</code></p>
                 `;
                 div.appendChild(div1);
             });
         }
 
         const csrfToken = document.getElementById("csrf").value;
+
         function Run(action) {
             const language = document.getElementById("language").value;
             const code = document.getElementById("compiler").value;
             const outputMessage = document.getElementById("outputMessage");
             const challenge_id = document.getElementById("challenge_id").value;
             const user = document.getElementById("user").value;
+
             fetch("{% url 'Compile' %}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    'X-CSRFToken': csrfToken
+                    "X-CSRFToken": csrfToken
                 },
                 body: JSON.stringify({
-                    user:user,
+                    user: user,
                     action: action,
                     language: language,
                     code: code,
@@ -180,14 +306,14 @@
             .then(response => response.json())
             .then(data => {
                 outputMessage.style.display = "block";
-                outputMessage.classList.remove('bg-red-100', 'bg-green-100', 'text-red-700', 'text-green-700');
-                outputMessage.style.whiteSpace = "pre-line"
-                
+                outputMessage.classList.remove("output-error", "output-success");
+                outputMessage.style.whiteSpace = "pre-line";
+
                 if (data.success) {
-                    outputMessage.classList.add('bg-green-100', 'text-green-700');
+                    outputMessage.classList.add("output-success");
                     outputMessage.textContent = data.msg;
                 } else {
-                    outputMessage.classList.add('bg-red-100', 'text-red-700');
+                    outputMessage.classList.add("output-error");
                     outputMessage.textContent = data.Error;
                 }
             });

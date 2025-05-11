@@ -1,217 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Contest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Contest</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
 
-        body {
-            background: linear-gradient(to bottom right, #1e293b, #4f46e5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 20px;
-        }
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #4da6a6, #70cfcf);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-        .container {
-            background: white;
-            width: 420px;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
+    .container {
+      background: #fffefc;
+      width: 440px;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      text-align: center;
+    }
 
-        .container h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #333;
-        }
+    .container h1 {
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 25px;
+      color: #333;
+    }
 
-        .form-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
 
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            font-size: 14px;
-            color: #333;
-            margin-bottom: 5px;
-        }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #333;
+    }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 9999px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: #f9f9f9;
+    }
 
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: #4f46e5;
-            outline: none;
-            box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
-        }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #4da6a6;
+      box-shadow: 0 0 0 4px rgba(77, 166, 166, 0.15);
+      background: #fff;
+      outline: none;
+    }
 
-        .form-group .inline {
-            display: flex;
-            gap: 10px;
-        }
+    .form-group .inline {
+      display: flex;
+      gap: 10px;
+    }
 
-        .form-group .inline input {
-            flex: 1;
-        }
+    .form-group .inline input {
+      flex: 1;
+    }
 
-        .form-check {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
+    #manualInput {
+      margin-top: 10px;
+    }
 
-        .form-check input {
-            margin-right: 8px;
-        }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 9999px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(to right, #4da6a6, #70cfcf);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
 
-        .btn {
-            display: block;
-            width: 100%;
-            background: linear-gradient(to right, #4f46e5, #9333ea);
-            color: white;
-            padding: 12px;
-            text-align: center;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+    .btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(to right, #3c9b9b, #5cc7c7);
+    }
 
-        .btn:hover {
-            background: linear-gradient(to right, #4338ca, #7e22ce);
-            transform: translateY(-2px);
-        }
+    .btn:active {
+      transform: scale(0.97);
+    }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        #manualInput {
-            display: none;
-        }
-    </style>
+    select {
+      appearance: none;
+      background: url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 1rem center/1rem auto;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Create Contest</h1>
-        <form id='form' method="POST">
-            {% csrf_token %}
-            <input name="user" value="{{user}}" hidden>
-            <div class="form-group">
-                <label for="contest-name">Contest Name *</label>
-                {% if contest %}
-                    <input type="text" id="contest-name" name="contest-name" value="{{contest.contest_name}}">
-                {% else %}
-                    <input type="text" id="contest-name" name="contest-name" required>
-                {% endif %}
-            </div>
+  <div class="container">
+    <h1>Create Contest</h1>
+    <form id="form" method="POST">
+      {% csrf_token %}
+      <input name="user" value="{{user}}" hidden />
+      <div class="form-group">
+        <label for="contest-name">Contest Name *</label>
+        {% if contest %}
+          <input type="text" id="contest-name" name="contest-name" value="{{contest.contest_name}}" />
+        {% else %}
+          <input type="text" id="contest-name" name="contest-name" required />
+        {% endif %}
+      </div>
 
-            <input type="hidden" name="source" value="home">
+      <input type="hidden" name="source" value="home" />
 
-            <div class="form-group">
-                <label>Start Time *</label>
-                <div class="inline">
-                    {% if contest %}
-                    <input type="date" id="start-date" name="start-date" value="{{contest.start_date | date:'Y-m-d'}}">
-                    <input type="time" id="start-time" name="start-time" value="{{contest.start_time | time:'H:i'}}">
-                    {% else %}
-                    <input type="date" id="start-date" name="start-date" required>
-                    <input type="time" id="start-time" name="start-time" required>
-                    {% endif %}
-                </div>
-            </div>
+      <div class="form-group">
+        <label>Start Time *</label>
+        <div class="inline">
+          {% if contest %}
+            <input type="date" id="start-date" name="start-date" value="{{contest.start_date | date:'Y-m-d'}}" />
+            <input type="time" id="start-time" name="start-time" value="{{contest.start_time | time:'H:i'}}" />
+          {% else %}
+            <input type="date" id="start-date" name="start-date" required />
+            <input type="time" id="start-time" name="start-time" required />
+          {% endif %}
+        </div>
+      </div>
 
-            <div class="form-group">
-                <label>End Time</label>
-                <div class="inline">
-                    {% if contest %}
-                    <input type="date" id="end-date" name="end-date" value="{{contest.end_date | date:'Y-m-d'}}">
-                    <input type="time" id="end-time" name="end-time" value="{{contest.end_time | time:'H:i'}}">
-                    {% else %}
-                    <input type="date" id="end-date" name="end-date">
-                    <input type="time" id="end-time" name="end-time">
-                    {% endif %}
-                </div>
-            </div>
+      <div class="form-group">
+        <label>End Time</label>
+        <div class="inline">
+          {% if contest %}
+            <input type="date" id="end-date" name="end-date" value="{{contest.end_date | date:'Y-m-d'}}" />
+            <input type="time" id="end-time" name="end-time" value="{{contest.end_time | time:'H:i'}}" />
+          {% else %}
+            <input type="date" id="end-date" name="end-date" />
+            <input type="time" id="end-time" name="end-time" />
+          {% endif %}
+        </div>
+      </div>
 
-            <div class="form-group">
-                <label for="max">Maximum Entries</label>
-                {% if contest %}
-                {% if contest.number_of_entries != 2_147_483_647 %}
-                <select id="maxSelect" name="maxSelect" value="{{contest.number_of_entries}}">
-                    <option value="undefined">Undefined</option>
-                    <option value="manual" selected>Enter Manually</option>
-                </select>
-                <input type="number" id="manualInput" name="manualInput" value="{{contest.number_of_entries}}" style="display: block;">
-                {% else %}
-                <select id="maxSelect" name="maxSelect" value="{{contest.number_of_entries}}">
-                    <option value="undefined" selected>Undefined</option>
-                    <option value="manual">Enter Manually</option>
-                </select>
-                {% endif %}
-                {% else %}
-                <select id="maxSelect" name="maxSelect" value="{{contest.number_of_entries}}">
-                    <option value="undefined">Undefined</option>
-                    <option value="manual">Enter Manually</option>
-                </select>
-                <input type="number" id="manualInput" name="manualInput" placeholder="Enter max entries">
-                {% endif %}
-            </div>
-            {% if contest %}
-            <input name="contest" value="{{contest.id}}" hidden>
-            <button type="button" class="btn" onclick="Call('Main')">Create Contest</button>
-            {% else %}
-            <button type="button" class="btn" onclick="Call('Contest')">Create Contest</button>
-            {% endif %}
-        </form>
-    </div>
+      <div class="form-group">
+        <label for="max">Maximum Entries</label>
+        {% if contest %}
+          {% if contest.number_of_entries != 2_147_483_647 %}
+            <select id="maxSelect" name="maxSelect">
+              <option value="undefined">Undefined</option>
+              <option value="manual" selected>Enter Manually</option>
+            </select>
+            <input type="number" id="manualInput" name="manualInput" value="{{contest.number_of_entries}}" style="display: block;" />
+          {% else %}
+            <select id="maxSelect" name="maxSelect">
+              <option value="undefined" selected>Undefined</option>
+              <option value="manual">Enter Manually</option>
+            </select>
+          {% endif %}
+        {% else %}
+          <select id="maxSelect" name="maxSelect">
+            <option value="undefined">Undefined</option>
+            <option value="manual">Enter Manually</option>
+          </select>
+          <input type="number" id="manualInput" name="manualInput" placeholder="Enter max entries" style="display: none;" />
+        {% endif %}
+      </div>
 
-    <script>
-        const maxSelect = document.getElementById('maxSelect');
-        const manualInput = document.getElementById('manualInput');
+      {% if contest %}
+        <input name="contest" value="{{contest.id}}" hidden />
+        <button type="button" class="btn" onclick="Call('Main')">Update Contest</button>
+      {% else %}
+        <button type="button" class="btn" onclick="Call('Contest')">Create Contest</button>
+      {% endif %}
+    </form>
+  </div>
 
-        maxSelect.addEventListener('change', function () {
-            if (this.value === 'manual') {
-                manualInput.style.display = 'block';
-            } else {
-                manualInput.style.display = 'none';
-            }
-        });
-        function Call(value){
-            const form=document.getElementById('form');
-            if(value=='Main'){
-                form.action="{% url 'Main' %}"
-            }
-            else{
-                form.action="{% url 'Contest' %}"
-            }
-            form.submit();
+  <script>
+    const maxSelect = document.getElementById('maxSelect');
+    const manualInput = document.getElementById('manualInput');
+
+    if (maxSelect) {
+      maxSelect.addEventListener('change', function () {
+        if (this.value === 'manual') {
+          manualInput.style.display = 'block';
+        } else {
+          manualInput.style.display = 'none';
         }
-    </script>
+      });
+    }
+
+    function Call(value) {
+      const form = document.getElementById('form');
+      if (value === 'Main') {
+        form.action = "{% url 'Main' %}";
+      } else {
+        form.action = "{% url 'Contest' %}";
+      }
+      form.submit();
+    }
+  </script>
 </body>
 </html>
