@@ -18,4 +18,4 @@ COPY . /app/
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-CMD python manage.py makemigrations && python manage.py migrate && python manage.py runserver
+CMD ["sh", "-c", "cd Coding && python manage.py makemigrations && python manage.py migrate && python manage.py runserver"]
