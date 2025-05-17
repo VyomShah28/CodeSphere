@@ -498,7 +498,7 @@
                 'java': 'import java.util.*;\npublic class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
                 'python': 'def solve():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    solve()'
             };
-
+            
             Object.keys(defaultCode).forEach((key) => {
                 const storageKey = `${challenge}_${key}_${user}`;
                 if (!localStorage.getItem(storageKey)) {
@@ -506,27 +506,17 @@
                 }
             });
 
-            let editor = CodeMirror.fromTextArea(compilerTextarea, {
-                lineNumbers: true,
-                mode: 'text/x-java',
-                theme: "monokai",
-                indentUnit: 2,
-                tabSize: 2,
-                lineWrapping: true
-            });
-
             function loadSavedCode() {
                 const currentLanguage = languageSelect.value;
                 const storageKey = `${challenge}_${currentLanguage}_${user}`;
-                editor.setOption('mode', currentLanguage === 'java' ? 'text/x-java' : 'text/x-python');
-                const savedCode = localStorage.getItem(storageKey) || defaultCode[currentLanguage];
-                editor.setValue(savedCode);
+                const savedCode = localStorage.getItem(storageKey);
+                compilerTextarea.value = savedCode || defaultCode[currentLanguage];
             }
 
-            editor.on('change', () => {
+            compilerTextarea.addEventListener('input', () => {
                 const currentLanguage = languageSelect.value;
                 const storageKey = `${challenge}_${currentLanguage}_${user}`;
-                localStorage.setItem(storageKey, editor.getValue());
+                localStorage.setItem(storageKey, compilerTextarea.value);
             });
 
             languageSelect.addEventListener('change', loadSavedCode);
@@ -535,8 +525,9 @@
                 const currentLanguage = languageSelect.value;
                 const storageKey = `${challenge}_${currentLanguage}_${user}`;
                 localStorage.removeItem(storageKey);
-                editor.setValue(defaultCode[currentLanguage]);
+                compilerTextarea.value = defaultCode[currentLanguage];
             });
+
             loadSavedCode();
         });
 
