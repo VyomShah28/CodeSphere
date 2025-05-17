@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rank Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4da6a6;
+            --primary-light: rgba(77, 166, 166, 0.2);
+            --primary-dark: #3a8a8a;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5ea;
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .header {
+            background-color: #ffffff;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), #6ab7b7, var(--primary-color));
+            opacity: 0.7;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(to right, #f8f9fa, #f1f5f9);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+
+        #rankChart {
+            max-height: 450px;
+            width: 100% !important;
+        }
+
+        .grid-container-wrapper {
+            height: 500px;
+            width: 100%;
+        }
+
+        /* AG Grid Theme Customizations */
+        .ag-cell{
+            display: flex;
+            align-items: center;     /* vertical alignment */
+            justify-content: center; /* horizontal alignment */
+            text-align: center;      /* ensures text is centered */
+        }
+
+        .ag-header-cell-label{
+            display: flex;
+            align-items: center;       /* vertical centering */
+            justify-content: center;   /* horizontal centering */
+            text-align: center;
+        }
+
+        .home-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 3rem auto 0;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background:#4da6a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .home-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.04), 0 4px 6px rgba(0,0,0,0.06);
+            background: #3d8a8a;
+        }
+
+        .ag-theme-alpine {
+            --ag-header-background-color: #f8fafc;
+            --ag-odd-row-background-color: #f9fafb;
+            --ag-row-hover-color: #f0f9f9;
+            --ag-selected-row-background-color: #e6f7f7;
+            --ag-font-family: 'Poppins', sans-serif;
+            --ag-grid-size: 5px;
+            --ag-list-item-height: 25px;
+            --ag-border-color: var(--border-color);
+            --ag-header-column-separator-display: block;
+            --ag-header-column-separator-height: 50%;
+            --ag-header-column-separator-width: 1px;
+            --ag-header-column-separator-color: #e2e8f0;
+        }
+
+        .ag-theme-alpine .ag-header {
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .ag-theme-alpine .ag-header-cell-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0 12px;
+            color: var(--text-primary);
+        }
+
+        .ag-theme-alpine .ag-cell {
+            font-size: 0.9rem;
+            padding: 0 12px;
+            line-height: normal;
+        }
+
+        .ag-theme-alpine .ag-row {
+            border-bottom-color: #f0f4f8;
+        }
+
+        .ag-theme-alpine .ag-row-odd {
+            background-color: #fafbfc;
+        }
+
+        .ag-theme-alpine .ag-paging-panel {
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+        }
+
+        .ag-theme-alpine .ag-paging-button {
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .container {
+                padding: 0 1rem;
+                margin: 1.5rem auto;
+            }
+            
+            .card-header {
+                padding: 1.25rem 1.5rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .card-title {
+                font-size: 1.25rem;
+            }
+            
+            .grid-container-wrapper {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form method="post" action="{% url 'Dashboard' %}">
+        {% csrf_token %}
+        <header class="header">
+            <h1>Track Your Progress</h1>
+            <p>Monitor your rank and scores over time to visualize your improvement</p>
+        </header>
+
+        <input type="hidden" id="user" value="{{user}}"/>
+
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Rank Progression Chart</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="rankChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Contest Details</h3>
+                </div>
+                <div class="card-body">
+                    <div id="myGrid" class="ag-theme-alpine grid-container-wrapper"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container" style="margin-bottom:2rem">
+            <button class="home-button" type="submit">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+        </div>
+    </form>
+
+<script>
+    const rowDataString = `{{score|escapejs}}`; 
+    let rowData = [];
+    try {
+        const parsedData = JSON.parse(rowDataString);
+        if (Array.isArray(parsedData)) {
+            rowData = parsedData;
+        } else {
+            console.warn("Parsed 'scores' data is not an array. Using empty data for grid. Data:", parsedData);
+        }
+    } catch (e) {
+        console.warn("Could not parse 'scores' data. It might be a placeholder like '{{scores|escapejs}}' or invalid JSON. Using example data for grid for demonstration.", e);
+    }
+        
+    const columnDefs = [
+        { field: "Contest", headerName: "Contest Name", flex: 2, minWidth: 130, filter: 'agTextColumnFilter' },
+        { field: "Date", headerName: "Contest Date", flex: 1, minWidth: 120, filter: 'agDateColumnFilter' },
+        { field: "Rank", headerName: "Rank", sort: "asc", flex: 0.8, minWidth: 120, filter: 'agNumberColumnFilter' },
+        { field: "Score", headerName: "Score", flex: 0.8, minWidth: 90, filter: 'agNumberColumnFilter' },
+        { field: "Time", headerName: "Time", flex: 1, minWidth: 120, sortable:false, filter: false }
+    ];
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        defaultColDef: {
+            sortable: true,
+            filter: true,
+            resizable: true,
+        },
+        rowData: rowData,
+        rowHeight: 45, 
+        headerHeight: 52, 
+        animateRows: true,
+        pagination: true,
+        paginationPageSize: 10,
+        paginationPageSizeSelector: [10, 20, 50],
+        domLayout: 'autoHeight',
+    };
+    
+    const gridDiv = document.querySelector('#myGrid');
+    if (agGrid && agGrid.themeAlpine) {
+            agGrid.createGrid(gridDiv, gridOptions);
+    }
+    else {
+        console.error("AG Grid library not loaded or grid_div (#myGrid) not found.");
+    }
+
+    const rankDataString = `{{rank|escapejs}}`;
+    let rankData = [];
+
+    try {
+        const parsedRankData = JSON.parse(rankDataString);
+        if (Array.isArray(parsedRankData) && parsedRankData.every(item => typeof item.rank === 'number')) {
+            rankData = parsedRankData;
+        } else {
+             console.warn("Parsed 'rank' data is not in expected format (array of objects with 'rank' property). Using empty data for chart. Data:", parsedRankData);
+        }
+    } catch (e) {
+        console.warn("Could not parse 'rank' data. It might be a placeholder like '{{rank|escapejs}}' or invalid JSON. Using example data for chart for demonstration.", e);
+    }
+
+    let chartLabels;
+    if (rowData.length > 0 && rowData.length === rankData.length) {
+        chartLabels = rowData.map(item => item.Contest); 
+    } else if (rankData.length > 0) {
+        chartLabels = rankData.map((_, index) => `Contest ${index + 1}`);
+    } else {
+        chartLabels = []; 
+    }
+    
+    const chartRankValues = rankData.map(item => item.rank);
+
+    const ctx = document.getElementById('rankChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Rank Progression',
+                    data: chartRankValues,
+                    borderColor: '#4da6a6', 
+                    backgroundColor: 'rgba(77, 166, 166, 0.2)', 
+                    borderWidth: 3, 
+                    pointBackgroundColor: '#ffffff', 
+                    pointBorderColor: '#4da6a6',
+                    pointBorderWidth: 2,
+                    pointRadius: 6, 
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#4da6a6',
+                    pointHoverBorderColor: '#ffffff',
+                    tension: 0.4, 
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                scales: {
+                    y: {
+                        reverse: true, 
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Rank',
+                            font: { size: 14, family: 'Poppins', weight: '600' },
+                            color: '#2d3748'
+                        },
+                        grid: {
+                            color: '#e0e0e0', 
+                            borderColor: '#ccc'
+                        },
+                        ticks: {
+                            color: '#4a5568',
+                            font: { family: 'Poppins', size: 12 },
+                            padding: 8
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Contest', 
+                            font: { size: 14, family: 'Poppins', weight: '600' },
+                            color: '#2d3748'
+                        },
+                        grid: {
+                            display: false 
+                        },
+                        ticks: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top', 
+                        labels: {
+                            color: '#2d3748',
+                            font: { family: 'Poppins', size: 13, weight: '500' },
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            boxWidth: 10,
+                            boxHeight: 10
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(45, 55, 72, 0.9)',
+                        titleFont: { family: 'Poppins', weight: 'bold', size: 14 },
+                        bodyFont: { family: 'Poppins', size: 13 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        borderColor: 'rgba(77, 166, 166, 0.5)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return `Rank: ${context.parsed.y}`;
+                            },
+                            title: function(context) {
+                                return context[0].label;
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                elements: {
+                    line: {
+                        borderJoinStyle: 'round'
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("Canvas element for chart (#rankChart) not found.");
+    }
+</script>
+</body>
+</html>

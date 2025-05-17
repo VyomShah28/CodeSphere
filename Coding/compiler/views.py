@@ -2,10 +2,11 @@ import subprocess
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-from Test.models import Contest,Challenges,User
+from Test.models import Contest,Challenges,User,Rank
 from .models import Score
 import json
 from django.http import JsonResponse
+from datetime import datetime,date,time as dt_time
 
 def test(request):
 
@@ -25,6 +26,21 @@ def test(request):
             "user":user
         })
     
+def submit(request):
+    if request.method=="POST":
+        contest_id=request.POST.get('contest_id')
+        user=request.POST.get('user')
+        if request.POST.get('value')=="Already Submitted" or request.POST.get('value')=="Contest Ended":
+            return render(request,'result.html',{'user':user,'contest_id':contest_id,"success":True})
+        seconds=int(request.POST.get('time'))
+        score=Score.objects.get(user=user,contest=contest_id)
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        score.time=dt_time(hour=hours, minute=minutes, second=secs)
+        score.save()
+        return render(request,'result.html',{'user':user,'contest_id':contest_id,"success":True})
+
 def compile1(request):
     if request.method=="POST":
         data1 = json.loads(request.body)
@@ -48,10 +64,11 @@ def compile1(request):
 
 def start(request):
     if request.POST : 
-        contest_id=request.POST.get('contest')
-        user_id=request.POST.get('user')
-        return render(request,'start.html',{"contest_id":contest_id,"user":user_id})
-    return render(request,'start.html')
+        contest_id = request.POST.get('contest')
+        user_id = request.POST.get('user')
+        time = datetime.now().strftime("%H:%M:%S")
+        return render(request, 'start.html', {"contest_id": contest_id, "user": user_id, "time": time})
+    return render(request, 'start.html')
 
 
 def get(request):
@@ -247,6 +264,34 @@ def time(request):
     contest=request.POST.get('contest')
     contest=get_object_or_404(Contest,id=contest)
     return JsonResponse({'startDate':contest.start_date,'startTime':contest.start_time,'endDate':contest.end_date,'endTime':contest.end_time})
+    
+def result(request):
+    user = request.POST.get('user')
+    contest_id = request.POST.get('contest_id')
+    c = Contest.objects.get(id=contest_id)
+    start_dt = datetime.combine(date.today(), c.end_time)
+    now = datetime.now()
+    diff = int((now - start_dt).total_seconds())
+    rank = Score.objects.filter(contest=contest_id).order_by('-score', 'time')
+    rank_data = []
+    for i, score_obj in enumerate(rank):
+        rank_data.append({
+            'Rank': i + 1,
+            'Name': score_obj.user.full_name,
+            'Email': score_obj.user.email,
+            'Score': score_obj.score,
+            'Time': str(score_obj.time)
+        })
+        if diff > 5: 
+            rank1, created = Rank.objects.get_or_create(user=score_obj.user)
+            if rank1.rank is None:
+                rank1.rank = []
+            rank1.rank[contest_id]=i+1
+            rank1.save()
+    if diff > 5:
+        return JsonResponse({'ranks': rank_data, "success": False})
+    return JsonResponse({'ranks': rank_data, "success": True})
+
 
 # def cpp(code_template,challenge,val):
 #     file_name="code.cpp"

@@ -3,133 +3,412 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contests</title>
+  <title>Contests Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-    body {
+    :root {
+      /* Teal and cream color scheme */
+      --primary: #4da6a6;
+      --primary-dark: #3d8a8a;
+      --primary-light: #70cfcf;
+      --secondary: #5b7db5; /* Changed to blue for edit button */
+      --secondary-dark: #4a6a9e; /* Darker blue for hover */
+      --danger: #e57373;
+      --danger-dark: #d32f2f;
+      --warning: #e6c59f;
+      --text-primary: #4da6a6;
+      --text-secondary: #5ebdbd;
+      --text-dark: #2c6565;
+      --header-color: #3a7979; /* New darker teal for header */
+      --background: #fffdf2;
+      --card-bg: #fef9e7;
+      --border-color: #e6e0c5;
+      --border-radius: 12px;
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.04), 0 4px 6px rgba(0,0,0,0.06);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #fffdf2, #fef9e7);
-      color: #4da6a6;
+      background-color: var(--background);
+      color: var(--text-primary);
       min-height: 100vh;
+      line-height: 1.6;
     }
 
     .container { 
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 40px 20px;
+      padding: 2.5rem 1.5rem;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 50px;
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
     }
 
     .header h1 {
       font-size: 2.8rem;
       font-weight: 700;
+      color: var(--header-color); /* Updated header color */
+      margin-bottom: 1rem;
+      letter-spacing: -0.5px;
     }
 
     .header p {
       font-size: 1.1rem;
       max-width: 600px;
       margin: 0 auto;
+      color: var(--text-primary);
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 30px;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
     }
 
     .card {
-      background: #ffffff;
-      border-radius: 20px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
       overflow: hidden;
-      transition: transform 0.3s ease;
+      transition: var(--transition);
+      position: relative;
+      border: 1px solid var(--border-color);
     }
 
     .card:hover {
-      transform: translateY(-8px);
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
     }
 
     .card-header {
-      background: linear-gradient(135deg, #4da6a6, #70cfcf);
-      padding: 20px;
-      color: #ffffff;
-      text-align: center;
+      background: var(--primary);
+      padding: 1.5rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 40%, transparent 50%);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .card:hover .card-header::before {
+      transform: translateX(100%);
     }
 
     .card-header h2 {
       margin: 0;
       font-size: 1.4rem;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .card-header .contest-name {
+      display: block;
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+      font-weight: 500;
+      opacity: 0.9;
     }
 
     .card-body {
-      padding: 25px;
-      text-align: center;
+      padding: 1.75rem;
+    }
+
+    .card-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
 
     .card-detail {
-      margin: 10px 0;
-      font-size: 1rem;
-      color: #4b5563;
+      padding: 0.75rem;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-detail b {
+      color: var(--text-dark);
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-link {
+      margin: 1rem 0 1.5rem;
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      word-break: break-all;
+      color: var(--text-primary);
+      position: relative;
+      border: 1px solid var(--border-color);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .copy-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
     }
 
     .card-button {
-      display: inline-block;
-      padding: 12px 32px;
-      margin: 8px 5px;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(135deg, #4da6a6, #70cfcf);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: white;
+      background: var(--primary);
       border: none;
-      border-radius: 999px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 16px rgba(77, 166, 166, 0.3);
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
     }
 
     .card-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(77, 166, 166, 0.4);
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-button i {
+      font-size: 0.9rem;
+    }
+
+    .view-button {
+      background: var(--primary);
+    }
+
+    .view-button:hover {
+      background: var(--primary-dark);
     }
 
     .delete-button {
-      background: linear-gradient(135deg, #f87171, #ef4444);
+      background: var(--danger);
+      grid-column: span 2;
+      margin-top: 0.5rem;
+    }
+
+    .delete-button:hover {
+      background: var(--danger-dark);
     }
 
     .edit-button {
-      background: linear-gradient(135deg, #34d399, #10b981);
+      background: var(--secondary); /* Changed to secondary color */
+    }
+
+    .edit-button:hover {
+      background: var(--secondary-dark); /* Changed to secondary-dark color */
+    }
+
+    .response-button {
+      background: var(--warning);
+      color: var(--text-dark);
+    }
+
+    .response-button:hover {
+      background: #d9b88f;
     }
 
     .home-button {
-      display: block;
-      margin: 40px auto 0;
-      padding: 14px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 3rem auto 0;
+      padding: 1rem 2rem;
       font-size: 1.1rem;
       font-weight: 600;
-      background: linear-gradient(135deg, #4da6a6, #70cfcf);
-      color: #fff;
+      background: var(--primary);
+      color: white;
       border: none;
-      border-radius: 999px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 16px rgba(77, 166, 166, 0.3);
+      transition: var(--transition);
+      box-shadow: var(--shadow-md);
     }
 
     .home-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(77, 166, 166, 0.4);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      background: var(--primary-dark);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-dark);
+    }
+
+    .empty-state p {
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(77, 166, 166, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--text-dark);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: var(--secondary);
+    }
+
+    .toast.error {
+      background: var(--danger);
+    }
+
+    /* Status badge styles */
+    .status-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: white;
+    }
+
+    .status-upcoming {
+      background: #e6c59f;
+      color: var(--text-dark);
+    }
+
+    .status-active {
+      background: var(--primary);
+    }
+
+    .status-ended {
+      background: #a0a0a0;
     }
 
     @media (max-width: 768px) {
       .header h1 {
         font-size: 2rem;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .card-details {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -145,15 +424,133 @@
         <h1>Explore Exciting Contests</h1>
         <p>Join our community of innovators and showcase your skills in these challenging competitions</p>
       </div>
-      <div class="grid" id="contestGrid"></div>
-      <button type="button" class="home-button" onclick="Sidebar()">Dashboard</button>
+      
+      <div id="contestGrid" class="grid">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+      
+      <button type="button" class="home-button" onclick="Dashboard()">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </button>
     </div>
   </form>
 
+  <div id="toast" class="toast"></div>
+
   <script>
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const grid = document.querySelector('.grid');
+    const grid = document.getElementById('contestGrid');
+    const toast = document.getElementById('toast');
 
+    // Show toast notification
+    function showToast(message, type = 'default') {
+      toast.textContent = message;
+      toast.className = `toast ${type}`;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Copy text to clipboard
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+      }).catch(err => {
+        showToast('Failed to copy link', 'error');
+      });
+    }
+
+    // Format date for better display
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    // Format time for better display
+    function formatTime(timeStr) {
+      // Assuming timeStr is in HH:MM:SS format
+      const timeParts = timeStr.split(':');
+      if (timeParts.length >= 2) {
+        const hours = parseInt(timeParts[0]);
+        const minutes = timeParts[1];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12;
+        return `${formattedHours}:${minutes} ${ampm}`;
+      }
+      return timeStr;
+    }
+
+    // Generate contest link
+    function generateContestLink(contestId) {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < 10; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return `http://127.0.0.1:8000/${result}/${contestId}`;
+    }
+
+    // Delete contest
+    function deleteContest(id) {
+      if (confirm('Are you sure you want to delete this contest?')) {
+        fetch("{% url 'delete_contest' %}", {
+          method: "POST",
+          headers: {
+            'Content-Type': "application/json",
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({ id })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Contest deleted successfully', 'success');
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            showToast('Failed to delete contest', 'error');
+          }
+        })
+        .catch(error => {
+          showToast('An error occurred', 'error');
+          console.error('Error:', error);
+        });
+      }
+    }
+
+    // Navigate to dashboard
+    function Dashboard() {
+      const form = document.getElementById('form');
+      form.action = "{% url 'Dashboard' %}";
+      form.submit();
+    }
+
+    // Edit contest
+    function editContest(value) {
+      document.getElementById('id').value = value;
+      const form = document.getElementById('form');
+      form.action = "{% url 'Home' %}";
+      form.submit();
+    }
+
+    // View responses
+    function viewResponses(value) {
+      document.getElementById('id').value = value;
+      const form = document.getElementById('form');
+      form.action = "{% url 'Response' %}";
+      form.submit();
+    }
+
+    // Fetch contests data
     fetch("{% url 'Find_Contest' %}", {
       method: "POST",
       headers: {
@@ -162,75 +559,129 @@
       },
       body: "user={{user}}"
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
     .then(data => {
+      // Clear loading spinner
+      grid.innerHTML = '';
+      
+      if (!data || data.length === 0) {
+        // Show empty state
+        grid.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No Contests Found</h3>
+            <p>You haven't created any contests yet. Start by creating your first contest!</p>
+            <button type="button" class="card-button" onclick="Dashboard()">
+              <i class="fas fa-plus"></i> Create Contest
+            </button>
+          </div>
+        `;
+        return;
+      }
+      
       data.forEach(contest => {
+        const contestLink = generateContestLink(contest.contest_id);
         const card = document.createElement('div');
         card.className = 'card';
+
+        const now = new Date();
+        const startDate = new Date(`${contest.start_date}T${contest.start_time}`);
+        const endDate = new Date(`${contest.end_date}T${contest.end_time}`);
+        let statusBadge = '';
+        let statusText = '';
+        if (now < startDate) {
+          statusText = 'UPCOMING';
+          statusBadge = '<span class="status-badge status-upcoming">UPCOMING</span>';
+        } else if (now > endDate) {
+          statusText = 'ENDED';
+          statusBadge = '<span class="status-badge status-ended">ENDED</span>';
+        } else {
+          statusText = 'ACTIVE';
+          statusBadge = '<span class="status-badge status-active">ACTIVE</span>';
+        }
+
+        let linkSection = '';
+        if (statusText === 'ACTIVE') {
+          linkSection = `
+            <div class="card-link">
+              ${contestLink}
+              <button type="button" class="copy-btn" onclick="copyToClipboard('${contestLink}')">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+          `;
+        }
 
         card.innerHTML = `
           <form method="POST" action="{% url 'Contest' %}">
             {% csrf_token %}
             <input name="user" value="{{user}}" hidden>
             <input type="hidden" name="source" value="main">
+            <input name="contest" value='${contest.contest_id}' hidden>
             <div class="card-header">
-              <h2><b>Contest Name:</b> ${contest.contest_name}</h2>
-              <input name="contest" value='${contest.contest_id}' hidden>
+              ${statusBadge}
+              <h2>Contest Details</h2>
+              <span class="contest-name">${contest.contest_name}</span>
             </div>
             <div class="card-body">
-              <div class="card-detail"><b>Start Date:</b> ${contest.start_date}</div>
-              <div class="card-detail"><b>Start Time:</b> ${contest.start_time}</div>
-              <div class="card-detail"><b>End Date:</b> ${contest.end_date}</div>
-              <div class="card-detail"><b>End Time:</b> ${contest.end_time}</div>
-              <div class="card-detail"><b>Link:</b> ${call(contest.contest_id)}</div>
-              <button type="submit" class="card-button">View Contest</button>
-              <button type="button" class="card-button delete-button" onclick="Delete(${contest.contest_id})">Delete</button>
-              <button type="button" class="card-button edit-button" onclick="Edit(${contest.contest_id})">Edit</button>
+              <div class="card-details">
+                <div class="card-detail">
+                  <b>Start Date</b>
+                  ${formatDate(contest.start_date)}
+                </div>
+                <div class="card-detail">
+                  <b>Start Time</b>
+                  ${formatTime(contest.start_time)}
+                </div>
+                <div class="card-detail">
+                  <b>End Date</b>
+                  ${formatDate(contest.end_date)}
+                </div>
+                <div class="card-detail">
+                  <b>End Time</b>
+                  ${formatTime(contest.end_time)}
+                </div>
+              </div>
+              ${linkSection}
+              <button type="submit" class="card-button view-button" style="width:100%">
+                <i class="fas fa-eye"></i> View Contest
+              </button>
+              
+              <div class="card-actions">
+                <button type="button" class="card-button edit-button" onclick="editContest(${contest.contest_id})">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button type="button" class="card-button response-button" onclick="viewResponses(${contest.contest_id})">
+                  <i class="fas fa-chart-bar"></i> Responses
+                </button>
+                <button type="button" class="card-button delete-button" onclick="deleteContest(${contest.contest_id})">
+                  <i class="fas fa-trash-alt"></i> Delete Contest
+                </button>
+              </div>
             </div>
           </form>
         `;
         grid.appendChild(card);
       });
+    })
+    .catch(error => {
+      console.error('Error fetching contests:', error);
+      grid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i>
+          <h3>Error Loading Contests</h3>
+          <p>There was a problem loading your contests. Please try again later.</p>
+          <button type="button" class="card-button" onclick="window.location.reload()">
+            <i class="fas fa-redo"></i> Try Again
+          </button>
+        </div>
+      `;
     });
-
-    function call(element){
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let result = '';
-      for (let i = 0; i < 10; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      return "https://Coding.onrender.com/" + result + "/" + element;
-    }
-
-    function Delete(id){
-      fetch("{% url 'delete_contest' %}", {
-        method: "POST",
-        headers: {
-          'Content-Type': "application/json",
-          'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({ id })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          window.location.reload();
-        }
-      });
-    }
-
-    function Sidebar(){
-      const form = document.getElementById('form');
-      form.action = "{% url 'Sidebar' %}";
-      form.submit();
-    }
-
-    function Edit(value){
-      document.getElementById('id').value = value;
-      const form = document.getElementById('form');
-      form.action = "{% url 'Home' %}";
-      form.submit();
-    }
   </script>
 </body>
 </html>

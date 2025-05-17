@@ -6,46 +6,44 @@
     <title>CodeMasters Contest Platform</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
-    /* Light Mode - Pale Yellow Creamy & Teal */
-    --background-color: #FAFAD2; /* Pale Goldenrod - creamy pale yellow */
-    --card-background: #FFFFF0;   /* Ivory - for cards */
-    --text-primary: #004D40;      /* Dark Teal - main text */
-    --text-secondary: #00695C;   /* Medium Teal - secondary text */
+    /* Light Mode - Modern Blue & White */
+    --background-color: #f8f9ff; /* Light blue-tinted white */
+    --card-background: #ffffff;  /* Pure white for cards */
+    --text-primary: #1a2b4e;     /* Deep navy blue - main text */
+    --text-secondary: #4a5568;   /* Medium slate - secondary text */
     
-    --primary-color: #00796B;    /* Teal - primary actions */
-    --primary-color-rgb: 0, 121, 107;
-    --secondary-color: #00695C;  /* Medium Teal - secondary accents */
-    --tertiary-color: #004D40;   /* Darkest Teal - for deeper accents in gradients */
+    --primary-color: #3b82f6;    /* Vibrant blue - primary actions */
+    --primary-color-rgb: 59, 130, 246;
+    --secondary-color: #2563eb;  /* Deeper blue - secondary accents */
+    --tertiary-color: #1d4ed8;   /* Darkest blue - for deeper accents */
     
-    --border-color: #D1CCC0;     /* Soft beige-gray border for creamy theme */
+    --border-color: #e2e8f0;     /* Light gray-blue border */
     
-    --success-color: #10b981;   /* Kept existing, good contrast */
-    --warning-color: #f59e0b;   /* Kept existing, good contrast */
-    --danger-color: #ef4444;    /* Kept existing, good contrast */
+    --success-color: #10b981;    /* Green */
+    --warning-color: #f59e0b;    /* Amber */
+    --danger-color: #ef4444;     /* Red */
     
-    --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025);
-    --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="dark"] {
-    /* Dark Mode - Deep Teal Theme */
-    --background-color: #0A191E;  /* Very dark, slightly blueish teal */
-    --card-background: #0E2429;   /* Dark blueish teal for cards */
-    --text-primary: #E0F2F7;      /* Very light, slightly blueish white */
-    --text-secondary: #B3DCE9;   /* Light grayish blue/teal */
+    /* Dark Mode - Deep Blue Theme */
+    --background-color: #0f172a;  /* Very dark blue */
+    --card-background: #1e293b;   /* Dark blue-gray for cards */
+    --text-primary: #f1f5f9;      /* Very light blue-gray */
+    --text-secondary: #cbd5e1;    /* Light blue-gray */
 
-    --primary-color: #14919B;    /* Bright Teal for dark mode accents (good contrast with white text) */
-    --primary-color-rgb: 20, 145, 155;
-    --secondary-color: #25AAB5;  /* Lighter Teal */
-    --tertiary-color: #40C8D2;   /* Brightest Teal for gradients */
+    --primary-color: #3b82f6;     /* Vibrant blue - same as light mode for consistency */
+    --primary-color-rgb: 59, 130, 246;
+    --secondary-color: #60a5fa;   /* Lighter blue */
+    --tertiary-color: #93c5fd;    /* Lightest blue for accents */
     
-    --border-color: #1E4751;     /* Dark Teal border */
-
-    /* Success, Warning, Danger can remain the same or be adjusted if needed for dark theme aesthetics */
-    /* --success-color: #10b981; (example: might want it slightly brighter or desaturated) */
+    --border-color: #334155;      /* Medium dark blue-gray border */
 }
 
 * {
@@ -54,7 +52,6 @@
     box-sizing: border-box;
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     scroll-behavior: smooth;
-    /* Removed 'all' transition for performance, apply transitions to specific properties */
     transition-property: background-color, color, border-color, box-shadow, transform, opacity;
     transition-duration: 0.3s;
     transition-timing-function: ease;
@@ -73,27 +70,25 @@ body {
     gap: 2rem;
     max-width: 1920px;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 2rem;
     min-height: 100vh;
 }
 
 .main-content {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .contest-header {
     position: relative;
     background: linear-gradient(135deg, var(--card-background), var(--background-color));
-    border-radius: 16px;
-    padding: 2rem;
+    border-radius: 20px;
+    padding: 2.5rem;
     text-align: center;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
-    box-shadow: 
-        0 15px 30px -10px rgba(0,0,0,0.1), 
-        0 10px 20px -5px rgba(0,0,0,0.05);
+    border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+    box-shadow: var(--shadow-large);
 }
 
 .contest-header::before {
@@ -105,20 +100,20 @@ body {
     height: 200%;
     background: 
         radial-gradient(circle at bottom right, 
-            rgba(var(--primary-color-rgb), 0.1) 0%, /* Updated to use themed primary color */
-            transparent 50%
+            rgba(var(--primary-color-rgb), 0.15) 0%,
+            transparent 60%
         );
     transform: rotate(-45deg);
     z-index: 1;
-    transition: background 0.3s ease; /* Added transition for the gradient */
+    transition: background 0.3s ease;
 }
 
 .contest-header h1 {
     position: relative;
     z-index: 2;
-    font-size: 2.25rem;
+    font-size: 2.5rem;
     font-weight: 800;
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
     background: linear-gradient(
         45deg, 
         var(--primary-color), 
@@ -126,7 +121,7 @@ body {
         var(--tertiary-color)
     );
     background-size: 200% auto;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: shine 3s linear infinite;
@@ -142,24 +137,29 @@ body {
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--danger-color);
-    background: color-mix(in srgb, var(--danger-color) 10%, transparent);
-    padding: 1rem;
-    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.08);
+    padding: 1.25rem;
+    border-radius: 16px;
     text-align: center;
     letter-spacing: -1px;
     border-left: 4px solid var(--danger-color);
     font-variant-numeric: tabular-nums;
+    box-shadow: var(--shadow-subtle);
+}
+
+.problems-list {
+    display: grid;
+    gap: 1.5rem;
 }
 
 .problem-card {
     position: relative;
     background: var(--card-background);
     border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    padding: 1.75rem;
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-subtle);
-    transition-property: transform, box-shadow; /* Specific transitions */
+    box-shadow: var(--shadow-medium);
+    transition-property: transform, box-shadow;
     transition-duration: 0.4s;
     transition-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
     perspective: 1000px;
@@ -167,10 +167,8 @@ body {
 }
 
 .problem-card:hover {
-    transform: translateY(-10px) rotateX(5deg);
-    box-shadow: 
-        0 25px 50px -12px rgba(0,0,0,0.15), 
-        0 15px 30px -15px rgba(0,0,0,0.1);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-large);
 }
 
 .problem-card::before {
@@ -190,25 +188,6 @@ body {
     transform: scaleX(1);
 }
 
-.problem-card::after { /* Subtle shadow effect */
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 10%;
-    width: 80%;
-    height: 10px;
-    background: radial-gradient(ellipse at center, 
-        rgba(0,0,0,0.08) 0%,  /* Slightly adjusted opacity */
-        transparent 70%
-    );
-    opacity: 0;
-    transition: opacity 0.4s;
-}
-
-.problem-card:hover::after {
-    opacity: 1;
-}
-
 .problem-header {
     display: flex;
     justify-content: space-between;
@@ -219,31 +198,57 @@ body {
 .problem-header h3 {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-primary); /* Ensuring it uses the themed text color */
+    color: var(--text-primary);
 }
-.problem-header span { /* For difficulty */
+
+.problem-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.problem-meta small {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.problem-meta strong {
+    color: var(--primary-color);
     font-weight: 600;
 }
 
+.problem-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.problem-action {
+    display: flex;
+    justify-content: flex-end;
+}
 
 .solve {
     position: relative;
     background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-    color: white; /* Check contrast with new teal gradients, should be fine */
+    color: white;
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
+    padding: 0.75rem 1.75rem;
+    border-radius: 12px;
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
     overflow: hidden;
     z-index: 1;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(var(--primary-color-rgb), 0.25);
     transition-property: transform, box-shadow;
     transition-duration: 0.3s;
     transition-timing-function: ease;
 }
 
-.solve::before { /* Shimmer effect */
+.solve::before {
     content: '';
     position: absolute;
     top: 0;
@@ -253,44 +258,54 @@ body {
     background: linear-gradient(
         120deg, 
         transparent, 
-        color-mix(in srgb, white 20%, transparent), 
+        rgba(255, 255, 255, 0.2), 
         transparent
     );
-    transition: left 0.5s; /* Specific transition */
+    transition: left 0.5s;
     z-index: -1;
 }
 
 .solve:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(var(--primary-color-rgb), 0.35);
 }
 
 .solve:hover::before {
     left: 100%;
 }
 
+.solve:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.solve:disabled::before {
+    display: none;
+}
+
 .leaderboard {
-    background: linear-gradient(
-        to bottom right, 
-        var(--card-background), 
-        color-mix(in srgb, var(--primary-color) 5%, var(--card-background))
-    );
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow-subtle);
-    border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+    background: var(--card-background);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--border-color);
     position: sticky;
     top: 2rem;
     max-height: calc(100vh - 4rem);
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .leaderboard-header {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid rgba(var(--primary-color-rgb), 0.1);
     background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -302,33 +317,26 @@ body {
     gap: 1rem;
     padding: 1rem;
     border-radius: 12px;
-    margin-bottom: 0.75rem;
-    backdrop-filter: blur(10px);
-    background: color-mix(in srgb, var(--card-background) 80%, var(--border-color) 10%, transparent); /* Adjusted for subtle depth */
-    border: 1px solid color-mix(in srgb, var(--border-color) 30%, transparent);
+    background: linear-gradient(
+        to right,
+        var(--card-background),
+        rgba(var(--primary-color-rgb), 0.05)
+    );
+    border: 1px solid rgba(var(--primary-color-rgb), 0.1);
     transition-property: transform, box-shadow;
     transition-duration: 0.3s;
     transition-timing-function: ease;
 }
-.leaderboard-item div, .leaderboard-item small {
-    color: var(--text-primary); /* Ensure text inside leaderboard items is themed */
-}
-.leaderboard-item small {
-    color: var(--text-secondary);
-}
-
 
 .leaderboard-item:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 
-        0 10px 20px -5px rgba(0,0,0,0.1), 
-        0 5px 10px -3px rgba(0,0,0,0.05);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-medium);
 }
 
 .rank {
     font-weight: 700;
-    background: var(--primary-color); /* Uses themed primary color */
-    color: white; /* Contrast should be fine with selected primary colors */
+    background: var(--primary-color);
+    color: white;
     width: 2.5rem;
     height: 2.5rem;
     display: flex;
@@ -336,7 +344,25 @@ body {
     justify-content: center;
     border-radius: 50%;
     font-size: 1rem;
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex-grow: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.user-score {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.user-score strong {
+    color: var(--primary-color);
 }
 
 .theme-toggle {
@@ -350,10 +376,10 @@ body {
     justify-content: center;
     border-radius: 50%;
     background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-    color: white; /* Contrast fine with chosen primary colors */
+    color: white;
     border: none;
     cursor: pointer;
-    box-shadow: var(--shadow-medium);
+    box-shadow: var(--shadow-large);
     transition-property: transform, box-shadow;
     transition-duration: 0.3s;
     transition-timing-function: ease;
@@ -361,14 +387,81 @@ body {
 }
 
 .theme-toggle:hover {
-    transform: rotate(360deg) scale(1.1);
-}
-/* Ensure icon inside toggle is also visible - font awesome handles its own color usually */
-.theme-toggle i { 
-    transition: none; /* Prevent icon from having weird transition if parent has 'all' */
+    transform: rotate(45deg) scale(1.1);
 }
 
+.theme-toggle i {
+    font-size: 1.25rem;
+    transition: none;
+}
 
+/* Difficulty badges */
+.difficulty {
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.difficulty-easy {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.difficulty-medium {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.difficulty-hard {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+/* Loading states */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(var(--primary-color-rgb), 0.05) 25%,
+        rgba(var(--primary-color-rgb), 0.1) 50%,
+        rgba(var(--primary-color-rgb), 0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+.Submit{
+    display: flex;
+    justify-content: center;
+    margin: 2rem;
+}
+
+.button{
+    background:#10B981;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.25rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-large);
+    transition-property: transform, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Responsive design improvements */
 @media (max-width: 1200px) {
     .container {
         grid-template-columns: 1fr;
@@ -382,67 +475,178 @@ body {
 
 @media (max-width: 768px) {
     .container {
-        padding: 1rem 0.5rem;
-        gap: 1rem;
+        padding: 1.5rem 1rem;
+        gap: 1.5rem;
+    }
+
+    .contest-header {
+        padding: 1.5rem;
     }
 
     .contest-header h1 {
-        font-size: 1.75rem; /* Slightly adjusted for better fit */
+        font-size: 1.75rem;
     }
 
     .timer {
-        font-size: 1.75rem; /* Slightly adjusted */
+        font-size: 1.75rem;
+        padding: 1rem;
     }
 
     .problem-card {
-        padding: 1rem;
+        padding: 1.25rem;
     }
-    .problem-card .problem-header h3 {
-        font-size: 1.1rem;
+    
+    .problem-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
-    .problem-card .solve { /* Adjust solve button on smaller screens */
+    
+    .problem-action {
+        justify-content: center;
+    }
+    
+    .solve {
         width: 100%;
-        margin-top: 1rem;
-        margin-left: 0 !important; /* Override inline style from JS if any */
-        padding: 0.6rem 1rem;
     }
-    .problem-card div[style*="width:60%"] { /* Make description full width */
-        width: 100% !important;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 1rem 0.75rem;
+    }
+    
+    .contest-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .timer {
+        font-size: 1.5rem;
     }
 }
     </style>
 </head>
 <body>
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <form class="form" method="POST" action="{% url 'Test_C' %}">
+    <form class="form" method="POST">
         {% csrf_token %}
         <input type="hidden" name="value_id" class="value_id">
         <input type="hidden" name="user" value="{{user}}" id="user">
+        <input type="hidden" name="time" class="time" value="{{time}}">
+        <input type="hidden" name="contest_id" value="{{ contest_id }}">
+        <input type="hidden" name="value" id="value">
         <div class="container">
             <div class="main-content">  
                 <div class="contest-header">
-                    <h1 style="text-align: center;" class="contest-header-head"></h1>
-                    <div class="timer"></div>
+                    <h1 class="contest-header-head"></h1>
+                    <div class="timer" aria-live="polite">Loading contest timer...</div>
                 </div>
-                <div class="problems-list"></div>
+                <div class="problems-list" aria-label="Contest Problems">
+                    <!-- Problems will be loaded here -->
+                    <div class="problem-card skeleton" aria-hidden="true" style="height: 200px;"></div>
+                    <div class="problem-card skeleton" aria-hidden="true" style="height: 200px;"></div>
+                </div>
             </div>
 
             <div class="leaderboard">
                 <h2 class="leaderboard-header">Live Leaderboard</h2>
-                </div>
+                <!-- Leaderboard items will be loaded here -->
+                <div class="leaderboard-item skeleton" aria-hidden="true" style="height: 70px;"></div>
+                <div class="leaderboard-item skeleton" aria-hidden="true" style="height: 70px;"></div>
+                <div class="leaderboard-item skeleton" aria-hidden="true" style="height: 70px;"></div>
+            </div>
         </div>
 
-        <button class="theme-toggle" aria-label="Toggle Theme" type="button"> <i class="fas fa-moon"></i> </button>
+        <button class="theme-toggle" aria-label="Toggle Theme" type="button">
+            <i class="fas fa-moon"></i>
+        </button>
+        <div class="Submit">
+            <button class="button" type="button">Submit</button>
+        </div>
     </form>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('.form');
+            const time=document.querySelector('.time');
             const themeToggleButton = document.querySelector('.theme-toggle');
             const themeIcon = themeToggleButton.querySelector('i');
+            const problemsListContainer = document.querySelector('.problems-list');
+            const leaderboardContainer = document.querySelector('.leaderboard');
+            const timerElement = document.querySelector('.timer');
+            const contestHeaderElement = document.querySelector('.contest-header-head');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const contest_id = document.querySelector('[name=contest_id]').value;
+            const user = document.getElementById('user').value;
+            document.querySelector('.button').addEventListener('click', Submit);
+            function clearSkeletons(container) {
+                const skeletons = container.querySelectorAll('.skeleton');
+                skeletons.forEach(skeleton => skeleton.remove());
+            }
+
+            if (sessionStorage.getItem('contestSubmitted') === 'true' && sessionStorage.getItem('contest_id') === contest_id) {
+                alert("You have already submitted your solutions. You cannot make changes.");
+                document.getElementById('value').value = "Already Submitted";
+                form.action="{% url 'Submit' %}";
+                form.submit();
+                return;
+            }
+            
+            function Submit() {
+                if(confirm("Are you sure you want to submit? Once submitted, you cannot change your code.")){
+                    alert("Your code has been submitted successfully.");
+                    const time_elapsed=new Date();
+                    const startParts = time.value.split(':');
+                    const startTime = new Date();
+                    startTime.setHours(startParts[0], startParts[1], startParts[2]);
+                    time.value = Math.floor((time_elapsed.getTime() - startTime.getTime()) / 1000);
+                    sessionStorage.setItem('contestSubmitted', 'true');
+                    sessionStorage.setItem('contest_id', contest_id);
+                    form.action="{% url 'Submit' %}";
+                    form.submit();
+                }
+            }
+
+            function disableSolveButtons() {
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = 0;
+                overlay.style.left = 0;
+                overlay.style.width = '100vw';
+                overlay.style.height = '100vh';
+                overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                overlay.style.display = 'flex';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.zIndex = '9999';
+
+                const popup = document.createElement('div');
+                popup.style.backgroundColor = '#ffffff';
+                popup.style.padding = '2rem 3rem';
+                popup.style.borderRadius = '1rem';
+                popup.style.color="black";
+                popup.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
+                popup.style.textAlign = 'center';
+                popup.style.fontFamily = 'Poppins, sans-serif';
+                popup.innerHTML = `
+                    <h2 style="margin-bottom: 1rem;">⏳ Contest Ended</h2>
+                    <p>The contest has ended. You can no longer submit solutions.</p>
+                    <p>You will be redirected to the result page shortly...</p>
+                `;
+
+                overlay.appendChild(popup);
+                document.body.appendChild(overlay);
+                document.getElementById('value').value = "Contest Ended";
+                setTimeout(() => {
+                    form.action = "{% url 'Submit' %}";
+                    form.submit();
+                }, 5000);
+            }
 
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('theme', theme);
+                
                 if (theme === 'dark') {
                     themeIcon.classList.remove('fa-moon');
                     themeIcon.classList.add('fa-sun');
@@ -455,80 +659,113 @@ body {
             const currentTheme = localStorage.getItem('theme') || 'light';
             setTheme(currentTheme);
 
-            themeToggleButton.addEventListener('click', (event) => { // Added event parameter
-                event.preventDefault(); // Prevent form submission if it's somehow part of it
+            themeToggleButton.addEventListener('click', (event) => {
+                event.preventDefault();
                 const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
                 setTheme(isDark ? 'light' : 'dark');
             });
             
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const problemsListContainer = document.querySelector('.problems-list');
-            const contest_id = "{{ contest_id }}";
-            const user = document.getElementById('user').value;
-            const contestHeaderElement = document.querySelector('.contest-header-head');
-            
-            fetch("{% url 'Get' %}",{
-                method:"POST",
+            fetch("{% url 'Get' %}", {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': csrfToken
                 },
                 body: `contest_id=${encodeURIComponent(contest_id)}&user=${encodeURIComponent(user)}`
-            }).then(response => response.json())
-            .then(data1 => {
-                if (data1 && data1.head) {
-                    contestHeaderElement.textContent = data1.head;
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-                if (data1 && data1.list && Array.isArray(data1.list)) {
+                return response.json();
+            })
+            .then(data => {
+                clearSkeletons(problemsListContainer);
+                
+                if (data && data.head) {
+                    contestHeaderElement.textContent = data.head;
+                }
+                
+                if (data && data.list && Array.isArray(data.list)) {
                     let problemNumber = 1;
-                    data1.list.forEach(element => {
+                    
+                    data.list.forEach(element => {
                         const problemCard = document.createElement('div');
                         problemCard.classList.add("problem-card");
                         
-                        let difficultyColor = "var(--success-color)";
-                        if (element.difficulty_level === "Medium") difficultyColor = "var(--warning-color)";
-                        if (element.difficulty_level === "Hard") difficultyColor = "var(--danger-color)";
+                        let difficultyClass = "difficulty-easy";
+                        if (element.difficulty_level === "Medium") difficultyClass = "difficulty-medium";
+                        if (element.difficulty_level === "Hard") difficultyClass = "difficulty-hard";
 
-                        // Improved structure for problem card content for better responsiveness
                         problemCard.innerHTML = `
                             <div class="problem-header">
                                 <h3>${problemNumber}. ${element.challenge_name}</h3>
-                                <span style="color: ${difficultyColor}; font-weight: 600;">${element.difficulty_level}</span>
+                                <span class="difficulty ${difficultyClass}">${element.difficulty_level}</span>
                             </div>
-                            <div class="problem-meta" style="margin-bottom: 0.75rem;">
-                                <small style="color: var(--text-secondary);">Max Score: <strong>${element.max_score}</strong></small>
+                            <div class="problem-meta">
+                                <small>Max Score: <strong>${element.max_score}</strong></small>
                             </div>
-                            <div class="problem-description" style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                ${element.description} </div>
-                            <div class="problem-action" style="text-align: right;">
-                                <button type="button" class="solve" onclick="Go(${element.challenge_id})">Solve Now</button>
+                            <div class="problem-description">
+                                ${element.description}
+                            </div>
+                            <div class="problem-action">
+                                <button type="button" class="solve" onclick="Go(${element.challenge_id})">
+                                    <i class="fas fa-code"></i> Solve Challenge
+                                </button>
                             </div>
                         `;
+                        
                         problemsListContainer.appendChild(problemCard);
                         problemNumber++;
                     });
+                    if (window.contestHasEnded) {
+                        disableSolveButtons();
+                    }
+                } else {
+                    problemsListContainer.innerHTML = `
+                        <div class="problem-card">
+                            <p style="text-align: center; padding: 2rem;">No problems available for this contest.</p>
+                        </div>
+                    `;
                 }
             })
-            .catch(error => console.error('Error fetching problems:', error))
-            .then(() => { // Chained after problem fetching completes or fails
-                const leaderboardContainer = document.querySelector('.leaderboard');
-                fetch("{% url 'Leaderboard' %}",{
-                    method:'POST',
-                    headers:{
+            .catch(error => {
+                console.error('Error fetching problems:', error);
+                problemsListContainer.innerHTML = `
+                    <div class="problem-card">
+                        <p style="text-align: center; color: var(--danger-color); padding: 2rem;">
+                            <i class="fas fa-exclamation-triangle"></i> Failed to load problems. Please refresh the page.
+                        </p>
+                    </div>
+                `;
+            });
+
+            
+            function updateLeaderboard() {
+                fetch("{% url 'Leaderboard' %}", {
+                    method: 'POST',
+                    headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken':csrfToken
+                        'X-CSRFToken': csrfToken
                     },
                     body: `contest=${encodeURIComponent(contest_id)}`
-                }).then(response=>response.json())
-                .then(data=>{
-                    if (data && data.Leaderboard && Array.isArray(data.Leaderboard)) {
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    
+                    leaderboardContainer.innerHTML = '';
+
+                    if (data && data.Leaderboard && Array.isArray(data.Leaderboard) && data.Leaderboard.length > 0) {
                         let rank = 0;
-                        let previousScore = -1; // Use a value certainly lower than any possible score
+                        let previousScore = -1;
                         let sameRankCount = 1;
 
                         data.Leaderboard.forEach((entry, index) => {
-                            const itemContainer = document.createElement('div'); // Create a wrapper for each item
-                            
                             if (entry.score !== previousScore) {
                                 rank += sameRankCount;
                                 sameRankCount = 1;
@@ -536,82 +773,149 @@ body {
                                 sameRankCount++;
                             }
                             previousScore = entry.score;
-                            
-                            itemContainer.innerHTML =`
-                                <div class="leaderboard-item">
-                                    <span class="rank">${rank}</span>
-                                    <div style="flex-grow: 1;"> <div>${entry.user}</div>
-                                        <small>Score: <strong>${entry.score}</strong></small>
-                                    </div>
+
+                            const leaderboardItem = document.createElement('div');
+                            leaderboardItem.classList.add('leaderboard-item');
+
+                            if (entry.user === user) {
+                                leaderboardItem.style.border = '2px solid var(--primary-color)';
+                                leaderboardItem.style.background = 'rgba(var(--primary-color-rgb), 0.1)';
+                            }
+
+                            leaderboardItem.innerHTML = `
+                                <span class="rank">${rank}</span>
+                                <div class="user-info">
+                                    <div class="user-name">${entry.user}</div>
+                                    <div class="user-score">Score: <strong>${entry.score}</strong></div>
                                 </div>
                             `;
-                            leaderboardContainer.appendChild(itemContainer);
+
+                            leaderboardContainer.appendChild(leaderboardItem);
                         });
-                    }
-                })
-                .catch(error => console.error('Error fetching leaderboard:', error));
-
-                const timerElement = document.querySelector('.timer');
-                const solveButtons = document.querySelectorAll('.solve'); // Re-query in case they are added dynamically
-                
-                fetch('{% url "Time" %}',{
-                    method:'POST',
-                    headers:{
-                        'Content-Type':'application/x-www-form-urlencoded',
-                        'X-CSRFToken':csrfToken
-                    },
-                    body: `contest=${encodeURIComponent(contest_id)}`
-                }).then(response=>response.json())
-                .then(data=>{
-                    if (!data || !data.startDate || !data.startTime || !data.endDate || !data.endTime) {
-                        timerElement.textContent = "Contest time unavailable";
-                        solveButtons.forEach(button => button.disabled = true);
-                        return;
-                    }
-
-                    let currentDate = new Date();
-                    let contestStart = new Date(`${data.startDate}T${data.startTime}`);
-                    let contestEnd = new Date(`${data.endDate}T${data.endTime}`);
-
-                    function disableSolveButtons() {
-                        document.querySelectorAll('.solve').forEach(button => button.disabled = true);
-                    }
-
-                    if (currentDate < contestStart) {
-                        timerElement.textContent = "Contest Has Not Started Yet";
-                        disableSolveButtons();
-                    } else if (currentDate > contestEnd) {
-                        timerElement.textContent = "The Contest Has Ended";
-                        disableSolveButtons();
                     } else {
-                        let remainingTime = contestEnd - currentDate;
-                        let interval = setInterval(() => {
-                            if (remainingTime <= 0) {
-                                clearInterval(interval);
-                                timerElement.textContent = "The Contest has Ended";
-                                disableSolveButtons();
-                                return;
-                            }
-                            let hours = Math.floor(remainingTime / (1000 * 60 * 60));
-                            let minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-                            let seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-                            timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                            remainingTime -= 1000;
-                        }, 1000);
+                        const emptyMessage = document.createElement('div');
+                        emptyMessage.style.textAlign = 'center';
+                        emptyMessage.style.padding = '2rem 1rem';
+                        emptyMessage.innerHTML = 'No participants yet. Be the first to solve a challenge!';
+                        leaderboardContainer.appendChild(emptyMessage);
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching time data:', error);
-                    timerElement.textContent = "Error loading timer";
+                    console.error('Error fetching leaderboard:', error);
+                    leaderboardContainer.innerHTML = `
+                        <div style="text-align: center; padding: 2rem 1rem; color: var(--danger-color);">
+                            <i class="fas fa-exclamation-triangle"></i> Failed to load leaderboard
+                        </div>
+                    `;
                 });
+            }
+            updateLeaderboard();
+            const intervalId = setInterval(updateLeaderboard, 1000);
+            window.addEventListener('beforeunload', () => clearInterval(intervalId));
+
+            fetch('{% url "Time" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `contest=${encodeURIComponent(contest_id)}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                
+                if (!data || !data.startDate || !data.startTime || !data.endDate || !data.endTime) {
+                    timerElement.textContent = "Contest time unavailable";
+                    disableSolveButtons();
+                    return;
+                }
+
+                let currentDate = new Date();
+                let contestStart = new Date(`${data.startDate}T${data.startTime}`);
+                let contestEnd = new Date(`${data.endDate}T${data.endTime}`);
+
+                if (currentDate < contestStart) {
+                    const startTimeStr = contestStart.toLocaleString();
+                    timerElement.innerHTML = `
+                        <div>Contest Starts In</div>
+                        <div style="font-size: 1.25rem; margin-top: 0.5rem;">${startTimeStr}</div>
+                    `;
+                    
+                } else if (currentDate > contestEnd) {
+                    timerElement.textContent = "The Contest Has Ended";
+                    disableSolveButtons();
+                } else {
+                    let remainingTime = contestEnd - currentDate;
+                    let interval = setInterval(() => {
+                        if (remainingTime <= 0) {
+                            clearInterval(interval);
+                            timerElement.textContent = "The Contest has Ended";
+                            const time_elapsed = new Date();
+                            const startParts = time.value.split(':');
+                            const startTime = new Date();
+                            startTime.setHours(startParts[0], startParts[1], startParts[2]);
+                            time.value = Math.floor((time_elapsed.getTime() - startTime.getTime()) / 1000);
+                            
+                            form.action = "{% url 'Submit' %}";
+                            form.submit();
+                            return;
+                        }
+                        
+                        let hours = Math.floor(remainingTime / (1000 * 60 * 60));
+                        let minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                        let seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                        
+                        timerElement.innerHTML = `
+                            <div>Time Remaining</div>
+                            <div>${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</div>
+                        `;
+                        
+                        if (hours === 0 && minutes < 5) {
+                            timerElement.style.animation = 'pulse 1s infinite';
+                            timerElement.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.5)';
+                        }
+                        
+                        remainingTime -= 1000;
+                    }, 1000);
+                    
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes pulse {
+                            0% { transform: scale(1); }
+                            50% { transform: scale(1.03); }
+                            100% { transform: scale(1); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching time data:', error);
+                timerElement.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i> Error loading timer
+                `;
             });
         });
 
-        function Go(value){
+        function Go(value) {
             const form = document.querySelector('.form');
             const valueIdInput = document.querySelector('.value_id');
+            
             if (valueIdInput) {
                 valueIdInput.value = value;
+                
+                // Add loading state
+                const solveButton = event.target.closest('.solve');
+                if (solveButton) {
+                    solveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                    solveButton.disabled = true;
+                }
+                form.action = "{% url 'Test_C' %}";
                 form.submit();
             }
         }

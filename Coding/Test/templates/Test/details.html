@@ -1,18 +1,32 @@
-<!DOCTYPE html>
+<!DOCTYPE
+html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Challenge Creator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --background-color: #f8fafc;
-            --card-background: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
+            /* Updated teal and white color scheme */
+            --primary: #4da6a6;
+            --primary-dark: #3d8a8a;
+            --primary-light: #70cfcf;
+            --secondary: #5ebdbd;
+            --text-primary: #2c6565;
+            --text-secondary: #5ebdbd;
+            --text-dark: #2c6565;
+            --background: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #e0e5e5;
+            --border-radius: 12px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.04), 0 4px 6px rgba(0,0,0,0.06);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         * {
@@ -22,29 +36,44 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Poppins', sans-serif;
             line-height: 1.6;
             padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
-            background-color: var(--background-color);
-            color: var(--text-color);
+            background-color: var(--background);
+            color: var(--text-primary);
+            position: relative;
         }
 
         h2 {
-            color: var(--primary-color);
+            color: var(--text-dark);
             margin-bottom: 30px;
             text-align: center;
             font-size: 2em;
             font-weight: 700;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
         }
 
         .container {
-            background-color: var(--card-background);
+            background-color: rgb(246, 244, 235);
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
             margin-bottom: 30px;
+            border: 1px solid var(--border-color);
         }
 
         .form-grid {
@@ -71,25 +100,37 @@
             top: 12px;
             right: 15px;
             z-index: 1000;
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 6px 16px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.2s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .preview-button:hover {
-            background-color: var(--secondary-color);
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .preview-button::before {
+            content: '\f06e';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 14px;
         }
 
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: var(--text-color);
+            color: var(--text-dark);
+            font-size: 0.95rem;
         }
 
         input[type="text"], 
@@ -97,12 +138,14 @@
         textarea, 
         input[type="number"] {
             width: 100%;
-            padding: 10px 12px;
+            padding: 12px 14px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.2s;
-            background-color: white;
+            transition: var(--transition);
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
         }
 
         input[type="text"]:focus, 
@@ -110,22 +153,34 @@
         textarea:focus, 
         input[type="number"]:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(77, 166, 166, 0.2);
         }
 
         .file-upload-container {
             border: 2px dashed var(--border-color);
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
             text-align: center;
             margin-bottom: 24px;
             cursor: pointer;
-            transition: border-color 0.2s;
+            transition: var(--transition);
+            background-color: var(--card-bg);
+            position: relative;
         }
 
         .file-upload-container:hover {
-            border-color: var(--primary-color);
+            border-color: var(--primary);
+        }
+
+        .file-upload-container::before {
+            content: '\f0ee';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 24px;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 10px;
         }
 
         .file-upload-input {
@@ -133,32 +188,54 @@
         }
 
         .sample-file-link {
-            color: var(--primary-color);
+            color: var(--primary);
             text-decoration: none;
-            display: block;
-            margin-top: 8px;
+            display: inline-block;
+            margin-top: 12px;
             font-size: 14px;
+            transition: var(--transition);
+            position: relative;
         }
 
         .sample-file-link:hover {
-            text-decoration: underline;
+            color: var(--primary-dark);
+        }
+
+        .sample-file-link::before {
+            content: '\f15c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 5px;
         }
 
         .submit-button {
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             color: white;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
             width: 100%;
-            transition: background-color 0.2s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: var(--shadow-sm);
         }
 
         .submit-button:hover {
-            background-color: var(--secondary-color);
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .submit-button::before {
+            content: '\f067';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
         }
 
         .modal {
@@ -170,18 +247,21 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
+            backdrop-filter: blur(3px);
         }
 
         .modal-content {
             position: relative;
             background-color: white;
             margin: 50px auto;
-            padding: 24px;
+            padding: 30px;
             width: 90%;
             max-width: 800px;
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
         }
 
         .modal-header {
@@ -195,7 +275,7 @@
 
         .modal-title {
             font-size: 24px;
-            color: var(--text-color);
+            color: var(--text-dark);
             font-weight: 600;
         }
 
@@ -206,11 +286,91 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.2s;
+            transition: var(--transition);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .close-button:hover {
-            background: var(--border-color);
+            background: var(--card-bg);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .close-button::before {
+            content: '\f00d';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        .existing-file {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .existing-file a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .existing-file a:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            background-color: #f5f7f7;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+
+        /* TinyMCE customization */
+        .tox-tinymce {
+            border-radius: 8px !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .tox .tox-toolbar, .tox .tox-toolbar__primary {
+            background-color: #f5f7f7 !important;
+        }
+
+        .tox .tox-tbtn {
+            color: var(--text-primary) !important;
+        }
+
+        .tox .tox-tbtn:hover {
+            background-color: rgba(77, 166, 166, 0.1) !important;
         }
     </style>
 </head>
@@ -344,7 +504,7 @@
                             <p>Current file: <a href="{{ challenge.output.url }}" onclick="event.stopPropagation()">{{ challenge.output.name }}</a></p>
                         </div>
                     {% endif %}
-                    <p style="margin-top: 5px;">Click to upload test cases file</p>
+                    <p style="margin-top: 5px;">Click to upload output file</p>
                     <input type="file" id="outputFile" name="outputFile" class="file-upload-input" accept=".txt" oninput="size1(this)">
                     <a href="#" class="sample-file-link" onclick="event.stopPropagation(); showSampleFile('output')" style="margin-top: 5px;">View sample output file format</a>
                 </div>
@@ -398,8 +558,10 @@
                 'bold italic backcolor | alignleft aligncenter ' +
                 'alignright alignjustify | bullist numlist outdent indent | ' +
                 'removeformat | help',
-            content_style: 'body { font-family:Inter,-apple-system,sans-serif; font-size:14px }',
-            forced_root_block: false
+            content_style: 'body { font-family:Poppins,sans-serif; font-size:14px }',
+            forced_root_block: false,
+            skin: 'oxide',
+            content_css: 'default'
         };
 
         ['description', 'problemStatement', 'constraints', 'input', 'output','sample_testcase','sample_out'].forEach(id => {
@@ -418,7 +580,7 @@
                     input.value = "";
                 }
                 else{
-                    alert("File Uploaded Succesfully");
+                    alert("File Uploaded Successfully");
                 }
             }
         }
@@ -484,19 +646,23 @@
         document.querySelectorAll('.file-upload-container').forEach(container => {
             container.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                container.style.borderColor = '#2563eb';
+                container.style.borderColor = '#4da6a6';
             });
 
             container.addEventListener('dragleave', (e) => {
                 e.preventDefault();
-                container.style.borderColor = '#e2e8f0';
+                container.style.borderColor = '#e0e5e5';
             });
 
             container.addEventListener('drop', (e) => {
                 e.preventDefault();
-                container.style.borderColor = '#e2e8f0';
+                container.style.borderColor = '#e0e5e5';
                 const input = container.querySelector('input[type="file"]');
                 input.files = e.dataTransfer.files;
+                
+                if(input.files && input.files[0]) {
+                    size1(input);
+                }
             });
         });
 
