@@ -1,11 +1,30 @@
-<!DOCTYPE html>
+<!DOCTYPE
+html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Create Contest</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --primary: #4da6a6;
+      --primary-dark: #3d8a8a;
+      --primary-light: #70cfcf;
+      --text-primary: #2c6565;
+      --text-secondary: #5ebdbd;
+      --text-dark: #333333;
+      --background: #f8f9fa;
+      --card-bg: #ffffff;
+      --border-color: #e0e5e5;
+      --input-bg: #f5f7f7;
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -14,8 +33,8 @@
     }
 
     body {
-      height: 100vh;
-      background: linear-gradient(135deg, #4da6a6, #70cfcf);
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
       display: flex;
       justify-content: center;
       align-items: center;
@@ -23,56 +42,72 @@
     }
 
     .container {
-      background: #fffefc;
-      width: 440px;
-      padding: 30px;
-      border-radius: 24px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 480px;
+      padding: 40px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
       text-align: center;
     }
 
     .container h1 {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 600;
-      margin-bottom: 25px;
-      color: #333;
+      margin-bottom: 30px;
+      color: var(--text-dark);
+      position: relative;
+      display: inline-block;
+    }
+
+    .container h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
     }
 
     .form-group {
       text-align: left;
-      margin-bottom: 18px;
+      margin-bottom: 24px;
     }
 
     .form-group label {
       display: block;
       font-weight: 600;
       font-size: 14px;
-      margin-bottom: 8px;
-      color: #333;
+      margin-bottom: 10px;
+      color: var(--text-dark);
     }
 
     .form-group input,
     .form-group select {
       width: 100%;
       padding: 12px 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 9999px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
       font-size: 14px;
-      transition: all 0.3s ease;
-      background: #f9f9f9;
+      transition: var(--transition);
+      background: var(--input-bg);
+      color: var(--text-dark);
     }
 
     .form-group input:focus,
     .form-group select:focus {
-      border-color: #4da6a6;
-      box-shadow: 0 0 0 4px rgba(77, 166, 166, 0.15);
-      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(77, 166, 166, 0.15);
+      background: var(--card-bg);
       outline: none;
     }
 
     .form-group .inline {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .form-group .inline input {
@@ -80,35 +115,51 @@
     }
 
     #manualInput {
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 9999px;
+      border-radius: 8px;
       font-size: 16px;
       font-weight: 600;
       color: white;
-      background: linear-gradient(to right, #4da6a6, #70cfcf);
+      background: var(--primary);
       cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 10px;
+      transition: var(--transition);
+      margin-top: 16px;
+      box-shadow: var(--shadow-sm);
     }
 
     .btn:hover {
       transform: translateY(-2px);
-      background: linear-gradient(to right, #3c9b9b, #5cc7c7);
+      background: var(--primary-dark);
+      box-shadow: var(--shadow-md);
     }
 
     .btn:active {
-      transform: scale(0.97);
+      transform: scale(0.98);
     }
 
     select {
       appearance: none;
-      background: url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 1rem center/1rem auto;
+      background-image: url('data:image/svg+xml;utf8,<svg fill="%232c6565" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1rem;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 30px 20px;
+      }
+      
+      .form-group .inline {
+        flex-direction: column;
+        gap: 10px;
+      }
     }
   </style>
 </head>
@@ -123,7 +174,7 @@
         {% if contest %}
           <input type="text" id="contest-name" name="contest-name" value="{{contest.contest_name}}" />
         {% else %}
-          <input type="text" id="contest-name" name="contest-name" required />
+          <input type="text" id="contest-name" name="contest-name" required placeholder="Enter contest name" />
         {% endif %}
       </div>
 
@@ -169,6 +220,7 @@
               <option value="undefined" selected>Undefined</option>
               <option value="manual">Enter Manually</option>
             </select>
+            <input type="number" id="manualInput" name="manualInput" placeholder="Enter max entries" style="display: none;" />
           {% endif %}
         {% else %}
           <select id="maxSelect" name="maxSelect">

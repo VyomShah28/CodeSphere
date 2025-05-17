@@ -7,6 +7,10 @@ class User(models.Model):
     email=models.TextField(default=None,null=True)
     password=models.TextField(default=None,null=True)
 
+class Rank(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    rank=models.JSONField(default=dict)
+
 class Contest(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,null=True)
     contest_name=models.CharField(max_length=100,default=None)

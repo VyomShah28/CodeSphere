@@ -144,7 +144,7 @@
             <p>Create an account and start exploring CodeSphere</p>
         </div>
         <div class="auth-body">
-            <form id="signupForm" action="{% url 'Sidebar' %}" method="POST" novalidate>
+            <form id="signupForm" action="{% url 'Dashboard' %}" method="POST" novalidate>
                 {% csrf_token %}
                 <input type="hidden" name="source" value="signup">
 

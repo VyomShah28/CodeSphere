@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Challenges,Contest,User
+from .models import Challenges,Contest,User,Rank
 from django.shortcuts import get_object_or_404,redirect
 from django.urls import reverse
 import json
@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from django.http import JsonResponse
 from django.contrib.auth.hashers import check_password,make_password
 import re
+from django.utils.dateformat import time_format
+from compiler.models import Score
 # Create your views here.
 def Test_View(request):
     if request.method=="POST":
@@ -119,7 +121,7 @@ def Land(request):
     if request.POST : 
         source=request.POST.get('source')
         user=request.POST.get('user')
-        if source=='sidebar':
+        if source=='dashboard':
             return render(request,'land.html',{"user":user})
         else : 
             contest=get_object_or_404(Contest,id=request.POST.get('contest'))
@@ -140,7 +142,7 @@ def Main(request):
     if request.POST:
         source=request.POST.get('source')
         user=request.POST.get('user')
-        if source=="sidebar" :
+        if source=="dashboard":
             return render(request,'main.html',{"user":user})
         elif source=='main':
             return render(request,'main.html',{'user':user})
@@ -165,7 +167,7 @@ def Login(request):
 def Signup(request):
     return render(request,'signup.html')
     
-def sidebar(request):
+def dashboard(request):
     if request.POST:
         source=request.POST.get('source')
         if source=="signup" :
@@ -176,14 +178,14 @@ def sidebar(request):
                     password=make_password(request.POST['password'])
                 )
                 user.save()
-                return render(request,'sidebar.html',{"user":user.id})
+                return render(request,'dashboard.html',{"user":user.id})
             else : 
                 email=request.POST.get('email')
                 user=User.objects.get(email=email)
-                return render(request,'sidebar.html',{"user":user.id})
+                return render(request,'dashboard.html',{"user":user.id})
         else : 
             user=request.POST.get('user')
-            return render(request,'sidebar.html',{"user":user})
+            return render(request,'dashboard.html',{"user":user})
         
 def delete_contest(request):
     if request.method=="POST":
@@ -261,3 +263,40 @@ def find_contest(request):
                 'end_time': contest.end_time
             })
         return JsonResponse(contests_data, safe=False)
+    
+def Response(request):
+    if request.method=="POST":
+        contest=request.POST.get('contest')
+        print(contest)
+        scores=Score.objects.filter(contest=contest)
+        score_data = []
+        for score in scores:
+            score_data.append({
+                'Name': score.user.full_name,
+                'Email': score.user.email,
+                'Score': score.score,
+                'Time': time_format(score.time, 'H:i:s')
+            })
+        return render(request,'response.html',{'scores': json.dumps(score_data)})
+    
+def Track(request):
+    if request.method=="POST":
+        user=request.POST.get('user')
+        rank=Rank.objects.get(user=user)
+        score=Score.objects.filter(user=user)
+        rank_data = []
+        score_data=[]
+        for r in rank.rank:
+            rank_data.append({
+                'rank': rank.rank[r]
+            })
+            contest=Contest.objects.get(id=r)
+            s=score.get(contest=contest)
+            score_data.append({
+                'Contest': contest.contest_name,
+                'Date': contest.start_date.strftime('%Y-%m-%d'),
+                'Rank': rank.rank[r],
+                'Score': s.score,
+                'Time': time_format(s.time, 'H:i:s')
+            })
+        return render(request,'track.html',{'user':user,'rank': json.dumps(rank_data),'score':json.dumps(score_data)})

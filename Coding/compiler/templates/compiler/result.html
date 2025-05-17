@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Performance Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <script src="https://unpkg.com/ag-grid-community@31.0.3/dist/ag-grid-community.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5ea; color: #333; line-height: 1.5; padding:0; margin:0;
+        }
+        .header {
+            background-color: #ffffff; padding: 1.5rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 1px solid #e5e7eb;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; text-align: center; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card {
+            background: white; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;
+        }
+        .card-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title { font-size: 1.125rem; font-weight: 600; color: #111827; }
+        .card-body { padding: 1rem; }
+        .ag-theme-alpine {
+            --ag-foreground-color: #374151; --ag-background-color: #ffffff;
+            --ag-header-foreground-color: #111827; --ag-header-background-color: #f9fafb;
+            --ag-odd-row-background-color: #f9fafb; --ag-header-column-separator-display: block;
+            --ag-header-column-separator-color: #e5e7eb; --ag-border-color: #e5e7eb;
+            --ag-font-size: 14px; --ag-font-family: 'Inter', sans-serif;
+        }
+        .grid-container { height: 500px; width: 100%; }
+        .home-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 3rem auto 0;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background:#4da6a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .home-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.04), 0 4px 6px rgba(0,0,0,0.06);
+            background: #3d8a8a;
+        }
+        
+        .footer {
+            text-align: center; padding: 1.5rem; color: #6b7280;
+            font-size: 0.875rem; border-top: 1px solid #e5e7eb; margin-top: 2rem;
+        }
+        .status-message { text-align: center; padding: 1rem; font-weight: 500; }
+        .status-stopped { color: #d9534f; } 
+        .status-loading { color: #5bc0de; } 
+        .status-updated { color: #28a745; }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 0.5rem; margin: 1rem auto; }
+            .header { padding: 1rem; }
+            .card-header { padding: 0.75rem 1rem; }
+            .grid-container { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <form method="POST" id="form" action="{% url 'Dashboard' %}">
+        {% csrf_token %}
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="user" value="{{ user }}">
+        <input type="hidden" name="contest_id" value="{{ contest_id }}">
+        <header class="header">
+            <h1>Live Result Dashboard</h1>
+        </header>
+
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Live Scorecard</div>
+                </div>
+                <div class="card-body">
+                    <div id="statusMessage" class="status-message status-loading">Loading initial data...</div>
+                    <div id="myGrid" class="ag-theme-alpine grid-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="home-button" type="submit">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; <span id="currentYear"></span> Company Dashboard. All rights reserved.</p>
+        </footer>
+    </form>
+
+    <script>
+        let gridApi;
+        let pollingIntervalId = null;
+        let csrfToken;
+
+        const JS_USER_IDENTIFIER = "{{ user }}"; 
+        const JS_CONTEST_ID = "{{ contest_id }}";
+
+        const columnDefs = [
+            { field: "Rank", headerName: "Rank", flex: 0.5, minWidth: 80, sortable: true },
+            { field: "Name", headerName: "Name", flex: 1.5, minWidth: 180, sortable: true },
+            { field: "Email", headerName: "Email", flex: 1.5, minWidth: 200, sortable: true },
+            { 
+                field: "Score", headerName: "Score", flex: 0.8, minWidth: 100, sortable: true, sort: 'desc',
+                cellStyle: params => ({ fontWeight: '600', color: 'green' })
+            },
+            { field: "Time", headerName: "Time", flex: 0.8, minWidth: 100 }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: [], 
+            defaultColDef: { resizable: true },
+            rowHeight: 48,
+            headerHeight: 56,
+            animateRows: true,
+            pagination: true,
+            paginationPageSize: 10,
+            paginationPageSizeSelector: [10, 20, 50, 100],
+            onGridReady: async (params) => {
+                console.log("AG Grid is ready and onGridReady callback executed.");
+                gridApi = params.api;
+                setStatusMessage("Grid ready. Fetching initial data...", "status-loading");
+                
+                await updateGridData(); 
+
+                if (pollingIntervalId === null && gridApi) { 
+                    const statusElement = document.getElementById('statusMessage');
+                    if (statusElement && !statusElement.classList.contains('status-stopped')) {
+                         console.log("Initial data loaded. Starting live updates.");
+                         pollingIntervalId = setInterval(updateGridData, 5000); 
+                    } else {
+                         console.log("Polling not started due to status or initial data load outcome.");
+                    }
+                }
+            },
+        };
+        
+        async function fetchBackendScoreData() {
+            const formData = new FormData();
+            formData.append('user', JS_USER_IDENTIFIER);
+            formData.append('contest_id', JS_CONTEST_ID);
+
+            try {
+                const response = await fetch("{% url 'Result' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${errorText || response.statusText}`);
+                }
+                return await response.json(); 
+            } catch (error) {
+                console.error("Failed to fetch data from backend:", error);
+                setStatusMessage(`Error fetching data: ${error.message}. Polling stopped.`, "status-stopped");
+                stopPolling();
+                return { ranks: [], success: false, error: error.message };
+            }
+        }
+        
+        async function updateGridData() {
+            if (!gridApi) {
+                console.error("Grid API is not initialized in updateGridData. Cannot update data.");
+                setStatusMessage("Error: Grid not ready. Please refresh.", "status-stopped");
+                stopPolling();
+                return;
+            }
+        
+            const responseData = await fetchBackendScoreData();
+        
+            if (!gridApi) { 
+                console.warn("Grid API became unavailable during data fetch. Polling stopped.");
+                stopPolling(); 
+                return;
+            }
+        
+            if (responseData && typeof responseData.success === 'boolean') {
+                if (responseData.success) {
+                    if (responseData.ranks) {
+                        gridApi.setRowData(responseData.ranks); 
+                        const message = `Data updated at ${new Date().toLocaleTimeString()}. Displaying ${responseData.ranks.length} rows.`;
+                        const statusElement = document.getElementById('statusMessage');
+                        if (statusElement && !statusElement.classList.contains('status-stopped')) {
+                           setStatusMessage(message, "status-loading"); 
+                        }
+                    } else {
+                        gridApi.setRowData([]); 
+                        setStatusMessage("Data received, but no rank information. Grid cleared.", "status-loading");
+                    }
+                } else { 
+                    const finalMessage = responseData.error || "Live updates have ended (e.g., contest finished).";
+                    setStatusMessage(finalMessage, "status-stopped");
+                    if (responseData.ranks && responseData.ranks.length > 0) {
+                        gridApi.setRowData(responseData.ranks);
+                    }
+                    stopPolling();
+                }
+            } else {
+                setStatusMessage("Received invalid or no data from backend. Polling stopped.", "status-stopped");
+                stopPolling();
+            }
+        }
+
+        function stopPolling() {
+            if (pollingIntervalId) {
+                clearInterval(pollingIntervalId);
+                pollingIntervalId = null;
+                console.log("Polling stopped.");
+            }
+        }
+
+        function setStatusMessage(message, typeClass) {
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = `status-message ${typeClass}`; 
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired.");
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfInput) {
+                csrfToken = csrfInput.value;
+                console.log("CSRF token found.");
+            } else {
+                console.error("CSRF token input field not found!");
+                setStatusMessage("Error: CSRF token missing. Dashboard may not function correctly.", "status-stopped");
+            }
+
+            const gridDiv = document.querySelector('#myGrid');
+
+            // More robust check for AG Grid
+            if (typeof agGrid === 'undefined') {
+                console.error("AG Grid library (agGrid object) is not defined. Ensure the library script is loaded before this script.");
+                setStatusMessage("Error: AG Grid library failed to load. Dashboard cannot initialize.", "status-stopped");
+                return; 
+            } else if (typeof agGrid.Grid !== 'function') {
+                console.error("agGrid object is defined, but agGrid.Grid is not a constructor.");
+                console.log("Current agGrid object:", agGrid); // Log the object to inspect it
+                setStatusMessage("Error: AG Grid library loaded but not correctly initialized (Grid constructor missing). Dashboard cannot initialize.", "status-stopped");
+                return;
+            } else {
+                console.log("AG Grid library and agGrid.Grid constructor appear to be available.");
+            }
+
+            if (gridDiv) {
+                console.log("Grid container #myGrid found. Attempting to instantiate agGrid.Grid...");
+                try {
+                    // This is the critical line
+                    new agGrid.Grid(gridDiv, gridOptions);
+                    console.log("AG Grid instantiation call completed. Check onGridReady callback next.");
+                } catch (e) {
+                    console.error("Error during `new agGrid.Grid()` instantiation:", e);
+                    setStatusMessage(`Error initializing grid: ${e.message}`, "status-stopped");
+                }
+            } else {
+                console.error("Grid container #myGrid not found.");
+                setStatusMessage("Error: Grid container #myGrid not found. Dashboard cannot initialize.", "status-stopped");
+            }
+
+            window.addEventListener('beforeunload', () => {
+                stopPolling();
+            });
+        });
+    </script>
+</body>
+</html>

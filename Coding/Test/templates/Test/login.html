@@ -244,7 +244,7 @@
                 console.log(data);
                 if (data.flag) { // Assuming 'flag' indicates success
                     userInput.value = data.user;
-                    loginForm.action = "{% url 'Sidebar' %}"; // Assuming 'Sidebar' is your redirect URL
+                    loginForm.action = "{% url 'Dashboard' %}";
                     loginForm.submit();
                 } else {
                     showAlert(data.msg || 'Login failed. Please check your credentials.', false);

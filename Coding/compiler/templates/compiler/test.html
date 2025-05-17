@@ -4,218 +4,480 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Code Challenge: Engage!</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
+        :root {
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-tertiary: #334155;
+            --bg-editor: #0F172A;
+            --bg-console: #1E293B;
+            --bg-header: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --accent-primary: #38BDF8;
+            --accent-secondary: #0EA5E9;
+            --accent-success: #10B981;
+            --accent-error: #EF4444;
+            --accent-warning: #F59E0B;
+            --accent-purple: #A855F7;
+            --border-color: #475569;
+            --border-light: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0B1120; 
-            color: #CCD6F6;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
         .container {
-            background-color: #1E293B; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
+            flex: 1;
             display: grid;
-            grid-template-columns: minmax(300px, 40%) 1fr; 
+            grid-template-columns: minmax(300px, 40%) 1fr;
+            max-height: 100vh;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                height: auto;
+                max-height: none;
+            }
+        }
+
         .problem-panel {
-            background-color: #111827;
-            color: #E0E6F1;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
             padding: 2rem;
-            border-right: 1px solid #334155;
+            border-right: 1px solid var(--border-light);
             overflow-y: auto;
+            height: 100vh;
         }
+
+        @media (max-width: 768px) {
+            .problem-panel {
+                height: auto;
+                max-height: 50vh;
+            }
+        }
+
         .problem-panel h2 {
-            margin-top:1rem;
             font-size: 1.75rem;
             font-weight: 700;
-            color: #64FFDA;
-            border-bottom: 3px solid #43A085;
+            color: var(--accent-primary);
+            border-bottom: 3px solid var(--accent-secondary);
             padding-bottom: 0.75rem;
             margin-bottom: 1.5rem;
         }
+
         .problem-panel h3 {
             font-size: 1.25rem;
             font-weight: 600;
-            color: #A8B2D1;
-            border-bottom: 1px dashed #4A5568; /* Dashed separator */
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
             padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
+            margin: 1.5rem 0 1rem 0;
+            display: flex;
+            align-items: center;
         }
+
+        .problem-panel h3::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+        }
+
+        .problem-panel h3.test-cases::before {
+            background-color: var(--accent-success);
+        }
+
+        .problem-panel h3.constraints::before {
+            background-color: var(--accent-warning);
+        }
+
+        .problem-panel h3.input-format::before {
+            background-color: var(--accent-primary);
+        }
+
+        .problem-panel h3.output-format::before {
+            background-color: var(--accent-purple);
+        }
+
+        .problem-description {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
         .testcase {
             margin-bottom: 1.5rem;
         }
-        .testcase div {
-            background-color: #1C2536; /* Darker test case block */
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            border-left: 4px solid #5CB85C; /* Green indicator */
+
+        .test-case-item {
+            background-color: var(--bg-tertiary);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--accent-success);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
+        .test-case-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-case-title {
+            font-weight: 600;
+            color: var(--accent-success);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .test-case-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .test-case-row {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .test-case-label {
+            font-weight: 600;
+            color: var(--accent-warning);
+            margin-bottom: 0.25rem;
+        }
+
+        .test-case-value {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
         .code-editor-panel {
             display: flex;
             flex-direction: column;
-            background-color: #1A202C; /* Dark editor background */
+            background-color: var(--bg-editor);
             overflow: hidden;
+            height: 100vh;
         }
+
+        @media (max-width: 768px) {
+            .code-editor-panel {
+                height: auto;
+                min-height: 50vh;
+            }
+        }
+
         .code-header {
-            background-color: #2D3748; /* Darker header */
-            padding: 1.25rem 1.5rem;
+            background-color: var(--bg-header);
+            padding: 1rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #4A5568;    
+            border-bottom: 1px solid var(--border-light);
         }
+
+        @media (max-width: 640px) {
+            .code-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .code-buttons {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+
         .language-select {
             display: flex;
             align-items: center;
         }
+
         .language-select label {
-            color: #CBD5E0;
+            color: var(--text-secondary);
             margin-right: 0.75rem;
-            font-family: 'JetBrains Mono', monospace; /* Sharp coding font */
             font-weight: 500;
         }
+
         .language-select select {
             padding: 0.6rem 1.2rem;
             border-radius: 0.5rem;
-            border: 1px solid #4A5568;
-            background-color: #1A202C;
-            color: #F9FAFB;
+            border: 1px solid var(--border-light);
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
             outline: none;
             font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
+
+        .language-select select:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .language-select select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
         .code-buttons button {
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
             font-weight: 600;
-            color: #F9FAFB;
-            font-family: sans-serif;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
+            transition: all 0.2s ease;
+            border: none;
             font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
+
+        @media (max-width: 640px) {
+            .code-buttons button {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        .code-buttons button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+        }
+
         .code-buttons .run-button {
-            background-color: #2D8654; /* Deeper green */
+            background-color: var(--accent-success);
         }
+
         .code-buttons .run-button:hover {
-            background-color: #226F43;
+            background-color: #0D9668;
+            transform: translateY(-1px);
         }
+
         .code-buttons .submit-button {
-            background-color: #2B6CB0; /* Deeper blue */
+            background-color: var(--accent-primary);
+            margin-left: 0.75rem;
         }
+
         .code-buttons .submit-button:hover {
-            background-color: #1A436D;
+            background-color: var(--accent-secondary);
+            transform: translateY(-1px);
         }
+
         .code-buttons .reset-button {
-            background-color: #C53030; /* Stronger red */
+            background-color: var(--accent-error);
+            margin-left: 0.75rem;
         }
+
         .code-buttons .reset-button:hover {
-            background-color: #A31F34;
+            background-color: #DC2626;
+            transform: translateY(-1px);
         }
+
         .code-area {
             flex-grow: 1;
             overflow: hidden;
-            width: 100%;          
-            display: flex;  
-            
+            width: 100%;
+            display: flex;
+            padding: 1rem;
         }
+
+        #compiler {
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--border-light);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            background-color: rgba(15, 23, 42, 0.7);
+            color: var(--text-primary);
+            resize: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            tab-size: 4;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        #compiler:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.1);
+        }
+
+        .output-container {
+            width: 100%;
+            border: 1px solid var(--border-light);
+            border-radius: 0.75rem;
+            background-color: var(--bg-console);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .output-header {
+            background-color: var(--bg-tertiary);
+            color: var(--accent-primary);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+        }
+
+        .output-header::before {
+            content: '>';
+            margin-right: 0.5rem;
+            color: var(--accent-success);
+        }
+
         #outputMessage {
-            padding: 1.25rem 1.5rem;
-            border-radius: 0.5rem;
-            margin-top: 1.5rem;
+            flex: 1;
+            padding: 1rem;
             font-family: 'JetBrains Mono', monospace;
             white-space: pre-wrap;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            overflow: auto;
+            color: var(--text-secondary);
         }
+
         .output-success {
-            background-color: #38A169; /* Brighter success green */
-            color: #F0FFF4;
-            border-left: 4px solid #68D391;
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--accent-success);
+            padding: 1rem;
+            border-radius: 0.25rem;
         }
+
         .output-error {
-            background-color: #E53E3E; /* Stronger error red */
-            color: #FFF5F5;
-            border-left: 4px solid #FC8181;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--accent-error);
+            padding: 1rem;
+            border-radius: 0.25rem;
         }
-        /* Scrollbar styles for WebKit browsers */
-        .scrollbar-thin::-webkit-scrollbar {
-            width: 10px;
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-            background-color: #4A5568;
-            border-radius: 5px;
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
         }
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background-color: #2D3748;
-            border-radius: 5px;
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-primary);
+        }
+
+        /* Placeholder text styling */
+        .placeholder-text {
+            color: var(--text-muted);
+            font-style: italic;
         }
     </style>
 </head>
-<body class="scrollbar-thin;">
+<body>
     <div class="container">
         <input type="hidden" id="csrf" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <input type="hidden" id="challenge_id" value="{{challenge}}">
         <input type="hidden" id="action">
         <input type="hidden" id="user" value="{{user}}">
-        <div class="problem-panel scrollbar-thin">
+        
+        <div class="problem-panel">
             <div>
-                <h2 class="text-xl font-bold text-teal-300 border-b-2 border-teal-500 pb-2 mb-4">{{name}}</h2>
-                <p class="text-gray-400 leading-relaxed">{{problem_statement | linebreaks}}</p>
+                <h2>{{name}}</h2>
+                <div class="problem-description">{{problem_statement | linebreaks}}</div>
             </div>
-            <div class="mt-8">
-                <h3 class="text-lg font-semibold text-green-300 border-b border-green-500 pb-1 mb-3">Test Cases</h3>
-                <div class="testcase space-y-3 text-sm text-gray-400"></div>
+            
+            <div>
+                <h3 class="test-cases">Test Cases</h3>
+                <div class="testcase"></div>
             </div>
-            <div class="mt-6">
-                <h3 class="text-lg font-semibold text-yellow-300 border-b border-yellow-500 pb-1 mb-3">Constraints</h3>
-                <p class="text-gray-400 leading-relaxed">{{constraints | linebreaks}}</p>
+            
+            <div>
+                <h3 class="constraints">Constraints</h3>
+                <div class="problem-description">{{constraints | linebreaks}}</div>
             </div>
-            <div class="mt-6">
-                <h3 class="text-lg font-semibold text-blue-300 border-b border-blue-500 pb-1 mb-3">Input Format</h3>
-                <p class="text-gray-400 leading-relaxed">{{input | linebreaks}}</p>
+            
+            <div>
+                <h3 class="input-format">Input Format</h3>
+                <div class="problem-description">{{input | linebreaks}}</div>
             </div>
-            <div class="mt-6">
-                <h3 class="text-lg font-semibold text-purple-300 border-b border-purple-500 pb-1 mb-3">Output Format</h3>
-                <p class="text-gray-400 leading-relaxed">{{output | linebreaks}}</p>
+            
+            <div>
+                <h3 class="output-format">Output Format</h3>
+                <div class="problem-description">{{output | linebreaks}}</div>
             </div>
         </div>
 
-        <div class="code-editor-panel flex flex-col">
+        <div class="code-editor-panel">
             <div class="code-header">
                 <div class="language-select">
-                    <label for="language">Lang:</label>
-                    <select id="language" class="rounded-md border border-gray-700 bg-gray-800 text-gray-300 focus:outline-none">
+                    <label for="language">Language:</label>
+                    <select id="language">
                         <option value="java">Java</option>
                         <option value="python">Python</option>
                     </select>
                 </div>
                 <div class="code-buttons">
                     <button onclick="Run('run')" class="run-button">Run Code</button>
-                    <button onclick="Run('submit')" class="submit-button ml-3">Submit Solution</button>
-                    <button id="reset-button" class="reset-button ml-3">Reset Code</button>
+                    <button onclick="Run('submit')" class="submit-button">Submit Solution</button>
+                    <button id="reset-button" class="reset-button">Reset Code</button>
                 </div>
             </div>
 
             <div class="code-area">
-                <textarea id="compiler" spellcheck="false" class="m-4 w-full h-80 border border-gray-700 rounded-xl p-4 bg-gray-900 text-green-100 text-teal-300 resize-none shadow-inner" ></textarea>
+                <textarea id="compiler" spellcheck="false" placeholder="Write your code here..."></textarea>
             </div>
+            
             <div class="code-area">
-                <div class="m-4 w-full h-60 rounded-xl border border-gray-700 bg-gray-900 flex flex-col">
-                    <div class="bg-gray-800 text-teal-300 font-semibold px-4 py-2 border-b border-gray-700 rounded-t-xl">
-                        Output Console
-                    </div>
-                    <div id="outputMessage" class="flex-1 p-4 text-sm font-mono overflow-auto" style="display: block;">
-                        <!-- Output will appear here after running code -->
-                        <span class="text-gray-500 italic">Run code to see output...</span>
+                <div class="output-container">
+                    <div class="output-header">Output Console</div>
+                    <div id="outputMessage">
+                        <span class="placeholder-text">Run code to see output...</span>
                     </div>
                 </div>
             </div>
-            
         </div>
     </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             Display(`{{sample}}`, `{{sample_out}}`);
@@ -229,7 +491,7 @@
             const user = document.getElementById('user').value;
 
             const defaultCode = {
-                'java': 'public class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
+                'java': 'import java.util.*;\npublic class Solution {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}',
                 'python': 'def solve():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    solve()'
             };
 
@@ -269,14 +531,26 @@
             const div = document.querySelector('.testcase');
             const sample = test.split('\n');
             const out = output.split('\n');
+            
             sample.forEach((test1, index) => {
-                const div1 = document.createElement('div');
-                div1.innerHTML = `
-                    <div class="font-bold text-green-300 mb-2">Case ${index + 1}</div>
-                    <p class="mb-1"><span class=" font-bold text-yellow-400">Input:</span> <code class="text-blue-400 font-sans">${test1}</code></p>
-                    <p><span class="font-bold text-yellow-400">Expected:</span> <code class="text-purple-400 font-sans">${out[index]}</code></p>
+                const testCaseItem = document.createElement('div');
+                testCaseItem.className = 'test-case-item';
+                
+                testCaseItem.innerHTML = `
+                    <div class="test-case-title">Test Case ${index + 1}</div>
+                    <div class="test-case-content">
+                        <div class="test-case-row">
+                            <div class="test-case-label">Input:</div>
+                            <code class="test-case-value">${test1}</code>
+                        </div>
+                        <div class="test-case-row">
+                            <div class="test-case-label">Expected Output:</div>
+                            <code class="test-case-value">${out[index]}</code>
+                        </div>
+                    </div>
                 `;
-                div.appendChild(div1);
+                
+                div.appendChild(testCaseItem);
             });
         }
 
@@ -288,6 +562,9 @@
             const outputMessage = document.getElementById("outputMessage");
             const challenge_id = document.getElementById("challenge_id").value;
             const user = document.getElementById("user").value;
+
+            // Show loading state
+            outputMessage.innerHTML = '<span class="placeholder-text">Running code...</span>';
 
             fetch("{% url 'Compile' %}", {
                 method: "POST",
@@ -305,7 +582,6 @@
             })
             .then(response => response.json())
             .then(data => {
-                outputMessage.style.display = "block";
                 outputMessage.classList.remove("output-error", "output-success");
                 outputMessage.style.whiteSpace = "pre-line";
 
@@ -316,6 +592,11 @@
                     outputMessage.classList.add("output-error");
                     outputMessage.textContent = data.Error;
                 }
+            })
+            .catch(error => {
+                outputMessage.classList.add("output-error");
+                outputMessage.textContent = "An error occurred while processing your request.";
+                console.error("Error:", error);
             });
         }
     </script>

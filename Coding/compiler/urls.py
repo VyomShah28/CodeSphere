@@ -6,5 +6,7 @@ urlpatterns=[
     path('get',views.get,name="Get"),
     path('compile1',views.compile1,name="Compile"),
     path('leaderboard',views.leaderboard,name='Leaderboard'),
-    path('time',views.time,name='Time')
+    path('time',views.time,name='Time'),
+    path('submit',views.submit,name='Submit'),
+    path('result',views.result,name='Result')
 ]

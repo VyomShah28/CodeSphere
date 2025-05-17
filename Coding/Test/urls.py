@@ -14,8 +14,10 @@ urlpatterns=[
     path('check_email',views.check_email,name="Check_email"),
     path('update',views.update_challenge,name="Update_challenge"),
     path('get1',views.get_challenge,name="Get_challenge"),
-    path('sidebar',views.sidebar,name='Sidebar'),
+    path('dashboard',views.dashboard,name='Dashboard'),
     path('',views.Home,name='Home1'),
     path('delete',views.delete_contest,name='delete_contest'),
-    path('enter_contest',views.Enter,name='Enter')
+    path('enter_contest',views.Enter,name='Enter'),
+    path('response',views.Response,name='Response'),
+    path('track/',views.Track,name='Track')
 ]

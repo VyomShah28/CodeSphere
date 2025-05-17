@@ -12,6 +12,7 @@
       --primary-color: #4da6a6;
       --secondary-color: #8338ec;
       --accent-color: #ff006e;
+      --secondary-accent-color: #3d7a8a;
       --light-bg: #f8f9fa;
       --dark-bg: #212529;
       --text-primary: #4da6a6;
@@ -140,54 +141,57 @@
     }
 
     .hero-stats {
-  display: flex;
-  justify-content: center;
-  gap: 64px;
-  margin-top: 48px;
-  flex-wrap: wrap;
-}
+      display: flex;
+      justify-content: center;
+      gap: 64px;
+      margin-top: 48px;
+      flex-wrap: wrap;
+    }
 
-.stat-item {
-  background: white;
-  border-radius: 20px;
-  padding: 32px 24px;
-  box-shadow: var(--card-shadow);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  width: 200px;
-  animation: fadeInUp 0.6s ease forwards;
-  opacity: 0;
-}
+    .stat-item {
+      background: white;
+      border-radius: 20px;
+      padding: 32px 24px;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      width: 200px;
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
 
-.stat-item:nth-child(1) {
-  animation-delay: 0.2s;
-}
-.stat-item:nth-child(2) {
-  animation-delay: 0.4s;
-}
-.stat-item:nth-child(3) {
-  animation-delay: 0.6s;
-}
+    .stat-item:nth-child(1) {
+      animation-delay: 0.2s;
+    }
+    .stat-item:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+    .stat-item:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+    .stat-item:nth-child(4) {
+      animation-delay: 0.8s;
+    }
+    
+    .stat-item:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--hover-shadow);
+    }
 
-.stat-item:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--hover-shadow);
-}
+    .stat-number {
+      font-size: 40px;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 12px;
+    }
 
-.stat-number {
-  font-size: 40px;
-  font-weight: 700;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin-bottom: 12px;
-}
-
-.stat-label {
-  color: var(--text-secondary);
-  font-size: 17px;
-  font-weight: 500;
-}
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 17px;
+      font-weight: 500;
+    }
 
     /* Feature Cards */
     .features-section {
@@ -196,7 +200,7 @@
 
     .cards-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 32px;
     }
 
@@ -260,6 +264,11 @@
       background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), rgba(58, 134, 255, 0.1));
     }
 
+    .feature-card:nth-child(4) .feature-icon {
+      color: var(--secondary-accent-color);
+      background: linear-gradient(135deg, rgba(255, 0, 110, 0.1), rgba(38, 70, 83, 0.1));
+    }
+
     .feature-card h3 {
       font-size: 24px;
       font-weight: 600;
@@ -304,6 +313,11 @@
       border-color: var(--accent-color);
     }
 
+    .feature-card:nth-child(4) .card-button {
+      color: var(--secondary-accent-color);
+      border-color: var(--secondary-accent-color);
+    }
+
     .card-button:hover {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -321,6 +335,11 @@
 
     .feature-card:nth-child(3) .card-button:hover {
       background: var(--accent-color);
+      color: white;
+    }
+
+    .feature-card:nth-child(4) .card-button:hover {
+      background: var(--secondary-accent-color);
       color: white;
     }
 
@@ -475,7 +494,7 @@
 <body>
   <form id="form" method="POST">
     {% csrf_token %}
-    <input type="hidden" id="source" name="source" value="sidebar">
+    <input type="hidden" id="source" name="source" value="dashboard">
     <input type="hidden" id="user" name="user" value="{{user}}">
   </form>
   <nav>
@@ -544,6 +563,16 @@
           <p>Join live coding competitions and showcase your programming skills against peers from around the world. Solve complex problems and climb the global rankings.</p>
           <button class="card-button" onclick="Call('Enter')">Join Now</button>
         </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Track Performance</h3>
+          <p>Monitor your contest ranks over time and analyze your coding growth. Stay motivated and climb the leaderboard!</p>
+          <button class="card-button" onclick="Call('Track')">View Stats</button>
+        </div>
+
       </div>
     </div>
   </section>
@@ -568,7 +597,8 @@
     const urls = {
       'Main': "{% url 'Main' %}",
       'Land': "{% url 'Home' %}",
-      'Enter': "{% url 'Enter' %}"
+      'Enter': "{% url 'Enter' %}",
+      'Track': "{% url 'Track' %}"
     };
 
     function Call(name) {
