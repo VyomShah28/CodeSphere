@@ -14,7 +14,6 @@ def Test_View(request):
     if request.method=="POST":
         contest=request.POST.get('contest')
         user=request.POST.get('user')
-        print(user)
         contest_instance = get_object_or_404(Contest, id=contest)
         if request.POST.get('challenge'):
             challenge=request.POST.get('challenge')
@@ -267,7 +266,6 @@ def find_contest(request):
 def Response(request):
     if request.method=="POST":
         contest=request.POST.get('contest')
-        print(contest)
         scores=Score.objects.filter(contest=contest)
         score_data = []
         for score in scores:
@@ -282,7 +280,10 @@ def Response(request):
 def Track(request):
     if request.method=="POST":
         user=request.POST.get('user')
-        rank=Rank.objects.get(user=user)
+        try : 
+            rank=get_object_or_404(Rank,user=user)
+        except Rank.DoesNotExist:
+            return render(request,'track.html',{'user':user,'rank':json.dumps([]),'score':json.dumps([])})
         score=Score.objects.filter(user=user)
         rank_data = []
         score_data=[]
