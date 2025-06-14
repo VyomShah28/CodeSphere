@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404,redirect
 from django.urls import reverse
 import json
 from bs4 import BeautifulSoup
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.contrib.auth.hashers import check_password,make_password
 import re
 from django.utils.dateformat import time_format
@@ -184,6 +184,7 @@ def dashboard(request):
                 return render(request,'dashboard.html',{"user":user.id})
         else : 
             user=request.POST.get('user')
+            print(user)
             return render(request,'dashboard.html',{"user":user})
         
 def delete_contest(request):
@@ -282,7 +283,7 @@ def Track(request):
         user=request.POST.get('user')
         try : 
             rank=get_object_or_404(Rank,user=user)
-        except Rank.DoesNotExist:
+        except Http404:
             return render(request,'track.html',{'user':user,'rank':json.dumps([]),'score':json.dumps([])})
         score=Score.objects.filter(user=user)
         rank_data = []

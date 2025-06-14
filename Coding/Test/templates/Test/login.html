@@ -208,7 +208,6 @@
             const password = passwordInput.value;
             const email = emailInput.value;
 
-            // Basic frontend validation
             if (!email || !password) {
                 showAlert('Please enter both email and password.', false);
                 if(!email) emailInput.focus();
@@ -221,7 +220,7 @@
                 return;
             }
 
-            fetch("{% url 'Check' %}", { // Assuming 'Check' is your login check URL
+            fetch("{% url 'Check' %}", { 
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -231,10 +230,9 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    // Try to get error message from server if possible
                     return response.json().then(errData => {
                         throw new Error(errData.msg || "Network response was not ok");
-                    }).catch(() => { // Fallback if response is not JSON
+                    }).catch(() => {
                         throw new Error("Network response was not ok. Status: " + response.status);
                     });
                 }
@@ -242,7 +240,7 @@
             })
             .then(data => {
                 console.log(data);
-                if (data.flag) { // Assuming 'flag' indicates success
+                if (data.flag) {
                     userInput.value = data.user;
                     loginForm.action = "{% url 'Dashboard' %}";
                     loginForm.submit();

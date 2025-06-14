@@ -1,28 +1,29 @@
-<!DOCTYPE
-html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Contest</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --primary: #4da6a6;
-      --primary-dark: #3d8a8a;
-      --primary-light: #70cfcf;
-      --text-primary: #2c6565;
-      --text-secondary: #5ebdbd;
-      --text-dark: #333333;
-      --background: #f8f9fa;
+      --primary: #14b8a6; /* Teal */
+      --primary-dark: #0f766e;
+      --primary-light: #5eead4;
+      --secondary: #fef3c7; /* Cream */
+      --secondary-dark: #fde68a;
+      --text-primary: #134e4a;
+      --text-secondary: #0f766e;
+      --text-dark: #042f2e;
+      --background: linear-gradient(135deg, #f0fdfa 0%, #fef7ed 100%);
       --card-bg: #ffffff;
-      --border-color: #e0e5e5;
-      --input-bg: #f5f7f7;
-      --shadow-sm: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-      --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06);
-      --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.08);
-      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      --border-radius: 12px;
+      --border-color: #a7f3d0;
+      --input-bg: #f0fdfa;
+      --error-color: #ef4444;
+      --shadow-sm: 0 2px 4px rgba(20, 184, 166, 0.1);
+      --shadow-md: 0 4px 8px rgba(20, 184, 166, 0.15);
+      --shadow-lg: 0 10px 25px rgba(20, 184, 166, 0.2);
+      --border-radius: 16px;
     }
 
     * {
@@ -34,27 +35,58 @@ html>
 
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      background: var(--background);
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(20, 184, 166, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(254, 243, 199, 0.3) 0%, transparent 50%);
+      pointer-events: none;
     }
 
     .container {
       background: var(--card-bg);
       width: 100%;
-      max-width: 480px;
-      padding: 40px;
+      max-width: 500px;
+      padding: 45px;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-lg);
       text-align: center;
+      position: relative;
+      border: 1px solid var(--border-color);
+    }
+    
+    .container:hover {
+      box-shadow: 0 20px 40px rgba(20, 184, 166, 0.25);
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary-dark) 100%);
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
 
     .container h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 30px;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 35px;
       color: var(--text-dark);
       position: relative;
       display: inline-block;
@@ -63,51 +95,60 @@ html>
     .container h1::after {
       content: '';
       position: absolute;
-      bottom: -10px;
+      bottom: -12px;
       left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 3px;
-      background: var(--primary);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
       border-radius: 2px;
     }
 
     .form-group {
       text-align: left;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
     .form-group label {
       display: block;
       font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 10px;
+      font-size: 15px;
+      margin-bottom: 12px;
       color: var(--text-dark);
     }
 
     .form-group input,
     .form-group select {
       width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 14px;
-      transition: var(--transition);
+      padding: 14px 18px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 15px;
       background: var(--input-bg);
       color: var(--text-dark);
+      -webkit-appearance: none; 
+      -moz-appearance: none;
+      appearance: none;
     }
 
     .form-group input:focus,
     .form-group select:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(77, 166, 166, 0.15);
+      box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15);
       background: var(--card-bg);
       outline: none;
+    }
+    
+    /* Error state - only applied when validation fails */
+    .form-group input.error,
+    .form-group select.error {
+      border-color: var(--error-color);
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+      background: #fef2f2;
     }
 
     .form-group .inline {
       display: flex;
-      gap: 12px;
+      gap: 15px;
     }
 
     .form-group .inline input {
@@ -115,64 +156,99 @@ html>
     }
 
     #manualInput {
-      margin-top: 12px;
+      margin-top: 15px;
     }
 
     .btn {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 12px;
+      font-size: 17px;
       font-weight: 600;
       color: white;
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       cursor: pointer;
-      transition: var(--transition);
-      margin-top: 16px;
-      box-shadow: var(--shadow-sm);
+      margin-top: 20px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
     }
 
     .btn:hover {
-      transform: translateY(-2px);
-      background: var(--primary-dark);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn:hover::before {
+      left: 100%;
     }
 
     .btn:active {
       transform: scale(0.98);
     }
 
-    select {
-      appearance: none;
-      background-image: url('data:image/svg+xml;utf8,<svg fill="%232c6565" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-      background-repeat: no-repeat;
-      background-position: right 1rem center;
-      background-size: 1rem;
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper::after {
+      content: '▼';
+      font-size: 14px;
+      color: var(--primary);
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      pointer-events: none;
+    }
+
+    .select-wrapper:hover::after {
+      color: var(--primary-dark);
     }
 
     @media (max-width: 500px) {
       .container {
-        padding: 30px 20px;
+        padding: 35px 25px;
+        margin: 10px;
+      }
+      
+      .container h1 {
+        font-size: 28px;
       }
       
       .form-group .inline {
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
       }
+    }
+    .btn.loading {
+      opacity: 0.8;
+      cursor: not-allowed;
+    }
+
+    .form-success {
+      animation: success 0.3s ease;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Create Contest</h1>
-    <form id="form" method="POST">
-      {% csrf_token %}
+    <form id="form" method="POST" novalidate> {% csrf_token %}
       <input name="user" value="{{user}}" hidden />
       <div class="form-group">
         <label for="contest-name">Contest Name *</label>
         {% if contest %}
-          <input type="text" id="contest-name" name="contest-name" value="{{contest.contest_name}}" />
+          <input type="text" id="contest-name" name="contest-name" value="{{contest.contest_name}}" required />
         {% else %}
           <input type="text" id="contest-name" name="contest-name" required placeholder="Enter contest name" />
         {% endif %}
@@ -184,8 +260,8 @@ html>
         <label>Start Time *</label>
         <div class="inline">
           {% if contest %}
-            <input type="date" id="start-date" name="start-date" value="{{contest.start_date | date:'Y-m-d'}}" />
-            <input type="time" id="start-time" name="start-time" value="{{contest.start_time | time:'H:i'}}" />
+            <input type="date" id="start-date" name="start-date" value="{{contest.start_date | date:'Y-m-d'}}" required />
+            <input type="time" id="start-time" name="start-time" value="{{contest.start_time | time:'H:i'}}" required />
           {% else %}
             <input type="date" id="start-date" name="start-date" required />
             <input type="time" id="start-time" name="start-time" required />
@@ -197,37 +273,41 @@ html>
         <label>End Time</label>
         <div class="inline">
           {% if contest %}
-            <input type="date" id="end-date" name="end-date" value="{{contest.end_date | date:'Y-m-d'}}" />
-            <input type="time" id="end-time" name="end-time" value="{{contest.end_time | time:'H:i'}}" />
+            <input type="date" id="end-date" name="end-date" value="{{contest.end_date | date:'Y-m-d'}}" required/>
+            <input type="time" id="end-time" name="end-time" value="{{contest.end_time | time:'H:i'}}" required/>
           {% else %}
-            <input type="date" id="end-date" name="end-date" />
-            <input type="time" id="end-time" name="end-time" />
+            <input type="date" id="end-date" name="end-date" required/>
+            <input type="time" id="end-time" name="end-time" required/>
           {% endif %}
         </div>
       </div>
 
       <div class="form-group">
-        <label for="max">Maximum Entries</label>
-        {% if contest %}
-          {% if contest.number_of_entries != 2_147_483_647 %}
-            <select id="maxSelect" name="maxSelect">
-              <option value="undefined">Undefined</option>
-              <option value="manual" selected>Enter Manually</option>
-            </select>
-            <input type="number" id="manualInput" name="manualInput" value="{{contest.number_of_entries}}" style="display: block;" />
-          {% else %}
-            <select id="maxSelect" name="maxSelect">
-              <option value="undefined" selected>Undefined</option>
-              <option value="manual">Enter Manually</option>
-            </select>
-            <input type="number" id="manualInput" name="manualInput" placeholder="Enter max entries" style="display: none;" />
-          {% endif %}
+        <label for="maxSelect">Maximum Entries</label>
+        <div class="select-wrapper">
+            {% if contest %}
+                {% if contest.number_of_entries != 2_147_483_647 %}
+                    <select id="maxSelect" name="maxSelect">
+                        <option value="undefined">Undefined</option>
+                        <option value="manual" selected>Enter Manually</option>
+                    </select>
+                {% else %}
+                    <select id="maxSelect" name="maxSelect">
+                        <option value="undefined" selected>Undefined</option>
+                        <option value="manual">Enter Manually</option>
+                    </select>
+                {% endif %}
+            {% else %}
+                <select id="maxSelect" name="maxSelect">
+                    <option value="undefined">Undefined</option>
+                    <option value="manual">Enter Manually</option>
+                </select>
+            {% endif %}
+        </div>
+        {% if contest and contest.number_of_entries != 2_147_483_647 %}
+            <input type="number" id="manualInput" name="manualInput" value="{{contest.number_of_entries}}" style="display: block;" required />
         {% else %}
-          <select id="maxSelect" name="maxSelect">
-            <option value="undefined">Undefined</option>
-            <option value="manual">Enter Manually</option>
-          </select>
-          <input type="number" id="manualInput" name="manualInput" placeholder="Enter max entries" style="display: none;" />
+            <input type="number" id="manualInput" name="manualInput" placeholder="Enter max entries" style="display: none;" />
         {% endif %}
       </div>
 
@@ -248,21 +328,72 @@ html>
       maxSelect.addEventListener('change', function () {
         if (this.value === 'manual') {
           manualInput.style.display = 'block';
+          manualInput.required = true;
         } else {
           manualInput.style.display = 'none';
+          manualInput.required = false;
+          manualInput.value = '';
         }
       });
     }
 
     function Call(value) {
       const form = document.getElementById('form');
+      const button = document.querySelector('.btn');
+      clearErrorStates();
+      
+      const requiredFields = form.querySelectorAll('[required]');
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.classList.add('error');
+          isValid = false;
+        }
+      });
+      
+      if (manualInput.style.display === 'block' && !manualInput.value.trim()) {
+        manualInput.classList.add('error');
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        document.querySelector('.container').style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+          document.querySelector('.container').style.animation = '';
+        }, 500);
+        return;
+      }
+      
+      button.classList.add('loading');
+      button.textContent = 'Processing...';
+      
       if (value === 'Main') {
         form.action = "{% url 'Main' %}";
       } else {
         form.action = "{% url 'Contest' %}";
       }
-      form.submit();
+      
+      // Add success animation
+      document.querySelector('.container').classList.add('form-success');
+      
+      setTimeout(() => {
+        form.submit();
+      }, 300);
     }
+    
+    function clearErrorStates() {
+      const errorFields = document.querySelectorAll('.error');
+      errorFields.forEach(field => {
+        field.classList.remove('error');
+      });
+    }
+
+    document.addEventListener('input', function(e) {
+      if (e.target.classList.contains('error')) {
+        e.target.classList.remove('error');
+      }
+    });
   </script>
 </body>
 </html>
