@@ -1,0 +1,306 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Trophy, Medal, Award, Users, Clock, Calendar, Home } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Footer } from "@/components/footer"
+
+export default function FinalLeaderboard() {
+  const router = useRouter()
+
+  const contestInfo = {
+    name: "Advanced Algorithms Championship",
+    totalParticipants: 342,
+    duration: "3 hours",
+    completedAt: "2024-01-25T17:00:00",
+  }
+
+  const finalRankings = [
+    {
+      rank: 1,
+      name: "AlgoMaster2024",
+      score: 1450,
+      solved: 6,
+      totalProblems: 6,
+      timeTaken: "2h 15m",
+      avatar: "AM",
+    },
+    {
+      rank: 2,
+      name: "CodeNinja",
+      score: 1380,
+      solved: 6,
+      totalProblems: 6,
+      timeTaken: "2h 28m",
+      avatar: "CN",
+    },
+    {
+      rank: 3,
+      name: "ByteWarrior",
+      score: 1320,
+      solved: 5,
+      totalProblems: 6,
+      timeTaken: "2h 45m",
+      avatar: "BW",
+    },
+    {
+      rank: 4,
+      name: "DevExpert",
+      score: 1250,
+      solved: 5,
+      totalProblems: 6,
+      timeTaken: "2h 52m",
+      avatar: "DE",
+    },
+    {
+      rank: 5,
+      name: "PythonPro",
+      score: 1180,
+      solved: 4,
+      totalProblems: 6,
+      timeTaken: "2h 30m",
+      avatar: "PP",
+    },
+    {
+      rank: 6,
+      name: "JavaGuru",
+      score: 1120,
+      solved: 4,
+      totalProblems: 6,
+      timeTaken: "2h 48m",
+      avatar: "JG",
+    },
+    {
+      rank: 7,
+      name: "CppChampion",
+      score: 1050,
+      solved: 4,
+      totalProblems: 6,
+      timeTaken: "2h 55m",
+      avatar: "CC",
+    },
+    {
+      rank: 8,
+      name: "JSWizard",
+      score: 980,
+      solved: 3,
+      totalProblems: 6,
+      timeTaken: "2h 20m",
+      avatar: "JW",
+    },
+    {
+      rank: 9,
+      name: "DataStructureKing",
+      score: 920,
+      solved: 3,
+      totalProblems: 6,
+      timeTaken: "2h 35m",
+      avatar: "DK",
+    },
+    {
+      rank: 10,
+      name: "AlgorithmAce",
+      score: 850,
+      solved: 3,
+      totalProblems: 6,
+      timeTaken: "2h 58m",
+      avatar: "AA",
+    },
+  ]
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return <Trophy className="h-6 w-6 text-yellow-500" />
+      case 2:
+        return <Medal className="h-6 w-6 text-gray-400" />
+      case 3:
+        return <Award className="h-6 w-6 text-orange-500" />
+      default:
+        return (
+          <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+            {rank}
+          </div>
+        )
+    }
+  }
+
+  const getRankBadge = (rank: number) => {
+    if (rank === 1) return "bg-gradient-to-r from-yellow-400 to-yellow-600 text-white"
+    if (rank === 2) return "bg-gradient-to-r from-gray-300 to-gray-500 text-white"
+    if (rank === 3) return "bg-gradient-to-r from-orange-400 to-orange-600 text-white"
+    if (rank <= 10) return "bg-emerald-100 text-emerald-800"
+    return "bg-slate-100 text-slate-600"
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="text-center flex-1">
+              <h1 className="text-3xl font-bold text-slate-800 mb-2">🏆 Contest Complete!</h1>
+              <p className="text-slate-600">{contestInfo.name}</p>
+            </div>
+            <Button variant="outline" onClick={() => router.push("/dashboard")}>
+              <Home className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Contest Summary */}
+        <Card className="mb-8 bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-emerald-800">Final Results</CardTitle>
+            <CardDescription className="text-emerald-700">
+              Contest completed on {formatDate(contestInfo.completedAt)}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+              <div className="flex items-center justify-center space-x-3">
+                <Users className="h-6 w-6 text-emerald-600" />
+                <div>
+                  <p className="font-bold text-2xl text-emerald-800">{contestInfo.totalParticipants}</p>
+                  <p className="text-sm text-emerald-700">Total Participants</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center space-x-3">
+                <Clock className="h-6 w-6 text-emerald-600" />
+                <div>
+                  <p className="font-bold text-2xl text-emerald-800">{contestInfo.duration}</p>
+                  <p className="text-sm text-emerald-700">Contest Duration</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center space-x-3">
+                <Trophy className="h-6 w-6 text-emerald-600" />
+                <div>
+                  <p className="font-bold text-2xl text-emerald-800">6</p>
+                  <p className="text-sm text-emerald-700">Total Problems</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top 3 Podium */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {finalRankings.slice(0, 3).map((participant, index) => (
+            <Card
+              key={participant.rank}
+              className={`text-center ${
+                index === 0
+                  ? "order-2 md:order-2 transform md:scale-110"
+                  : index === 1
+                    ? "order-1 md:order-1"
+                    : "order-3 md:order-3"
+              } ${
+                participant.rank === 1
+                  ? "border-yellow-300 bg-gradient-to-b from-yellow-50 to-yellow-100"
+                  : participant.rank === 2
+                    ? "border-gray-300 bg-gradient-to-b from-gray-50 to-gray-100"
+                    : "border-orange-300 bg-gradient-to-b from-orange-50 to-orange-100"
+              }`}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex justify-center mb-4">{getRankIcon(participant.rank)}</div>
+                <div className="w-16 h-16 mx-auto mb-4 bg-slate-200 rounded-full flex items-center justify-center text-xl font-bold text-slate-700">
+                  {participant.avatar}
+                </div>
+                <CardTitle className="text-lg">{participant.name}</CardTitle>
+                <Badge className={`${getRankBadge(participant.rank)} text-sm px-3 py-1`}>
+                  Rank #{participant.rank}
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="text-2xl font-bold text-slate-800">{participant.score}</div>
+                  <div className="text-sm text-slate-600">
+                    {participant.solved}/{participant.totalProblems} solved
+                  </div>
+                  <div className="text-xs text-slate-500">Time: {participant.timeTaken}</div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Full Leaderboard */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Trophy className="h-6 w-6 text-amber-500" />
+              <span>Final Leaderboard</span>
+            </CardTitle>
+            <CardDescription>Complete rankings for all participants</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {finalRankings.map((participant) => (
+                <div
+                  key={participant.rank}
+                  className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                    participant.rank <= 3
+                      ? "bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200"
+                      : "bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-10 h-10">{getRankIcon(participant.rank)}</div>
+                    <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-700">
+                      {participant.avatar}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-800">{participant.name}</h4>
+                      <div className="flex items-center space-x-4 text-sm text-slate-500">
+                        <span>
+                          {participant.solved}/{participant.totalProblems} problems solved
+                        </span>
+                        <span>Time: {participant.timeTaken}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-slate-800">{participant.score}</div>
+                    <div className="text-sm text-slate-500">points</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="flex justify-center space-x-4 mt-8">
+          <Button onClick={() => router.push("/dashboard")} className="bg-emerald-600 hover:bg-emerald-700">
+            <Home className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/progress")}>
+            <Calendar className="h-4 w-4 mr-2" />
+            View Progress
+          </Button>
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  )
+}
