@@ -15,5 +15,7 @@ __pycache__/
 # Ignore the local settings file (if applicable)
 local_settings.py
 
+Coding/.env
+/venv
 
-Coding/values.env
+
