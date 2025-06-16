@@ -1,6 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect,get_object_or_404,redirect
 from .models import Challenges,Contest,User,Rank
-from django.shortcuts import get_object_or_404,redirect
 from django.urls import reverse
 import json
 from bs4 import BeautifulSoup
@@ -8,24 +7,18 @@ from django.http import Http404, JsonResponse, HttpResponse, HttpResponseRedirec
 import re
 from django.utils.dateformat import time_format
 from compiler.models import Score
-
-
 from requests import get as httprequests
 from datetime import timedelta
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 from google_auth_oauthlib.flow import Flow
 import os
-# Create your views here.
-
-from django.shortcuts import redirect
-from django.http import HttpResponse, HttpResponseRedirect
-from google_auth_oauthlib.flow import Flow
-from datetime import timedelta
-import os
-import requests as httprequests
-from .models import User 
 from urllib.parse import urlencode
+
+from .serializers import ContestSerializer
+
+
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -68,7 +61,7 @@ def google_callback(request):
         flow.fetch_token(authorization_response=request.build_absolute_uri())
         creds = flow.credentials
 
-        user_info_response = httprequests.get(
+        user_info_response =  httprequests(
             'https://www.googleapis.com/oauth2/v3/userinfo',
             headers={'Authorization': f'Bearer {creds.token}'}
         )
@@ -101,6 +94,32 @@ def google_callback(request):
     except Exception as e:
         return HttpResponse(f'<h3>OAuth Callback Error</h3><pre>{str(e)}</pre>', status=500)
 
+
+@api_view(['POST'])
+def create_contest(request):
+    try:
+       
+        user_id = request.data.get("userId")
+        user = get_object_or_404(User, id=user_id)
+
+        max_entries = request.data.get("maxEntries", "")
+        number_of_entries = int(max_entries) if max_entries.strip() else 2147483647
+
+        contest = Contest.objects.create(
+            user=user,
+            contest_name=request.data.get("name"),
+            description=request.data.get("description", ""),
+            start_date=request.data.get("startDate"),
+            start_time=request.data.get("startTime"),
+            end_date=request.data.get("endDate"),
+            end_time=request.data.get("endTime"),
+            is_public=request.data.get("isPublic", True),
+            number_of_entries=number_of_entries
+        )
+
+        return Response(ContestSerializer(contest).data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
