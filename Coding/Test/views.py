@@ -104,6 +104,9 @@ def google_callback(request):
 
 
 
+
+
+
 def Test_View(request):
     if request.method=="POST":
         contest=request.POST.get('contest')
