@@ -11,9 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar, Clock, Users, Plus, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
+import {useUser}  from "../../context/userContext"
 
 export default function CreateContest() {
   const router = useRouter()
+  const user = useUser();
+  console.log(user);
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -71,6 +75,8 @@ export default function CreateContest() {
     setIsSubmitting(true)
     // Simulate form submission
     setTimeout(() => {
+      console.log(formData);
+      
       setIsSubmitting(false)
       router.push("/challenge-editor")
     }, 1500)
