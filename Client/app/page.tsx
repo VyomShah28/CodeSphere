@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Code2, Trophy, Users, TrendingUp, Github } from "lucide-react"
+import { Code2, Trophy, Users, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
+import axios from "axios"
 
 export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -12,7 +13,6 @@ export default function LandingPage() {
 
   const handleAuth = async () => {
     setIsLoading(true)
-    // Simulate authentication
     setTimeout(() => {
       setIsLoading(false)
       router.push("/dashboard")
@@ -78,11 +78,12 @@ export default function LandingPage() {
                   <div className="space-y-4">
                     <Button
                       className="w-full bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => handleAuth()}
+                      onClick={() => window.location.href = "http://127.0.0.1:8000/api/google-login"}
                       disabled={isLoading}
                       size="lg"
                     >
-                      <Github className="mr-2 h-5 w-5" />
+                      <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" className="h-7 w-7 mr-2 rounded-full bg-white p-1" />
+
                       {isLoading ? "Signing in..." : "Continue with Google"}
                     </Button>
 

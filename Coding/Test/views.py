@@ -4,12 +4,106 @@ from django.shortcuts import get_object_or_404,redirect
 from django.urls import reverse
 import json
 from bs4 import BeautifulSoup
-from django.http import Http404, JsonResponse
-from django.contrib.auth.hashers import check_password,make_password
+from django.http import Http404, JsonResponse, HttpResponse, HttpResponseRedirect
 import re
 from django.utils.dateformat import time_format
 from compiler.models import Score
+
+
+from requests import get as httprequests
+from datetime import timedelta
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from google_auth_oauthlib.flow import Flow
+import os
 # Create your views here.
+
+from django.shortcuts import redirect
+from django.http import HttpResponse, HttpResponseRedirect
+from google_auth_oauthlib.flow import Flow
+from datetime import timedelta
+import os
+import requests as httprequests
+from .models import User 
+from urllib.parse import urlencode
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+flow = Flow.from_client_secrets_file(
+    client_secrets_file='client_secret.json',
+    scopes=[
+        'openid',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile'
+    ],
+    redirect_uri='http://127.0.0.1:8000/auth/google/callback/'
+)
+
+def Login(request):
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true'
+    )
+    request.session['oauth_state'] = state
+    return redirect(authorization_url)
+
+
+def google_callback(request):
+    state = request.session.get('oauth_state')
+    if state is None or state != request.GET.get('state'):
+        return HttpResponse({'error': 'Invalid state parameter.'}, status=400)
+
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    flow = Flow.from_client_secrets_file(
+        'client_secret.json',
+        scopes=[
+            'openid',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile'
+        ],
+        redirect_uri='http://127.0.0.1:8000/auth/google/callback/'
+    )
+    
+    try:
+        flow.fetch_token(authorization_response=request.build_absolute_uri())
+        creds = flow.credentials
+
+        user_info_response = httprequests.get(
+            'https://www.googleapis.com/oauth2/v3/userinfo',
+            headers={'Authorization': f'Bearer {creds.token}'}
+        )
+        user_info = user_info_response.json()
+        email = user_info.get('email')
+        full_name = user_info.get('name')
+        photo_url = user_info.get('picture')
+
+        if not email:
+            return HttpResponse({'error': 'Email not provided by Google.'}, status=400)
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'full_name': full_name, 'profile_photo': photo_url}
+        )
+
+        request.session['user_id'] = user.id
+        request.session.set_expiry(timedelta(days=7))
+
+        params = {
+            'id': user.id,
+            'url': photo_url,
+            'full_name': full_name
+        }
+
+        query_string = urlencode(params)
+
+        return HttpResponseRedirect(f'http://localhost:3000/dashboard?{query_string}')
+
+    except Exception as e:
+        return HttpResponse(f'<h3>OAuth Callback Error</h3><pre>{str(e)}</pre>', status=500)
+
+
+
+
 def Test_View(request):
     if request.method=="POST":
         contest=request.POST.get('contest')
@@ -158,34 +252,6 @@ def Main(request):
             contest.number_of_entries=int(request.POST['manualInput']) if request.POST.get('maxSelect') == "manual" else  2_147_483_647
             contest.save()
             return render(request,'main.html',{'user':user})
-
-        
-def Login(request):
-    return render(request,'login.html')
-
-def Signup(request):
-    return render(request,'signup.html')
-    
-def dashboard(request):
-    if request.POST:
-        source=request.POST.get('source')
-        if source=="signup" :
-            if json.loads(Check(request).content.decode('utf-8'))["flag"]==False:
-                user=User(
-                    full_name=request.POST['name'],
-                    email=request.POST['email'],
-                    password=make_password(request.POST['password'])
-                )
-                user.save()
-                return render(request,'dashboard.html',{"user":user.id})
-            else : 
-                email=request.POST.get('email')
-                user=User.objects.get(email=email)
-                return render(request,'dashboard.html',{"user":user.id})
-        else : 
-            user=request.POST.get('user')
-            print(user)
-            return render(request,'dashboard.html',{"user":user})
         
 def delete_contest(request):
     if request.method=="POST":
@@ -195,27 +261,6 @@ def delete_contest(request):
         return JsonResponse({"success":True})
     return JsonResponse({"success":False})
 
-def check_email(request):
-    if request.method=="POST":
-        email=request.POST['email']
-        try :
-            user=User.objects.get(email=email)
-            return JsonResponse({"success":True})
-        except User.DoesNotExist:
-            return JsonResponse({"success":False})
-
-def Check(request) : 
-    if request.method == "POST":
-            email = request.POST['email']
-            password = request.POST['password']
-            try:
-                user = User.objects.get(email=email)
-                if check_password(password, user.password): 
-                    return JsonResponse({"msg": "Success", "flag": True, "user": user.id})
-                else:
-                    return JsonResponse({"msg": "Password Or Email is Wrong", "flag": False})
-            except User.DoesNotExist:
-                return JsonResponse({"msg": "User Does Not Exist", "flag": False})
 
 def update_challenge(request):
     if request.method=="POST":
@@ -264,7 +309,7 @@ def find_contest(request):
             })
         return JsonResponse(contests_data, safe=False)
     
-def Response(request):
+def Response1(request):
     if request.method=="POST":
         contest=request.POST.get('contest')
         scores=Score.objects.filter(contest=contest)

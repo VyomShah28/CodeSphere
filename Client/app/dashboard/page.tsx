@@ -1,49 +1,33 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trophy, Users, TrendingUp, Code2, Settings, LogOut, Bell } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
+import { useSearchParams } from "next/navigation"
 
 export default function Dashboard() {
   const router = useRouter()
-  const [user] = useState({
-    name: "Shivam Parmar",
-    email: "alex@example.com",
-    contestsCreated: 5,
-    contestsJoined: 12,
-    currentRank: 247,
-  })
-
-  const recentContests = [
-    {
-      id: 1,
-      name: "Weekly Algorithm Challenge #42",
-      status: "active",
-      participants: 156,
-      timeLeft: "2h 30m",
-      type: "joined",
-    },
-    {
-      id: 2,
-      name: "Data Structures Mastery",
-      status: "upcoming",
-      participants: 89,
-      startTime: "Tomorrow 2:00 PM",
-      type: "created",
-    },
-    {
-      id: 3,
-      name: "Dynamic Programming Deep Dive",
-      status: "completed",
-      participants: 234,
-      rank: 23,
-      type: "joined",
-    },
-  ]
+  const searchParams = useSearchParams()
+  const [user, setUser] = useState({
+    name:"",
+    contestsCreated: 0,
+    contestsJoined: 0,
+    currentRank: 0,
+  });
+  
+  useEffect(() => {
+    setUser({
+      name: searchParams.get('full_name')|| "Guest",
+      contestsCreated: 0,
+      contestsJoined: 0,  
+      currentRank: 0,
+    })
+    sessionStorage.setItem('userId', searchParams.get('id') || "")
+  }, [searchParams])
 
   return (
     <div className="min-h-screen bg-slate-50">

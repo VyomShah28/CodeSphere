@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 class User(models.Model):
     full_name=models.TextField(default=None,null=True)
     email=models.TextField(default=None,null=True)
-    password=models.TextField(default=None,null=True)
+    profile_photo = models.URLField(default=None, null=True)
 
 class Rank(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)

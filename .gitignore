@@ -18,4 +18,6 @@ local_settings.py
 Coding/.env
 /venv
 
+Coding/client_secrets.json
+
 
