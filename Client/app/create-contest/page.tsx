@@ -11,10 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar, Clock, Users, Plus, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
+import {useUser}  from "../../context/userContext"
+import axios from "axios";
 
 export default function CreateContest() {
   const router = useRouter()
+  const user = useUser();
+
+  
   const [formData, setFormData] = useState({
+    userId : "",
     name: "",
     description: "",
     startDate: "",
@@ -61,7 +67,7 @@ export default function CreateContest() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateForm()) {
@@ -69,10 +75,13 @@ export default function CreateContest() {
     }
 
     setIsSubmitting(true)
-    setTimeout(() => {
+    // Simulate form submission
+    const response = await axios.post("http://127.0.0.1:8000/api/create-contest/", {...formData, userId: user.user.id})
+      console.log(response.data);
+      
       setIsSubmitting(false)
       router.push("/challenge-editor")
-    }, 1500)
+   
   }
 
   const handleInputChange = (field: string, value: string) => {

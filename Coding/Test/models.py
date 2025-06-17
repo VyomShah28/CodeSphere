@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
 
+
 class User(models.Model):
     full_name=models.TextField(default=None,null=True)
     email=models.TextField(default=None,null=True)
@@ -14,11 +15,14 @@ class Rank(models.Model):
 class Contest(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,null=True)
     contest_name=models.CharField(max_length=100,default=None)
+    description=models.TextField(blank=True,default="")
     start_date=models.DateField()
     start_time=models.TimeField()
     end_date=models.DateField()
     end_time=models.TimeField()
-    number_of_entries=models.IntegerField(default=None)
+    is_public=models.BooleanField(default=True)
+    number_of_entries=models.IntegerField(default=2147483647)
+    created_at=models.DateTimeField(auto_now_add=True)
 
 class Challenges(models.Model):
     contest=models.ForeignKey(Contest,on_delete=models.CASCADE,null=True)

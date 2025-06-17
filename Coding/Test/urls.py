@@ -3,7 +3,8 @@ from Test import views
 urlpatterns=[
     path('api/google-login/',views.Login,name="Login"),
     path('auth/google/callback/', views.google_callback, name='google_callback'),
-
+    path("api/create-contest/", views.create_contest,name="Create_Contest"),
+     
     path('test/',views.Test_View,name="Test"),
     path('details/',views.Details,name="Details"),
     path('contest/',views.Contest_View,name='Contest'),
