@@ -55,7 +55,7 @@ def google_callback(request):
 
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     flow = Flow.from_client_secrets_file(
-        'client_secret.json',
+        client_secrets_file='client_secret.json',
         scopes=[
             'openid',
             'https://www.googleapis.com/auth/userinfo.email',

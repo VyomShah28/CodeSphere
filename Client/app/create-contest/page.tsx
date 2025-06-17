@@ -69,7 +69,6 @@ export default function CreateContest() {
     }
 
     setIsSubmitting(true)
-    // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false)
       router.push("/challenge-editor")

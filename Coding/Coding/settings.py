@@ -138,7 +138,3 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL='/media/'
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
-
-GOOGLE_OAUTH2_CLIENT_ID = 'your-google-client-id'
-GOOGLE_OAUTH2_CLIENT_SECRET = 'your-google-client-secret'
-GOOGLE_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/auth/google/callback/'
