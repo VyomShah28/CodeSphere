@@ -77,10 +77,10 @@ export default function CreateContest() {
     setIsSubmitting(true)
     // Simulate form submission
     const response = await axios.post("http://127.0.0.1:8000/api/create-contest/", {...formData, userId: user.user.id})
-      console.log(response.data);
+      console.log(response.data.id);
       
       setIsSubmitting(false)
-      router.push("/challenge-editor")
+      router.push("/challenge-editor?contestId=" + response.data.id)
    
   }
 

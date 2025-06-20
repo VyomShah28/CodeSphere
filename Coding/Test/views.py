@@ -15,8 +15,11 @@ from rest_framework import status
 from google_auth_oauthlib.flow import Flow
 import os
 from urllib.parse import urlencode
-
-from .serializers import ContestSerializer
+from rest_framework.parsers import MultiPartParser
+from rest_framework.decorators import parser_classes
+from .serializers import ContestSerializer,ChallengeSerializer
+import uuid
+import datetime
 
 
 
@@ -95,15 +98,33 @@ def google_callback(request):
         return HttpResponse(f'<h3>OAuth Callback Error</h3><pre>{str(e)}</pre>', status=500)
 
 
-@api_view(['POST'])
+@api_view(['PUT', 'POST'])
 def create_contest(request):
+    if request.method != 'POST':
+        id=request.GET.get('contestId')
+        print(id)
+        data=request.data.get('editedData')
+        contest=Contest.objects.get(id=id)
+        contest.contest_name=data.get('contest_name')
+        contest.description=data.get('description', "")
+        contest.start_date=data.get('start_date')
+        contest.start_time=data.get('start_time')
+        contest.end_date=data.get('end_date')
+        contest.end_time=data.get('end_time')
+        contest.is_public=data.get('is_public', True)
+        contest.number_of_entries=int(data.get('number_of_entries', 2147483647))
+        contest.created_at=datetime.datetime.now()
+        contest.save()
+        
+        return Response(status=status.HTTP_200_OK)
     try:
-       
         user_id = request.data.get("userId")
         user = get_object_or_404(User, id=user_id)
 
         max_entries = request.data.get("maxEntries", "")
         number_of_entries = int(max_entries) if max_entries.strip() else 2147483647
+
+        link="http://localhost:3000/"
 
         contest = Contest.objects.create(
             user=user,
@@ -114,78 +135,199 @@ def create_contest(request):
             end_date=request.data.get("endDate"),
             end_time=request.data.get("endTime"),
             is_public=request.data.get("isPublic", True),
-            number_of_entries=number_of_entries
+            number_of_entries=number_of_entries,
+            created_at=datetime.datetime.now()
         )
 
-        return Response(ContestSerializer(contest).data, status=status.HTTP_201_CREATED)
+        random_slug = uuid.uuid4().hex[:8]
+        link += f"contest/{random_slug}/?contest={contest.id}"
+
+        contest.link = link
+        contest.save()
+
+        return Response(ContestSerializer(contest).data,status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+def challenge_editor(request):
+    try:
+        contest_id = request.data.get("contest_id")
+        contest = get_object_or_404(Contest, id=contest_id)
+        idx = 0
+        while True:
+            prefix = f"challenges[{idx}]"
+            name = request.data.get(f"{prefix}[challenge_name]")
+            if not name:
+                break 
+            id=request.data.get(f"{prefix}[id]")
+            try : 
+                challenge=get_object_or_404(Challenges,id=id)
+                challenge.contest=contest
+                challenge.challenge_name=name
+                challenge.max_score=request.data.get(f"{prefix}[max_score]")
+                challenge.difficulty_level=request.data.get(f"{prefix}[difficulty_level]")
+                challenge.problem_statement=request.data.get(f"{prefix}[problem_statement]")
+                challenge.constraints=request.data.get(f"{prefix}[constraints]")
+                challenge.input_form=request.data.get(f"{prefix}[input_form]")
+                challenge.output_form=request.data.get(f"{prefix}[output_form]")
+                challenge.input_testcase=request.FILES.get(f"{prefix}[input_testcase]")
+                challenge.output_testcase=request.FILES.get(f"{prefix}[output_testcase]")
+                challenge.sample_testcase=request.data.get(f"{prefix}[sample_testcase]")
+                challenge.sample_output=request.data.get(f"{prefix}[sample_output]")
+                challenge.save()
+                idx+=1
+                continue
+            except Http404:
+                challenge = Challenges(
+                    contest=contest,
+                    challenge_name=name,
+                    max_score=request.data.get(f"{prefix}[max_score]"),
+                    difficulty_level=request.data.get(f"{prefix}[difficulty_level]"),
+                    problem_statement=request.data.get(f"{prefix}[problem_statement]"),
+                    constraints=request.data.get(f"{prefix}[constraints]"),
+                    input_form=request.data.get(f"{prefix}[input_form]"),
+                    output_form=request.data.get(f"{prefix}[output_form]"),
+                    input_testcase=request.FILES.get(f"{prefix}[input_testcase]"),
+                    output_testcase=request.FILES.get(f"{prefix}[output_testcase]"),
+                    sample_testcase=request.data.get(f"{prefix}[sample_testcase]"),
+                    sample_output=request.data.get(f"{prefix}[sample_output]"),
+                )
+                challenge.save()
+                idx += 1
+
+        return Response({"message": "Challenges received successfully"}, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def get_contests(request):
+    userId = request.GET.get('userId')
+    print(userId)
+    user=get_object_or_404(User, id=userId)
+    contests=Contest.objects.filter(user=user)
+
+    user_contest=[]
+
+    for contest in contests:
+        start_dt = datetime.datetime.strptime(
+            f"{contest.start_date} {contest.start_time}", "%Y-%m-%d %H:%M:%S"
+        )
+        end_dt = datetime.datetime.strptime(
+            f"{contest.end_date} {contest.end_time}", "%Y-%m-%d %H:%M:%S"
+        )
+        now = datetime.datetime.now()    
+
+        if now < start_dt:
+            status_str = "upcoming"
+        elif now > end_dt:
+            status_str = "completed"
+        else:
+            status_str = "active"
+
+        val={
+        'id'   : contest.id,
+        'name': contest.contest_name,
+        'description': contest.description,
+        'startDate' : start_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        'endDate' : end_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        'participants' : contest.participants,
+        'status' : status_str,
+        'link' : contest.link, 
+        'challenges' : Challenges.objects.filter(contest=get_object_or_404(Contest,id=contest.id)).count(),
+        }
+        user_contest.append(val)
+
+    return Response({'data':user_contest}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def delete_contest_api(request):
+    data = request.body.decode('utf-8')
+    data=json.loads(data)
+    deleted_contests=data['ids']
+    if deleted_contests:
+        Contest.objects.filter(id__in=deleted_contests).delete()
+
+    return Response({"status": "ok", "deleted": deleted_contests})    
+
+@api_view(['GET'])
+def contest_details(request):
+    contest_id = request.GET.get('contestId')
+    contest= get_object_or_404(Contest, id=contest_id)
+    print(ContestSerializer(contest).data)  
+    return Response(ContestSerializer(contest).data,status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_challenges(request):
+    id=request.GET.get('contestId')
+    contest=get_object_or_404(Contest,id=id)
+    challenges=Challenges.objects.filter(contest=contest)
+    return Response(ChallengeSerializer(challenges,many=True).data,status=status.HTTP_200_OK)    
 
 
+# def Test_View(request):
+#     if request.method=="POST":
+#         contest=request.POST.get('contest')
+#         user=request.POST.get('user')
+#         contest_instance = get_object_or_404(Contest, id=contest)
+#         if request.POST.get('challenge'):
+#             challenge=request.POST.get('challenge')
+#             challenge=get_object_or_404(Challenges,id=challenge)
 
-
-
-
-def Test_View(request):
-    if request.method=="POST":
-        contest=request.POST.get('contest')
-        user=request.POST.get('user')
-        contest_instance = get_object_or_404(Contest, id=contest)
-        if request.POST.get('challenge'):
-            challenge=request.POST.get('challenge')
-            challenge=get_object_or_404(Challenges,id=challenge)
-
-            if 'testcaseFile' in request.FILES:
-                testcaseFile=request.FILES['testcaseFile']
-            else :
-                testcaseFile=challenge.testcase
+#             if 'testcaseFile' in request.FILES:
+#                 testcaseFile=request.FILES['testcaseFile']
+#             else :
+#                 testcaseFile=challenge.testcase
             
-            if 'outputFile' in request.FILES:
-                outputFile=request.FILES['outputFile']
-            else :
-                outputFile=challenge.output
+#             if 'outputFile' in request.FILES:
+#                 outputFile=request.FILES['outputFile']
+#             else :
+#                 outputFile=challenge.output
 
-            challenge.contest=contest_instance
-            challenge.description=re.sub(r'\n+','\n',BeautifulSoup(request.POST['description'],'html.parser').get_text().strip())
-            challenge.challenge_name=request.POST['challengeName']
-            challenge.max_score=request.POST.get('Max_score')
-            challenge.difficulty_level=request.POST['difficulty']
-            challenge.problem_statement=re.sub(r'\n+','\n',BeautifulSoup(request.POST['problemStatement'],'html.parser').get_text().strip())
-            challenge.constraints=re.sub(r'\n+','\n',BeautifulSoup(request.POST['constraints'],'html.parser').get_text().strip())
-            challenge.input_form=re.sub(r'\n+','\n',BeautifulSoup(request.POST['input'],'html.parser').get_text().strip())
-            challenge.output_form=re.sub(r'\n+','\n',BeautifulSoup(request.POST['output'],'html.parser').get_text().strip())
-            challenge.testcase=testcaseFile
-            challenge.output=outputFile
-            challenge.sample_testcase=re.sub(r'\n+','\n',BeautifulSoup(request.POST['sample_testcase'],'html.parser').get_text().strip())
-            challenge.sample_output=re.sub(r'\n+','\n',BeautifulSoup(request.POST['sample_out'],'html.parser').get_text().strip())
-            challenge.save()
-        else : 
-            challenge=Challenges(
-                contest=contest_instance,
-                description=request.POST.get('description'),
-                challenge_name=request.POST['challengeName'],
-                max_score=request.POST.get('Max_score'),
-                difficulty_level=request.POST['difficulty'],
-                problem_statement=BeautifulSoup(request.POST['problemStatement'],'html.parser').get_text(),
-                constraints=BeautifulSoup(request.POST['constraints'],'html.parser').get_text(),
-                input_form=BeautifulSoup(request.POST['input'],'html.parser').get_text(),
-                output_form=BeautifulSoup(request.POST['output'],'html.parser').get_text(),
-                testcase=request.FILES['testcaseFile'],
-                output=request.FILES['outputFile'],
-                sample_testcase=BeautifulSoup(request.POST['sample_testcase'],'html.parser').get_text(),
-                sample_output=BeautifulSoup(request.POST['sample_out'],'html.parser').get_text()
-            )
-            challenge.save()
-        challenges=Challenges.objects.filter(contest=contest)
-        return redirect(f"{reverse('Test')}?contest={contest}&user={user}")
-    contest_id = request.GET.get('contest')
-    user = request.GET.get('user')
-    if not contest_id:
-        return render(request, 'contest.html', {"challenge": -1, "contest": -1})
+#             challenge.contest=contest_instance
+#             challenge.description=re.sub(r'\n+','\n',BeautifulSoup(request.POST['description'],'html.parser').get_text().strip())
+#             challenge.challenge_name=request.POST['challengeName']
+#             challenge.max_score=request.POST.get('Max_score')
+#             challenge.difficulty_level=request.POST['difficulty']
+#             challenge.problem_statement=re.sub(r'\n+','\n',BeautifulSoup(request.POST['problemStatement'],'html.parser').get_text().strip())
+#             challenge.constraints=re.sub(r'\n+','\n',BeautifulSoup(request.POST['constraints'],'html.parser').get_text().strip())
+#             challenge.input_form=re.sub(r'\n+','\n',BeautifulSoup(request.POST['input'],'html.parser').get_text().strip())
+#             challenge.output_form=re.sub(r'\n+','\n',BeautifulSoup(request.POST['output'],'html.parser').get_text().strip())
+#             challenge.testcase=testcaseFile
+#             challenge.output=outputFile
+#             challenge.sample_testcase=re.sub(r'\n+','\n',BeautifulSoup(request.POST['sample_testcase'],'html.parser').get_text().strip())
+#             challenge.sample_output=re.sub(r'\n+','\n',BeautifulSoup(request.POST['sample_out'],'html.parser').get_text().strip())
+#             challenge.save()
+#         else : 
+#             challenge=Challenges(
+#                 contest=contest_instance,
+#                 description=request.POST.get('description'),
+#                 challenge_name=request.POST['challengeName'],
+#                 max_score=request.POST.get('Max_score'),
+#                 difficulty_level=request.POST['difficulty'],
+#                 problem_statement=BeautifulSoup(request.POST['problemStatement'],'html.parser').get_text(),
+#                 constraints=BeautifulSoup(request.POST['constraints'],'html.parser').get_text(),
+#                 input_form=BeautifulSoup(request.POST['input'],'html.parser').get_text(),
+#                 output_form=BeautifulSoup(request.POST['output'],'html.parser').get_text(),
+#                 testcase=request.FILES['testcaseFile'],
+#                 output=request.FILES['outputFile'],
+#                 sample_testcase=BeautifulSoup(request.POST['sample_testcase'],'html.parser').get_text(),
+#                 sample_output=BeautifulSoup(request.POST['sample_out'],'html.parser').get_text()
+#             )
+#             challenge.save()
+#         challenges=Challenges.objects.filter(contest=contest)
+#         return redirect(f"{reverse('Test')}?contest={contest}&user={user}")
+#     contest_id = request.GET.get('contest')
+#     user = request.GET.get('user')
+#     if not contest_id:
+#         return render(request, 'contest.html', {"challenge": -1, "contest": -1})
 
-    contest_instance = get_object_or_404(Contest, id=contest_id)
-    challenges = Challenges.objects.filter(contest=contest_instance)
-    return render(request, 'contest.html', {"challenges": challenges, "contest": contest_id, "user": user})
+#     contest_instance = get_object_or_404(Contest, id=contest_id)
+#     challenges = Challenges.objects.filter(contest=contest_instance)
+#     return render(request, 'contest.html', {"challenges": challenges, "contest": contest_id, "user": user})
 
 def Details(request):
     if request.POST:
@@ -200,28 +342,28 @@ def Details(request):
     else : 
         return render(request,'details.html',{'contets':-1})
 
-def Contest_View(request):
-    if request.POST:
-        source = request.POST.get('source')
-        if source=="home":
-            user=request.POST.get('user')
-            contest=Contest(
-                user=get_object_or_404(User,id=user),
-                contest_name=request.POST['contest-name'],
-                start_date=request.POST['start-date'],
-                start_time=request.POST['start-time'],
-                end_date=request.POST['end-date'],
-                end_time=request.POST['end-time'],
-                number_of_entries=int(request.POST['manualInput']) if request.POST.get('maxSelect') == "manual" else  2_147_483_647
-            )
-            contest.save()
-            return render(request,'contest.html',{"contest":contest.id,"user":user})
+# def Contest_View(request):
+#     if request.POST:
+#         source = request.POST.get('source')
+#         if source=="home":
+#             user=request.POST.get('user')
+#             contest=Contest(
+#                 user=get_object_or_404(User,id=user),
+#                 contest_name=request.POST['contest-name'],
+#                 start_date=request.POST['start-date'],
+#                 start_time=request.POST['start-time'],
+#                 end_date=request.POST['end-date'],
+#                 end_time=request.POST['end-time'],
+#                 number_of_entries=int(request.POST['manualInput']) if request.POST.get('maxSelect') == "manual" else  2_147_483_647
+#             )
+#             contest.save()
+#             return render(request,'contest.html',{"contest":contest.id,"user":user})
         
-        if source=="main":
-            user=request.POST.get('user')
-            contest=request.POST.get('contest')
-            challenge=Challenges.objects.filter(contest=contest)
-            return render(request,'contest.html',{"contest":contest,"user":user,"challenges":challenge})
+#         if source=="main":
+#             user=request.POST.get('user')
+#             contest=request.POST.get('contest')
+#             challenge=Challenges.objects.filter(contest=contest)
+#             return render(request,'contest.html',{"contest":contest,"user":user,"challenges":challenge})
 
 def Enter(request):
     if request.POST:

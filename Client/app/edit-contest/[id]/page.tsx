@@ -11,18 +11,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar, Clock, Users, Save, AlertCircle } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
 import { Footer } from "@/components/footer"
+import axios from "axios"
+import { Form } from "react-hook-form"
 
 export default function EditContest() {
   const router = useRouter()
   const params = useParams()
   const [formData, setFormData] = useState({
-    name: "",
+    contest_name: "",
     description: "",
-    startDate: "",
-    startTime: "",
-    endDate: "",
-    endTime: "",
-    maxEntries: "",
+    start_date: "",
+    start_time: "",
+    end_date: "",
+    end_time: "",
+    number_of_entries: "",
     isPublic: true,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -30,44 +32,47 @@ export default function EditContest() {
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    // Simulate loading existing contest data
-    setTimeout(() => {
-      setFormData({
-        name: "Weekly Algorithm Challenge #42",
-        description: "Test your skills with dynamic programming and graph algorithms",
-        startDate: "2024-01-15",
-        startTime: "14:00",
-        endDate: "2024-01-15",
-        endTime: "17:00",
-        maxEntries: "200",
-        isPublic: true,
-      })
-      setIsLoading(false)
-    }, 1000)
+    const fetchContestDetails = async () => {
+      setIsLoading(true)
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/contest_details?contestId=' + params.id)
+        if (response.status !== 200) {
+          console.error("Failed to fetch contest details")
+        }
+        console.log("Contest details fetched successfully:", response.data)
+        setFormData(response.data)
+        setIsLoading(false)
+      }
+      catch (error) {
+        console.error("Error fetching contest details:", error)
+        setIsLoading(false)
+      }
+    }
+    fetchContestDetails()
   }, [params.id])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.name.trim()) {
+    if (!formData.contest_name.trim()) {
       newErrors.name = "Contest name is required"
     }
-    if (!formData.startDate) {
+    if (!formData.start_date) {
       newErrors.startDate = "Start date is required"
     }
-    if (!formData.startTime) {
+    if (!formData.start_time) {
       newErrors.startTime = "Start time is required"
     }
-    if (!formData.endDate) {
+    if (!formData.end_date) {
       newErrors.endDate = "End date is required"
     }
-    if (!formData.endTime) {
+    if (!formData.end_time) {
       newErrors.endTime = "End time is required"
     }
 
-    if (formData.startDate && formData.startTime && formData.endDate && formData.endTime) {
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`)
-      const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`)
+    if (formData.start_date && formData.start_time && formData.end_date && formData.end_time) {
+      const startDateTime = new Date(`${formData.start_date}T${formData.start_time}`)
+      const endDateTime = new Date(`${formData.end_date}T${formData.end_time}`)
 
       if (endDateTime <= startDateTime) {
         newErrors.endTime = "End time must be after start time"
@@ -78,18 +83,18 @@ export default function EditContest() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const handleSubmit = async () => {
     if (!validateForm()) {
+      console.error("Form validation failed with errors:", errors)
       return
     }
-
     setIsSaving(true)
-    setTimeout(() => {
-      setIsSaving(false)
-      router.push("/contests")
-    }, 1500)
+    await axios.put('http://127.0.0.1:8000/api/create-contest/?contestId='+params.id, {
+      editedData : formData
+    })
+    setIsSaving(false);
+    console.log("Submitting form with data:", formData);
+    router.push("/challenge-editor?contestId=" + params.id+'&&edited='+true)
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -140,7 +145,7 @@ export default function EditContest() {
                 <Input
                   id="contest-name"
                   placeholder="e.g., Weekly Algorithm Challenge #43"
-                  value={formData.name}
+                  value={formData.contest_name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   className={errors.name ? "border-red-500" : ""}
                 />
@@ -175,7 +180,7 @@ export default function EditContest() {
                       <Input
                         id="start-date"
                         type="date"
-                        value={formData.startDate}
+                        value={formData.start_date}
                         onChange={(e) => handleInputChange("startDate", e.target.value)}
                         className={errors.startDate ? "border-red-500" : ""}
                       />
@@ -191,7 +196,7 @@ export default function EditContest() {
                       <Input
                         id="start-time"
                         type="time"
-                        value={formData.startTime}
+                        value={formData.start_time}
                         onChange={(e) => handleInputChange("startTime", e.target.value)}
                         className={errors.startTime ? "border-red-500" : ""}
                       />
@@ -216,7 +221,7 @@ export default function EditContest() {
                       <Input
                         id="end-date"
                         type="date"
-                        value={formData.endDate}
+                        value={formData.end_date}
                         onChange={(e) => handleInputChange("endDate", e.target.value)}
                         className={errors.endDate ? "border-red-500" : ""}
                       />
@@ -232,7 +237,7 @@ export default function EditContest() {
                       <Input
                         id="end-time"
                         type="time"
-                        value={formData.endTime}
+                        value={formData.end_time}
                         onChange={(e) => handleInputChange("endTime", e.target.value)}
                         className={errors.endTime ? "border-red-500" : ""}
                       />
@@ -254,7 +259,7 @@ export default function EditContest() {
                     id="max-entries"
                     type="number"
                     placeholder="Leave empty for unlimited"
-                    value={formData.maxEntries}
+                    value={Number(formData.number_of_entries) === 2147483647 ? "" : formData.number_of_entries}
                     onChange={(e) => handleInputChange("maxEntries", e.target.value)}
                   />
                 </div>
@@ -287,7 +292,7 @@ export default function EditContest() {
                 <Button type="button" variant="outline" onClick={() => router.push("/contests")}>
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isSaving}>
+                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isSaving} onClick={handleSubmit}>
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>

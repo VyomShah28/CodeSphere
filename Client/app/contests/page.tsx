@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input"
 import { ArrowLeft, Search, Calendar, Users, Clock, Edit, Trash2, Eye, ExternalLink, Plus, Filter } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
+import axios from "axios"
+import { useUser } from "../../context/userContext"
+import { create } from "domain"
+import { set } from "date-fns"
 
 interface Contest {
   id: string
@@ -23,42 +27,30 @@ interface Contest {
 
 export default function ContestsPage() {
   const router = useRouter()
+  const [delete_id,setDelete_id] = useState<string>("-1")
   const [searchTerm, setSearchTerm] = useState("")
-  const [contests] = useState<Contest[]>([
-    {
-      id: "1",
-      name: "Weekly Algorithm Challenge #42",
-      description: "Test your skills with dynamic programming and graph algorithms",
-      startDate: "2024-01-15T14:00:00",
-      endDate: "2024-01-15T17:00:00",
-      participants: 156,
-      status: "completed",
-      link: "https://codesphere.com/contest/weekly-42",
-      challenges: 4,
-    },
-    {
-      id: "2",
-      name: "Data Structures Mastery",
-      description: "Advanced problems on trees, heaps, and hash tables",
-      startDate: "2024-01-20T10:00:00",
-      endDate: "2024-01-20T13:00:00",
-      participants: 89,
-      status: "upcoming",
-      link: "https://codesphere.com/contest/ds-mastery",
-      challenges: 5,
-    },
-    {
-      id: "3",
-      name: "Beginner Friendly Contest",
-      description: "Perfect for newcomers to competitive programming",
-      startDate: "2024-01-18T16:00:00",
-      endDate: "2024-01-18T18:00:00",
-      participants: 234,
-      status: "active",
-      link: "https://codesphere.com/contest/beginner-1",
-      challenges: 3,
-    },
-  ])
+  const [contests, setContests] = useState<Contest[]>()
+  const [deletedContestId, setDeletedContestId] = useState<string[]>()
+  const user = useUser()
+
+  useEffect(() => { 
+    const fetchContests = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/get-contests?userId=" + sessionStorage.getItem("userId"))
+        if (response.status === 200) {
+          setContests(response.data.data)
+        } else {
+          console.error("Failed to fetch contests:", response.statusText)
+        }
+        setDelete_id("-1")
+        setDeletedContestId([])
+      }
+      catch (error) {
+        console.error("Error fetching contests:", error)
+      }
+    }
+    fetchContests()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -83,11 +75,33 @@ export default function ContestsPage() {
     })
   }
 
-  const filteredContests = contests.filter(
+  const filteredContests = contests?.filter(
     (contest) =>
       contest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contest.description.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  useEffect(() => {
+    if (delete_id === "-1") return
+    console.log("Deleting contest with ID:", delete_id);
+    setContests(prev => prev?.filter((c) => c.id !== delete_id));
+    setDeletedContestId((prev) => [...(prev || []), delete_id])
+  }, [delete_id])
+
+  const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (deletedContestId && deletedContestId.length > 0) {
+        navigator.sendBeacon(
+          "http://127.0.0.1:8000/api/delete-contests/",
+          JSON.stringify({ ids: deletedContestId })
+        );
+      }
+  };
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [deletedContestId]);
+  
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -95,7 +109,10 @@ export default function ContestsPage() {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
+            <Button variant="ghost" size="icon" onClick={() => {
+              handleBeforeUnload(new Event("beforeunload"));
+              router.push("/dashboard")
+            }}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -134,7 +151,7 @@ export default function ContestsPage() {
         </div>
 
         {/* Contest Grid */}
-        {filteredContests.length === 0 ? (
+        {filteredContests?.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <Calendar className="h-16 w-16 mx-auto mb-4 text-slate-300" />
@@ -150,7 +167,7 @@ export default function ContestsPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredContests.map((contest) => (
+            {filteredContests?.map((contest) => (
               <Card key={contest.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -167,7 +184,7 @@ export default function ContestsPage() {
                     <div className="space-y-2 text-sm text-slate-600">
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4" />
-                        <span>Start: {formatDate(contest.startDate)}</span>
+                        <span>Start:{formatDate(contest.startDate)}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4" />
@@ -204,7 +221,7 @@ export default function ContestsPage() {
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Share
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => { console.log(contest.id); setDelete_id(contest.id); console.log("Delete button clicked",delete_id) }}>
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>

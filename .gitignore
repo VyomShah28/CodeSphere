@@ -17,7 +17,7 @@ local_settings.py
 
 Coding/.env
 /venv
-
+Coding/media
 Coding/client_secret.json
 
 

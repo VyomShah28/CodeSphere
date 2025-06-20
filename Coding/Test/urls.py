@@ -4,10 +4,16 @@ urlpatterns=[
     path('api/google-login/',views.Login,name="Login"),
     path('auth/google/callback/', views.google_callback, name='google_callback'),
     path("api/create-contest/", views.create_contest,name="Create_Contest"),
+    path("api/challenge-editor/", views.challenge_editor,name="Challenge_Editor"),
+    path("api/get-contests/", views.get_contests,name="Get_Contest"),
+    path("api/delete-contests/", views.delete_contest_api,name="Delete_Contest"),
+    path("api/contest_details/", views.contest_details,name="Contest_Details"),
+    path('api/get-challenges/',views.get_challenges,name="Get_Challenges"),
      
-    path('test/',views.Test_View,name="Test"),
+     
+    # path('test/',views.Test_View,name="Test"),
     path('details/',views.Details,name="Details"),
-    path('contest/',views.Contest_View,name='Contest'),
+    # path('contest/',views.Contest_View,name='Contest'),
     path('home/',views.Land,name="Home"),
     path('delete-challenge/', views.delete_challenge, name='delete_challenge'),
     path('main',views.Main,name='Main'),
