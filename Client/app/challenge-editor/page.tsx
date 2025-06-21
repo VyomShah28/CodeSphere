@@ -1,45 +1,106 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Plus, Edit, Trash2, Upload, FileText, Star, CheckCircle, Sparkles, AlertCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { Footer } from "@/components/footer"
-import { useSearchParams } from "next/navigation"
-import axios from "axios"
-import { useRef } from "react"
+import type React from "react";
+import { useEffect, useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Plus,
+  Edit,
+  Trash2,
+  Upload,
+  FileText,
+  Star,
+  CheckCircle,
+  Sparkles,
+  AlertCircle,
+  Eye,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Footer } from "@/components/footer";
+import { useSearchParams } from "next/navigation";
+import axios from "axios";
+import { AddChallengeModal } from "@/components/add-challenge-modal";
+import { LeetCodePreview } from "@/components/leetcode-preview";
+import { TestCasePreview } from "@/components/test-case-preview";
+import { LeetCodeViewModal } from "@/components/leetcode-view-modal";
+import { TestCaseGenerator } from "@/components/test-case-generator";
 
 interface Challenge {
-  id: string
-  challenge_name: string
-  difficulty_level: "Easy" | "Medium" | "Hard"
-  max_score: number
-  problem_statement: string
-  constraints: string
-  input_form: string
-  output_form: string
-  sample_testcase: string
-  sample_output: string
-  input_testcase : File
-  output_testcase : File
+  id: string;
+  challenge_name: string;
+  difficulty_level: "Easy" | "Medium" | "Hard";
+  max_score: number;
+  problem_statement: string;
+  constraints: string;
+  input_form: string;
+  output_form: string;
+  sample_testcase: string;
+  sample_output: string;
+  input_testcase: File;
+  output_testcase: File;
+  isLeetCode?: boolean;
+  leetCodeData?: {
+    solutions: {
+      cpp: string;
+      java: string;
+      python: string;
+    };
+  };
+}
+
+interface TestCaseFile {
+  name: string;
+  content: string;
+  type: "input" | "output";
+  error?: string;
 }
 
 export default function ChallengeEditor() {
-  const router = useRouter()
-  const [challenges, setChallenges] = useState<Challenge[]>([])
-  const [isAddingChallenge, setIsAddingChallenge] = useState(false)
-  const [editingChallenge, setEditingChallenge] = useState<string | null>(null)
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false)
-  const searchParams = useSearchParams()
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const router = useRouter();
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [isAddingChallenge, setIsAddingChallenge] = useState(false);
+  const [editingChallenge, setEditingChallenge] = useState<string | null>(null);
+  const [viewingChallenge, setViewingChallenge] = useState<Challenge | null>(
+    null
+  );
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [challengeMode, setChallengeMode] = useState<
+    "manual" | "leetcode" | null
+  >(null);
+  const [leetcodeData, setLeetcodeData] = useState<any>(null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isGeneratingTestCase, setIsGeneratingTestCase] = useState(false);
+  const [isGeneratingLeetCodeTestCases, setIsGeneratingLeetCodeTestCases] =
+    useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [leetcodeTestCases, setLeetcodeTestCases] = useState<any>(null);
+  const [generatedTestCases, setGeneratedTestCases] = useState<any>(null);
+  const searchParams = useSearchParams();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [testCaseFiles, setTestCaseFiles] = useState<TestCaseFile[]>([]);
   const input = useRef<HTMLInputElement | null>(null);
   const output = useRef<HTMLInputElement | null>(null);
+
   const [currentChallenge, setCurrentChallenge] = useState({
     challenge_name: "",
     difficulty_level: "Easy" as "Easy" | "Medium" | "Hard",
@@ -52,67 +113,64 @@ export default function ChallengeEditor() {
     sample_output: "",
     input_testcase: null as unknown as File,
     output_testcase: null as unknown as File,
-  })
+  });
 
   const validateChallenge = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!currentChallenge.challenge_name.trim()) {
-      newErrors.challenge_name = "Challenge name is required"
+      newErrors.challenge_name = "Challenge name is required";
     }
     if (!currentChallenge.problem_statement.trim()) {
-      newErrors.problem_statement = "Problem description is required"
+      newErrors.problem_statement = "Problem description is required";
     }
-
     if (!currentChallenge.constraints.trim()) {
-      newErrors.constraints = "Constraints are required"
+      newErrors.constraints = "Constraints are required";
     }
-
     if (!currentChallenge.input_form.trim()) {
-      newErrors.input_form = "Input format is required"
+      newErrors.input_form = "Input format is required";
     }
-
     if (!currentChallenge.output_form.trim()) {
-      newErrors.output_form = "Output format is required"
+      newErrors.output_form = "Output format is required";
     }
-
     if (!currentChallenge.sample_testcase.trim()) {
-      newErrors.sample_testcase = "Sample input is required"
+      newErrors.sample_testcase = "Sample input is required";
     }
-
     if (!currentChallenge.sample_output.trim()) {
-      newErrors.sample_output = "Sample output is required"
+      newErrors.sample_output = "Sample output is required";
+    }
+    if (!currentChallenge.input_testcase || !currentChallenge.output_testcase) {
+      newErrors.files = "Both input and output files must be uploaded";
     }
 
-    if (!currentChallenge.input_testcase || !currentChallenge.output_testcase) {        
-      newErrors.files = "Both input and output files must be uploaded"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleAddChallenge = () => {
     if (!validateChallenge()) {
-      return
+      return;
     }
 
     if (editingChallenge) {
       const updatedChallenges = challenges.map((challenge) =>
-        challenge.id === editingChallenge ? { ...challenge, ...currentChallenge } : challenge
-      )
-      setChallenges(updatedChallenges)
-      setEditingChallenge(null)
-    }
-    else {
+        challenge.id === editingChallenge
+          ? { ...challenge, ...currentChallenge }
+          : challenge
+      );
+      setChallenges(updatedChallenges);
+      setEditingChallenge(null);
+    } else {
       const newChallenge: Challenge = {
         id: Date.now().toString(),
         ...currentChallenge,
-      }
-      console.log(challenges)
-      setChallenges([...challenges, newChallenge])
-      console.log(newChallenge)
+      };
+      setChallenges([...challenges, newChallenge]);
     }
+    resetForm();
+  };
+
+  const resetForm = () => {
     setCurrentChallenge({
       challenge_name: "",
       difficulty_level: "Easy",
@@ -125,14 +183,21 @@ export default function ChallengeEditor() {
       sample_output: "",
       input_testcase: null as unknown as File,
       output_testcase: null as unknown as File,
-    })
-    setIsAddingChallenge(false)
-    setErrors({})
-  }
+    });
+    setIsAddingChallenge(false);
+    setChallengeMode(null);
+    setLeetcodeData(null);
+    setTestCaseFiles([]);
+    setErrors({});
+    setVerificationResult(null);
+    setLeetcodeTestCases(null);
+    setGeneratedTestCases(null);
+    setEditingChallenge(null);
+  };
 
   const handleEditChallenge = (id: string) => {
-    const challengeToEdit = challenges.find((c) => c.id === id)
-    if (challengeToEdit) {
+    const challengeToEdit = challenges.find((c) => c.id === id);
+    if (challengeToEdit && !challengeToEdit.isLeetCode) {
       setCurrentChallenge({
         challenge_name: challengeToEdit.challenge_name,
         difficulty_level: challengeToEdit.difficulty_level,
@@ -145,99 +210,183 @@ export default function ChallengeEditor() {
         sample_output: challengeToEdit.sample_output,
         input_testcase: challengeToEdit.input_testcase,
         output_testcase: challengeToEdit.output_testcase,
-      })
-      setEditingChallenge(id)
-      setIsAddingChallenge(true)
+      });
+      setEditingChallenge(id);
+      setIsAddingChallenge(true);
     }
-  }
+  };
 
-  const handleGenerateAI = () => {
-    setIsGeneratingAI(true)
+  const handleViewChallenge = (challenge: Challenge) => {
+    setViewingChallenge(challenge);
+  };
+
+  const handleGenerateFullTestCases = (testCases: {
+    input: string;
+    output: string;
+    count: number;
+  }) => {
+    setGeneratedTestCases(testCases);
+  };
+
+  const handleGenerateLeetCodeTestCases = async () => {
+    setIsGeneratingLeetCodeTestCases(true);
     setTimeout(() => {
-      setCurrentChallenge({
-        ...currentChallenge,
-        challenge_name: "Two Sum Problem",
-        problem_statement:
-          "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.",
-        constraints:
-          "• 2 ≤ nums.length ≤ 10^4\n• -10^9 ≤ nums[i] ≤ 10^9\n• -10^9 ≤ target ≤ 10^9\n• Only one valid answer exists.",
-        input_form:
-          "The first line contains an integer n, the length of the array.\nThe second line contains n space-separated integers representing the array.\nThe third line contains the target integer.",
-        output_form: "Return two space-separated integers representing the indices of the two numbers.",
-        sample_testcase: "4\n2 7 11 15\n9",
-        sample_output: "0 1",
-      })
-      setIsGeneratingAI(false)
-    }, 2000)
-  }
+      setLeetcodeTestCases({
+        input:
+          "10\n[2,7,11,15]\n9\n[3,2,4]\n6\n[3,3]\n6\n[1,2,3,4,5]\n8\n[5,5,5,5]\n10",
+        output: "[0,1]\n[1,2]\n[0,1]\n[2,3]\n[0,3]",
+      });
+      setIsGeneratingLeetCodeTestCases(false);
+    }, 3000);
+  };
+
+  const handleVerifyTestCases = async () => {
+    setIsVerifying(true);
+    setTimeout(() => {
+      setVerificationResult({
+        success: true,
+        message: "All test cases verified successfully!",
+      });
+      setIsVerifying(false);
+    }, 2000);
+  };
+
+  const handleAddLeetCodeChallenge = () => {
+    if (leetcodeData && verificationResult?.success) {
+      const newChallenge: Challenge = {
+        id: Date.now().toString(),
+        challenge_name: leetcodeData.title,
+        difficulty_level: leetcodeData.difficulty,
+        max_score:
+          leetcodeData.difficulty === "Easy"
+            ? 100
+            : leetcodeData.difficulty === "Medium"
+            ? 200
+            : 300,
+        problem_statement: leetcodeData.description,
+        constraints: leetcodeData.constraints,
+        input_form: "Standard LeetCode format",
+        output_form: "Standard LeetCode format",
+        sample_testcase: leetcodeData.sampleInput,
+        sample_output: leetcodeData.sampleOutput,
+        input_testcase: new File([""], "leetcode_input.txt"),
+        output_testcase: new File([""], "leetcode_output.txt"),
+        isLeetCode: true,
+        leetCodeData: {
+          solutions: leetcodeData.solutions,
+        },
+      };
+      setChallenges([...challenges, newChallenge]);
+      resetForm();
+    }
+  };
 
   const handleDeleteChallenge = (id: string) => {
-    setChallenges(challenges.filter((c) => c.id !== id))
-  }
+    setChallenges(challenges.filter((c) => c.id !== id));
+    console.log(`Challenge with ID ${id} deleted successfully`);
+    console.log(challenges);
+  };
 
   const handleSubmitContest = async () => {
     if (challenges.length > 0) {
       const formData = new FormData();
-  
+
       challenges.forEach((challenge, idx) => {
-        formData.append(`challenges[${idx}][id]`,challenge.id)
-        formData.append(`challenges[${idx}][challenge_name]`, challenge.challenge_name);
-        formData.append(`challenges[${idx}][difficulty_level]`, challenge.difficulty_level);
-        formData.append(`challenges[${idx}][max_score]`, challenge.max_score.toString());
-        formData.append(`challenges[${idx}][problem_statement]`, challenge.problem_statement);
-        formData.append(`challenges[${idx}][constraints]`, challenge.constraints);
+        formData.append(`challenges[${idx}][id]`, challenge.id);
+        console.log("Submitting contest with challenges:", formData);
+        formData.append(
+          `challenges[${idx}][challenge_name]`,
+          challenge.challenge_name
+        );
+        formData.append(
+          `challenges[${idx}][difficulty_level]`,
+          challenge.difficulty_level
+        );
+        formData.append(
+          `challenges[${idx}][max_score]`,
+          challenge.max_score.toString()
+        );
+        formData.append(
+          `challenges[${idx}][problem_statement]`,
+          challenge.problem_statement
+        );
+        formData.append(
+          `challenges[${idx}][constraints]`,
+          challenge.constraints
+        );
         formData.append(`challenges[${idx}][input_form]`, challenge.input_form);
-        formData.append(`challenges[${idx}][output_form]`, challenge.output_form);
-        formData.append(`challenges[${idx}][sample_testcase]`, challenge.sample_testcase);
-        formData.append(`challenges[${idx}][sample_output]`, challenge.sample_output);
+        formData.append(
+          `challenges[${idx}][output_form]`,
+          challenge.output_form
+        );
+        formData.append(
+          `challenges[${idx}][sample_testcase]`,
+          challenge.sample_testcase
+        );
+        formData.append(
+          `challenges[${idx}][sample_output]`,
+          challenge.sample_output
+        );
         if (challenge.input_testcase) {
-          formData.append(`challenges[${idx}][input_testcase]`, challenge.input_testcase);
+          formData.append(
+            `challenges[${idx}][input_testcase]`,
+            challenge.input_testcase
+          );
         }
         if (challenge.output_testcase) {
-          formData.append(`challenges[${idx}][output_testcase]`, challenge.output_testcase);
+          formData.append(
+            `challenges[${idx}][output_testcase]`,
+            challenge.output_testcase
+          );
         }
       });
-  
-      formData.append("contest_id", searchParams.get('contestId')!);
-  
+
+      formData.append("contest_id", searchParams.get("contestId")!);
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1]);
+      }
+
       try {
-        const response = await axios.post('http://127.0.1:8000/api/challenge-editor/', formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/challenge-editor/",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
           }
-        });
-  
-        if (response.status !== 201) throw new Error("Failed to submit contest");
-  
+        );
+
+        if (response.status !== 201)
+          throw new Error("Failed to submit contest");
+
         console.log("Contest submitted successfully:", response.data);
         router.push("/contests");
-  
       } catch (error) {
         console.error("Error submitting challenge:", error);
       }
     }
   };
-  
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "Medium":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "Hard":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string | number) => {
-    setCurrentChallenge((prev) => ({ ...prev, [field]: value }))
+    setCurrentChallenge((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const handleButtonClick = (type: "input" | "output") => () => {
     if (type === "input") {
@@ -247,31 +396,109 @@ export default function ChallengeEditor() {
     }
   };
 
-  const handleFileChange = (type: "input" | "output") => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      console.log(`${type} file selected:`, file.name);
-      if (type === "input") {
-        setCurrentChallenge((prev) => ({ ...prev, input_testcase: file }));
-      } else {
-        setCurrentChallenge((prev) => ({ ...prev, output_testcase: file }));
+  const handleFileChange =
+    (type: "input" | "output") =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        console.log(`${type} file selected:`, file.name);
+        if (type === "input") {
+          setCurrentChallenge((prev) => ({ ...prev, input_testcase: file }));
+        } else {
+          setCurrentChallenge((prev) => ({ ...prev, output_testcase: file }));
+        }
       }
+    };
+
+  const handleFileUpload = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "input" | "output"
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      const errorFile: TestCaseFile = {
+        name: file.name,
+        content: "",
+        type,
+        error: "File size must be less than 1MB",
+      };
+      setTestCaseFiles((prev) => [
+        ...prev.filter((f) => f.type !== type),
+        errorFile,
+      ]);
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [".txt", ".in", ".out", ".json"];
+    const fileExtension = "." + file.name.split(".").pop()?.toLowerCase();
+    if (!allowedTypes.includes(fileExtension)) {
+      const errorFile: TestCaseFile = {
+        name: file.name,
+        content: "",
+        type,
+        error: "Only .txt, .in, .out, and .json files are allowed",
+      };
+      setTestCaseFiles((prev) => [
+        ...prev.filter((f) => f.type !== type),
+        errorFile,
+      ]);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const newFile: TestCaseFile = {
+        name: file.name,
+        content,
+        type,
+      };
+      setTestCaseFiles((prev) => [
+        ...prev.filter((f) => f.type !== type),
+        newFile,
+      ]);
+    };
+    reader.readAsText(file);
+
+    // Also set the file for API submission
+    handleFileChange(type)(event);
+  };
+
+  const handleAddChallengeClick = () => {
+    setShowAddModal(true);
+  };
+
+  const handleModeSelect = (mode: "manual" | "leetcode", data?: any) => {
+    setChallengeMode(mode);
+    if (mode === "leetcode" && data) {
+      setLeetcodeData(data);
+    } else {
+      setIsAddingChallenge(true);
     }
   };
 
-  useEffect(() => { 
-    console.log("Hello")
-    const contestId = searchParams.get('contestId');
+  useEffect(() => {
+    const contestId = searchParams.get("contestId");
     const EditChallenge = async () => {
-      const response = await axios.get('http://127.0.0.1:8000/api/get-challenges/?contestId='+contestId)
-      if (response.status === 200) {
-        const data = response.data;
-        console.log(data);
-        setChallenges(response.data)
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/get-challenges/?contestId=" + contestId
+        );
+        if (response.status === 200) {
+          setChallenges(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching challenges:", error);
       }
+    };
+    if (contestId) {
+      EditChallenge();
     }
-    EditChallenge();
-  }, [searchParams.get('edited')])
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -279,18 +506,31 @@ export default function ChallengeEditor() {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push(`/edit-contest/${searchParams.get('contestId')}`)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                router.push(`/edit-contest/${searchParams.get("contestId")}`)
+              }
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">Challenge Editor</h1>
-              <p className="text-slate-600">Add coding challenges to your contest</p>
+              <h1 className="text-2xl font-bold text-slate-800">
+                Challenge Editor
+              </h1>
+              <p className="text-slate-600">
+                Add coding challenges to your contest
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             <Badge variant="secondary">{challenges.length} Challenges</Badge>
             {challenges.length > 0 && (
-              <Button onClick={handleSubmitContest} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button
+                onClick={handleSubmitContest}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Submit Contest
               </Button>
@@ -309,7 +549,7 @@ export default function ChallengeEditor() {
                   <span>Challenges</span>
                   <Button
                     size="sm"
-                    onClick={() => setIsAddingChallenge(true)}
+                    onClick={handleAddChallengeClick}
                     className="bg-emerald-600 hover:bg-emerald-700"
                   >
                     <Plus className="h-4 w-4 mr-1" />
@@ -322,26 +562,69 @@ export default function ChallengeEditor() {
                   <div className="text-center py-8 text-slate-500">
                     <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No challenges added yet</p>
-                    <p className="text-sm">Click "Add" to create your first challenge</p>
+                    <p className="text-sm">
+                      Click "Add" to create your first challenge
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {challenges.map((challenge) => (
                       <div key={challenge.id} className="p-3 border rounded-lg">
                         <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium text-sm">{challenge.challenge_name}</h4>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">
+                              {challenge.challenge_name}
+                            </h4>
+                            {challenge.isLeetCode && (
+                              <Badge variant="outline" className="text-xs mt-1">
+                                LeetCode
+                              </Badge>
+                            )}
+                          </div>
                           <div className="flex space-x-1">
-                            <Button size="sm" variant="ghost" onClick={() => handleEditChallenge(challenge.id)}>
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteChallenge(challenge.id)}>
+                            {challenge.isLeetCode ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleViewChallenge(challenge)}
+                                title="View LeetCode Problem"
+                              >
+                                <Eye className="h-3 w-3 text-blue-600" />
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  handleEditChallenge(challenge.id)
+                                }
+                                title="Edit Challenge"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                handleDeleteChallenge(challenge.id)
+                              }
+                            >
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <Badge className={getDifficultyColor(challenge.difficulty_level)}>{challenge.difficulty_level}</Badge>
-                          <span className="text-sm text-slate-500">{challenge.max_score} pts</span>
+                          <Badge
+                            className={getDifficultyColor(
+                              challenge.difficulty_level
+                            )}
+                          >
+                            {challenge.difficulty_level}
+                          </Badge>
+                          <span className="text-sm text-slate-500">
+                            {challenge.max_score} pts
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -353,267 +636,463 @@ export default function ChallengeEditor() {
 
           {/* Challenge Form */}
           <div className="lg:col-span-2">
-            {isAddingChallenge || editingChallenge ? (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>{editingChallenge ? "Edit Challenge" : "Add New Challenge"}</CardTitle>
-                      <CardDescription>Create a comprehensive coding challenge for participants</CardDescription>
+            {challengeMode === "leetcode" && leetcodeData ? (
+              <LeetCodePreview
+                problemData={leetcodeData}
+                onGenerateTestCases={handleGenerateLeetCodeTestCases}
+                onVerifyTestCases={handleVerifyTestCases}
+                onAddChallenge={handleAddLeetCodeChallenge}
+                testCases={leetcodeTestCases}
+                isGenerating={isGeneratingLeetCodeTestCases}
+                isVerifying={isVerifying}
+                verificationResult={verificationResult}
+              />
+            ) : isAddingChallenge || editingChallenge ? (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>
+                          {editingChallenge
+                            ? "Edit Challenge"
+                            : "Add New Challenge"}
+                        </CardTitle>
+                        <CardDescription>
+                          Create a comprehensive coding challenge for
+                          participants
+                        </CardDescription>
+                      </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={handleGenerateAI}
-                      disabled={isGeneratingAI}
-                      className="bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200 hover:from-violet-100 hover:to-purple-100"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2 text-violet-600" />
-                      {isGeneratingAI ? "Generating..." : "Generate with AI"}
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="challenge-name">Challenge Name *</Label>
+                        <Input
+                          id="challenge-name"
+                          placeholder="e.g., Two Sum Problem"
+                          value={currentChallenge.challenge_name}
+                          onChange={(e) =>
+                            handleInputChange("challenge_name", e.target.value)
+                          }
+                          className={
+                            errors.challenge_name ? "border-red-500" : ""
+                          }
+                        />
+                        {errors.challenge_name && (
+                          <div className="flex items-center space-x-1 text-red-600 text-sm">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>{errors.challenge_name}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="difficulty">Difficulty Level</Label>
+                        <Select
+                          value={currentChallenge.difficulty_level}
+                          onValueChange={(value: "Easy" | "Medium" | "Hard") =>
+                            handleInputChange("difficulty_level", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Easy">
+                              <div className="flex items-center space-x-2">
+                                <Star className="h-4 w-4 text-green-500" />
+                                <span>Easy</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="Medium">
+                              <div className="flex items-center space-x-2">
+                                <Star className="h-4 w-4 text-yellow-500" />
+                                <span>Medium</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="Hard">
+                              <div className="flex items-center space-x-2">
+                                <Star className="h-4 w-4 text-red-500" />
+                                <span>Hard</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
                     <div className="space-y-2">
-                      <Label htmlFor="challenge-name">Challenge Name *</Label>
+                      <Label htmlFor="score">Score per Challenge</Label>
                       <Input
-                        id="challenge-name"
-                        placeholder="e.g., Two Sum Problem"
-                        value={currentChallenge.challenge_name}
-                        onChange={(e) => handleInputChange("challenge_name", e.target.value)}
-                        className={errors.name ? "border-red-500" : ""}
+                        id="score"
+                        type="number"
+                        value={currentChallenge.max_score}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "max_score",
+                            Number.parseInt(e.target.value) || 0
+                          )
+                        }
                       />
-                      {errors.name && (
+                    </div>
+
+                    {/* Problem Description */}
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Problem Description *</Label>
+                      <div className="border rounded-lg">
+                        <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            B
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            I
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            U
+                          </Button>
+                          <div className="w-px h-4 bg-slate-300" />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            Code
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            Link
+                          </Button>
+                        </div>
+                        <Textarea
+                          id="description"
+                          placeholder="Describe the problem statement in detail..."
+                          rows={4}
+                          value={currentChallenge.problem_statement}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "problem_statement",
+                              e.target.value
+                            )
+                          }
+                          className={`border-0 resize-none focus:ring-0 ${
+                            errors.problem_statement ? "border-red-500" : ""
+                          }`}
+                        />
+                      </div>
+                      {errors.problem_statement && (
                         <div className="flex items-center space-x-1 text-red-600 text-sm">
                           <AlertCircle className="h-4 w-4" />
-                          <span>{errors.name}</span>
+                          <span>{errors.problem_statement}</span>
                         </div>
                       )}
                     </div>
+
+                    {/* Constraints */}
                     <div className="space-y-2">
-                      <Label htmlFor="difficulty">Difficulty Level</Label>
-                      <Select
-                        value={currentChallenge.difficulty_level}
-                        onValueChange={(value: "Easy" | "Medium" | "Hard") => handleInputChange("difficulty_level", value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Easy">
-                            <div className="flex items-center space-x-2">
-                              <Star className="h-4 w-4 text-green-500" />
-                              <span>Easy</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Medium">
-                            <div className="flex items-center space-x-2">
-                              <Star className="h-4 w-4 text-yellow-500" />
-                              <span>Medium</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Hard">
-                            <div className="flex items-center space-x-2">
-                              <Star className="h-4 w-4 text-red-500" />
-                              <span>Hard</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="score">Score per Challenge</Label>
-                    <Input
-                      id="score"
-                      type="number"
-                      value={currentChallenge.max_score}
-                      onChange={(e) => handleInputChange("max_score", Number.parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-
-                  {/* Problem Description - Simulated TinyMCE */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Problem Description *</Label>
-                    <div className="border rounded-lg">
-                      <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          B
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          I
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          U
-                        </Button>
-                        <div className="w-px h-4 bg-slate-300" />
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          Code
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          Link
-                        </Button>
-                      </div>
-                      <Textarea
-                        id="description"
-                        placeholder="Describe the problem statement in detail..."
-                        rows={4}
-                        value={currentChallenge.problem_statement}
-                        onChange={(e) => handleInputChange("problem_statement", e.target.value)}
-                        className={`border-0 resize-none focus:ring-0 ${errors.description ? "border-red-500" : ""}`}
-                      />
-                    </div>
-                    {errors.description && (
-                      <div className="flex items-center space-x-1 text-red-600 text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        <span>{errors.description}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="constraints">Constraints</Label>
-                    <div className="border rounded-lg">
-                      <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          B
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          I
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-6 px-2">
-                          List
-                        </Button>
-                      </div>
-                      <Textarea
-                        id="constraints"
-                        placeholder="e.g., 1 ≤ n ≤ 10^5, 1 ≤ arr[i] ≤ 10^9"
-                        rows={2}
-                        value={currentChallenge.constraints}
-                        onChange={(e) => handleInputChange("constraints", e.target.value)}
-                        className="border-0 resize-none focus:ring-0"
-                      />
-                    </div>
-                  </div>
-
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="input-format">Input Format</Label>
+                      <Label htmlFor="constraints">Constraints *</Label>
                       <div className="border rounded-lg">
                         <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
-                          <Button size="sm" variant="ghost" className="h-6 px-2">
-                            Code
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            B
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            I
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2"
+                          >
+                            List
                           </Button>
                         </div>
                         <Textarea
-                          id="input-format"
-                          placeholder="Describe the input format..."
-                          rows={3}
-                          value={currentChallenge.input_form}
-                          onChange={(e) => handleInputChange("input_form", e.target.value)}
-                          className="border-0 resize-none focus:ring-0"
+                          id="constraints"
+                          placeholder="e.g., 1 ≤ n ≤ 10^5, 1 ≤ arr[i] ≤ 10^9"
+                          rows={2}
+                          value={currentChallenge.constraints}
+                          onChange={(e) =>
+                            handleInputChange("constraints", e.target.value)
+                          }
+                          className={`border-0 resize-none focus:ring-0 ${
+                            errors.constraints ? "border-red-500" : ""
+                          }`}
                         />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="output-format">Output Format</Label>
-                      <div className="border rounded-lg">
-                        <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
-                          <Button size="sm" variant="ghost" className="h-6 px-2">
-                            Code
-                          </Button>
+                      {errors.constraints && (
+                        <div className="flex items-center space-x-1 text-red-600 text-sm">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>{errors.constraints}</span>
                         </div>
-                        <Textarea
-                          id="output-format"
-                          placeholder="Describe the expected output format..."
-                          rows={3}
-                          value={currentChallenge.output_form}
-                          onChange={(e) => handleInputChange("output_form", e.target.value)}
-                          className="border-0 resize-none focus:ring-0"
-                        />
-                      </div>
+                      )}
                     </div>
-                  </div>
 
-                  {/* Sample Test Case */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="sample-input">Sample Input</Label>
-                      <Textarea
-                        id="sample-input"
-                        placeholder="Provide sample input..."
-                        rows={3}
-                        value={currentChallenge.sample_testcase}
-                        onChange={(e) => handleInputChange("sample_testcase", e.target.value)}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="sample-output">Sample Output</Label>
-                      <Textarea
-                        id="sample-output"
-                        placeholder="Expected output for sample input..."
-                        rows={3}
-                        value={currentChallenge.sample_output}
-                        onChange={(e) => handleInputChange("sample_output", e.target.value)}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  {/* File Upload */}
-                  <div className="space-y-4">
-                    <Label>Test Case Files</Label>
+                    {/* Input/Output Format */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="relative border-2 border-dashed border-slate-300 rounded-lg p-6 hover:border-emerald-300 transition-colors">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-slate-400" />
-                    <p className="text-sm text-slate-600 mb-2 text-center">Upload Input File</p>
-                    <div className="text-center">
-                      <input type="file" ref={input} onChange={handleFileChange("input")} className="hidden" />
-                          <Button variant="outline" size="sm" onClick={handleButtonClick("input")}>
-                        Choose File
+                      <div className="space-y-2">
+                        <Label htmlFor="input-format">Input Format *</Label>
+                        <div className="border rounded-lg">
+                          <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2"
+                            >
+                              Code
+                            </Button>
+                          </div>
+                          <Textarea
+                            id="input-format"
+                            placeholder="Describe the input format..."
+                            rows={3}
+                            value={currentChallenge.input_form}
+                            onChange={(e) =>
+                              handleInputChange("input_form", e.target.value)
+                            }
+                            className={`border-0 resize-none focus:ring-0 ${
+                              errors.input_form ? "border-red-500" : ""
+                            }`}
+                          />
+                        </div>
+                        {errors.input_form && (
+                          <div className="flex items-center space-x-1 text-red-600 text-sm">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>{errors.input_form}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="output-format">Output Format *</Label>
+                        <div className="border rounded-lg">
+                          <div className="border-b bg-slate-50 p-2 flex items-center space-x-2 text-sm">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2"
+                            >
+                              Code
+                            </Button>
+                          </div>
+                          <Textarea
+                            id="output-format"
+                            placeholder="Describe the expected output format..."
+                            rows={3}
+                            value={currentChallenge.output_form}
+                            onChange={(e) =>
+                              handleInputChange("output_form", e.target.value)
+                            }
+                            className={`border-0 resize-none focus:ring-0 ${
+                              errors.output_form ? "border-red-500" : ""
+                            }`}
+                          />
+                        </div>
+                        {errors.output_form && (
+                          <div className="flex items-center space-x-1 text-red-600 text-sm">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>{errors.output_form}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Sample Test Case */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="sample-input">Sample Input *</Label>
+                        <Textarea
+                          id="sample-input"
+                          placeholder="Provide sample input..."
+                          rows={3}
+                          value={currentChallenge.sample_testcase}
+                          onChange={(e) =>
+                            handleInputChange("sample_testcase", e.target.value)
+                          }
+                          className={`font-mono text-sm ${
+                            errors.sample_testcase ? "border-red-500" : ""
+                          }`}
+                        />
+                        {errors.sample_testcase && (
+                          <div className="flex items-center space-x-1 text-red-600 text-sm">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>{errors.sample_testcase}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sample-output">Sample Output *</Label>
+                        <Textarea
+                          id="sample-output"
+                          placeholder="Expected output for sample input..."
+                          rows={3}
+                          value={currentChallenge.sample_output}
+                          onChange={(e) =>
+                            handleInputChange("sample_output", e.target.value)
+                          }
+                          className={`font-mono text-sm ${
+                            errors.sample_output ? "border-red-500" : ""
+                          }`}
+                        />
+                        {errors.sample_output && (
+                          <div className="flex items-center space-x-1 text-red-600 text-sm">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>{errors.sample_output}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* File Upload */}
+                    <div className="space-y-4">
+                      <Label>Test Case Files *</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <div className="relative border-2 border-dashed border-slate-300 rounded-lg p-6 hover:border-emerald-300 transition-colors">
+                            <Upload className="h-8 w-8 mx-auto mb-2 text-slate-400" />
+                            <p className="text-sm text-slate-600 mb-2 text-center">
+                              Upload Input File
+                            </p>
+                            <div className="text-center">
+                              <input
+                                type="file"
+                                ref={input}
+                                onChange={(e) => handleFileUpload(e, "input")}
+                                className="hidden"
+                                accept=".txt,.in,.out,.json"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleButtonClick("input")}
+                              >
+                                Choose File
+                              </Button>
+                            </div>
+                            {currentChallenge.input_testcase && (
+                              <p className="text-xs text-green-600 mt-2 text-center">
+                                ✓ {currentChallenge.input_testcase.name}
+                              </p>
+                            )}
+                          </div>
+                          {testCaseFiles.find((f) => f.type === "input") && (
+                            <TestCasePreview
+                              {...testCaseFiles.find(
+                                (f) => f.type === "input"
+                              )!}
+                            />
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-emerald-300 transition-colors">
+                            <Upload className="h-8 w-8 mx-auto mb-2 text-slate-400" />
+                            <p className="text-sm text-slate-600 mb-2">
+                              Upload Output File
+                            </p>
+                            <input
+                              type="file"
+                              ref={output}
+                              onChange={(e) => handleFileUpload(e, "output")}
+                              className="hidden"
+                              accept=".txt,.in,.out,.json"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleButtonClick("output")}
+                            >
+                              Choose File
+                            </Button>
+                            {currentChallenge.output_testcase && (
+                              <p className="text-xs text-green-600 mt-2">
+                                ✓ {currentChallenge.output_testcase.name}
+                              </p>
+                            )}
+                          </div>
+                          {testCaseFiles.find((f) => f.type === "output") && (
+                            <TestCasePreview
+                              {...testCaseFiles.find(
+                                (f) => f.type === "output"
+                              )!}
+                            />
+                          )}
+                        </div>
+                      </div>
+                      {errors.files && (
+                        <div className="flex items-center space-x-1 text-red-600 text-sm">
+                          <AlertCircle className="h-4 w-4" />
+                          <span>{errors.files}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-between pt-4">
+                      <Button variant="outline" onClick={resetForm}>
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleAddChallenge}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        {editingChallenge
+                          ? "Update Challenge"
+                          : "Add Challenge"}
                       </Button>
                     </div>
-                  </div>
-                      <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-emerald-300 transition-colors">
-                        <Upload className="h-8 w-8 mx-auto mb-2 text-slate-400" />
-                        <p className="text-sm text-slate-600 mb-2">Upload Output File</p>
-                        <input type="file" ref={output} onChange={handleFileChange("output")} className="hidden" />
-                        <Button variant="outline" size="sm" onClick={handleButtonClick("output")}>
-                          Choose File
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Action Buttons */}
-                  <div className="flex justify-between pt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsAddingChallenge(false)
-                        setEditingChallenge(null)
-                        setErrors({})
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleAddChallenge} className="bg-emerald-600 hover:bg-emerald-700">
-                      Add Challenge
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                {/* Full Test Case Generator */}
+                {(currentChallenge.problem_statement ||
+                  currentChallenge.constraints) && (
+                  <TestCaseGenerator
+                    problemDescription={currentChallenge.problem_statement}
+                    constraints={currentChallenge.constraints}
+                    sampleInput={currentChallenge.sample_testcase}
+                    sampleOutput={currentChallenge.sample_output}
+                    onGenerate={handleGenerateFullTestCases}
+                    isGenerating={isGeneratingTestCase}
+                  />
+                )}
+              </div>
             ) : (
               <Card className="h-full flex items-center justify-center">
                 <CardContent className="text-center py-12">
                   <Plus className="h-16 w-16 mx-auto mb-4 text-slate-300" />
-                  <h3 className="text-lg font-medium text-slate-600 mb-2">Ready to add challenges?</h3>
-                  <p className="text-slate-500 mb-4">Click "Add" to create your first coding challenge</p>
-                  <Button onClick={() => setIsAddingChallenge(true)} className="bg-emerald-600 hover:bg-emerald-700">
+                  <h3 className="text-lg font-medium text-slate-600 mb-2">
+                    Ready to add challenges?
+                  </h3>
+                  <p className="text-slate-500 mb-4">
+                    Click "Add" to create your first coding challenge
+                  </p>
+                  <Button
+                    onClick={handleAddChallengeClick}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Challenge
                   </Button>
@@ -624,7 +1103,23 @@ export default function ChallengeEditor() {
         </div>
       </div>
 
+      {/* Add Challenge Modal */}
+      <AddChallengeModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSelectMode={handleModeSelect}
+      />
+
+      {/* LeetCode View Modal */}
+      {viewingChallenge && (
+        <LeetCodeViewModal
+          isOpen={!!viewingChallenge}
+          onClose={() => setViewingChallenge(null)}
+          challenge={viewingChallenge}
+        />
+      )}
+
       <Footer />
     </div>
-  )
+  );
 }
