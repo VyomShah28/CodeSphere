@@ -9,20 +9,24 @@ urlpatterns=[
     path("api/delete-contests/", views.delete_contest_api,name="Delete_Contest"),
     path("api/contest_details/", views.contest_details,name="Contest_Details"),
     path('api/get-challenges/',views.get_challenges,name="Get_Challenges"),
+    path('api/add-challenge/',views.add_challenge,name="add_Challenge"),
+    path('api/update-challenge/',views.update_challenge,name="Edit_Challenge"),
+    path('api/delete-challenge/',views.delete_challenge,name="Delete_Challenge"),
+  
      
      
     # path('test/',views.Test_View,name="Test"),
-    path('details/',views.Details,name="Details"),
-    # path('contest/',views.Contest_View,name='Contest'),
-    path('home/',views.Land,name="Home"),
-    path('delete-challenge/', views.delete_challenge, name='delete_challenge'),
-    path('main',views.Main,name='Main'),
-    path('find_contest',views.find_contest,name='Find_Contest'),
-    path('update',views.update_challenge,name="Update_challenge"),
-    path('get1',views.get_challenge,name="Get_challenge"),
-    path('',views.Home,name='Home1'),
-    path('delete',views.delete_contest,name='delete_contest'),
-    path('enter_contest',views.Enter,name='Enter'),
-    path('response',views.Response,name='Response'),
-    path('track/',views.Track,name='Track')
+    # path('details/',views.Details,name="Details"),
+    # # path('contest/',views.Contest_View,name='Contest'),
+    # path('home/',views.Land,name="Home"),
+    # path('delete-challenge/', views.delete_challenge, name='delete_challenge'),
+    # path('main',views.Main,name='Main'),
+    # path('find_contest',views.find_contest,name='Find_Contest'),
+    # path('update',views.update_challenge,name="Update_challenge"),
+    # path('get1',views.get_challenge,name="Get_challenge"),
+    # path('',views.Home,name='Home1'),
+    # path('delete',views.delete_contest,name='delete_contest'),
+    # path('enter_contest',views.Enter,name='Enter'),
+    # path('response',views.Response,name='Response'),
+    # path('track/',views.Track,name='Track')
 ]

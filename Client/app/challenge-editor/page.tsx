@@ -58,13 +58,9 @@ interface Challenge {
   input_testcase: File;
   output_testcase: File;
   isLeetCode?: boolean;
-  leetCodeData?: {
-    solutions: {
-      cpp: string;
-      java: string;
-      python: string;
-    };
-  };
+  cpp_code?: string;
+  java_code?: string;
+  python_code?: string;
 }
 
 interface TestCaseFile {
@@ -147,27 +143,65 @@ export default function ChallengeEditor() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAddChallenge = () => {
-    if (!validateChallenge()) {
-      return;
-    }
+  const handleAddChallenge = async () => {
+    let challengeData: Challenge;
 
-    if (editingChallenge) {
-      const updatedChallenges = challenges.map((challenge) =>
-        challenge.id === editingChallenge
-          ? { ...challenge, ...currentChallenge }
-          : challenge
-      );
-      setChallenges(updatedChallenges);
-      setEditingChallenge(null);
+    if (
+      challengeMode === "leetcode" &&
+      leetcodeData &&
+      verificationResult?.success
+    ) {
+      // Add LeetCode challenge
+      challengeData = {
+        id: Date.now().toString(),
+        challenge_name: leetcodeData.title,
+        difficulty_level: leetcodeData.difficulty,
+        max_score:
+          leetcodeData.difficulty === "Easy"
+            ? 100
+            : leetcodeData.difficulty === "Medium"
+            ? 200
+            : 300,
+        problem_statement: leetcodeData.description,
+        constraints: leetcodeData.constraints,
+        input_form: "Standard LeetCode format",
+        output_form: "Standard LeetCode format",
+        sample_testcase: leetcodeData.sampleInput,
+        sample_output: leetcodeData.sampleOutput,
+        input_testcase: new File([""], "leetcode_input.txt"),
+        output_testcase: new File([""], "leetcode_output.txt"),
+        isLeetCode: true,
+        cpp_code: leetcodeData.solutions.cpp,
+        java_code: leetcodeData.solutions.java,
+        python_code: leetcodeData.solutions.python,
+      };
     } else {
-      const newChallenge: Challenge = {
+      // Add manual challenge
+      if (!validateChallenge()) {
+        return;
+      }
+      challengeData = {
         id: Date.now().toString(),
         ...currentChallenge,
       };
-      setChallenges([...challenges, newChallenge]);
     }
-    resetForm();
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/add-challenge/",
+        {
+          ...challengeData,
+          contest_id: searchParams.get("contestId"),
+        }
+      );
+      console.log(response);
+
+      console.log("Adding new challenge:", challengeData);
+      setChallenges([...challenges, challengeData]);
+      resetForm();
+    } catch (error) {
+      console.error("Error while preparing challenge data:", error);
+      return;
+    }
   };
 
   const resetForm = () => {
@@ -195,6 +229,33 @@ export default function ChallengeEditor() {
     setEditingChallenge(null);
   };
 
+  const handleUpdateChallenge = () => {
+    if (!editingChallenge || !validateChallenge()) {
+      return;
+    }
+
+    try {
+      const response = axios.put(
+        `http://127.0.0.1:8000/api/update-challenge/`,
+        {challenge_id: editingChallenge, ...currentChallenge},
+       
+      );
+      console.log(response);
+      
+      const updatedChallenges = challenges.map((challenge) =>
+        challenge.id === editingChallenge
+          ? { ...challenge, ...currentChallenge }
+          : challenge
+      );
+      setChallenges(updatedChallenges);
+      console.log("Challenge updated successfully");
+      resetForm();
+    } catch (error) {
+      console.error("Error while preparing challenge data for update:", error);
+      return;
+    }
+  };
+
   const handleEditChallenge = (id: string) => {
     const challengeToEdit = challenges.find((c) => c.id === id);
     if (challengeToEdit && !challengeToEdit.isLeetCode) {
@@ -213,9 +274,9 @@ export default function ChallengeEditor() {
       });
       setEditingChallenge(id);
       setIsAddingChallenge(true);
+      setChallengeMode("manual"); // Set mode for editing
     }
   };
-
   const handleViewChallenge = (challenge: Challenge) => {
     setViewingChallenge(challenge);
   };
@@ -251,121 +312,24 @@ export default function ChallengeEditor() {
     }, 2000);
   };
 
-  const handleAddLeetCodeChallenge = () => {
-    if (leetcodeData && verificationResult?.success) {
-      const newChallenge: Challenge = {
-        id: Date.now().toString(),
-        challenge_name: leetcodeData.title,
-        difficulty_level: leetcodeData.difficulty,
-        max_score:
-          leetcodeData.difficulty === "Easy"
-            ? 100
-            : leetcodeData.difficulty === "Medium"
-            ? 200
-            : 300,
-        problem_statement: leetcodeData.description,
-        constraints: leetcodeData.constraints,
-        input_form: "Standard LeetCode format",
-        output_form: "Standard LeetCode format",
-        sample_testcase: leetcodeData.sampleInput,
-        sample_output: leetcodeData.sampleOutput,
-        input_testcase: new File([""], "leetcode_input.txt"),
-        output_testcase: new File([""], "leetcode_output.txt"),
-        isLeetCode: true,
-        leetCodeData: {
-          solutions: leetcodeData.solutions,
-        },
-      };
-      setChallenges([...challenges, newChallenge]);
-      resetForm();
+  const handleDeleteChallenge = async (id: string) => {
+    try {
+      console.log("Deleting challenge with ID:", id);
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/delete-challenge/",
+        { challenge_id: id }
+      );
+      setChallenges(challenges.filter((c) => c.id !== id));
+      console.log(`Challenge with ID ${id} deleted successfully`);
+      console.log(response);
+    } catch (error) {
+      console.error("Error deleting challenge:", error);
+      return;
     }
-  };
-
-  const handleDeleteChallenge = (id: string) => {
-    setChallenges(challenges.filter((c) => c.id !== id));
-    console.log(`Challenge with ID ${id} deleted successfully`);
-    console.log(challenges);
   };
 
   const handleSubmitContest = async () => {
-    if (challenges.length > 0) {
-      const formData = new FormData();
-
-      challenges.forEach((challenge, idx) => {
-        formData.append(`challenges[${idx}][id]`, challenge.id);
-        console.log("Submitting contest with challenges:", formData);
-        formData.append(
-          `challenges[${idx}][challenge_name]`,
-          challenge.challenge_name
-        );
-        formData.append(
-          `challenges[${idx}][difficulty_level]`,
-          challenge.difficulty_level
-        );
-        formData.append(
-          `challenges[${idx}][max_score]`,
-          challenge.max_score.toString()
-        );
-        formData.append(
-          `challenges[${idx}][problem_statement]`,
-          challenge.problem_statement
-        );
-        formData.append(
-          `challenges[${idx}][constraints]`,
-          challenge.constraints
-        );
-        formData.append(`challenges[${idx}][input_form]`, challenge.input_form);
-        formData.append(
-          `challenges[${idx}][output_form]`,
-          challenge.output_form
-        );
-        formData.append(
-          `challenges[${idx}][sample_testcase]`,
-          challenge.sample_testcase
-        );
-        formData.append(
-          `challenges[${idx}][sample_output]`,
-          challenge.sample_output
-        );
-        if (challenge.input_testcase) {
-          formData.append(
-            `challenges[${idx}][input_testcase]`,
-            challenge.input_testcase
-          );
-        }
-        if (challenge.output_testcase) {
-          formData.append(
-            `challenges[${idx}][output_testcase]`,
-            challenge.output_testcase
-          );
-        }
-      });
-
-      formData.append("contest_id", searchParams.get("contestId")!);
-      for (let pair of formData.entries()) {
-        console.log(pair[0] + ": " + pair[1]);
-      }
-
-      try {
-        const response = await axios.post(
-          "http://127.0.0.1:8000/api/challenge-editor/",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        if (response.status !== 201)
-          throw new Error("Failed to submit contest");
-
-        console.log("Contest submitted successfully:", response.data);
-        router.push("/contests");
-      } catch (error) {
-        console.error("Error submitting challenge:", error);
-      }
-    }
+    router.push("/contests");
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -490,6 +454,8 @@ export default function ChallengeEditor() {
         );
         if (response.status === 200) {
           setChallenges(response.data);
+          console.log("Fetched challenges:", response.data);
+          
         }
       } catch (error) {
         console.error("Error fetching challenges:", error);
@@ -641,7 +607,7 @@ export default function ChallengeEditor() {
                 problemData={leetcodeData}
                 onGenerateTestCases={handleGenerateLeetCodeTestCases}
                 onVerifyTestCases={handleVerifyTestCases}
-                onAddChallenge={handleAddLeetCodeChallenge}
+                onAddChallenge={handleAddChallenge}
                 testCases={leetcodeTestCases}
                 isGenerating={isGeneratingLeetCodeTestCases}
                 isVerifying={isVerifying}
@@ -1055,7 +1021,11 @@ export default function ChallengeEditor() {
                         Cancel
                       </Button>
                       <Button
-                        onClick={handleAddChallenge}
+                        onClick={
+                          editingChallenge
+                            ? handleUpdateChallenge
+                            : handleAddChallenge
+                        }
                         className="bg-emerald-600 hover:bg-emerald-700"
                       >
                         {editingChallenge

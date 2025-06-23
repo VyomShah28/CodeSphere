@@ -39,3 +39,7 @@ class Challenges(models.Model):
     output_testcase=models.FileField(upload_to='output/',default=None,null=True)
     sample_testcase=models.TextField(default=None,null=True)
     sample_output=models.TextField(default=None,null=True)
+    isLeetCode=models.BooleanField(default=False)
+    cpp_code=models.TextField(default=None,null=True)
+    python_code=models.TextField(default=None,null=True)
+    java_code=models.TextField(default=None,null=True)
