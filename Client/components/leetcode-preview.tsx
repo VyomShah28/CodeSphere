@@ -21,29 +21,20 @@ interface LeetCodePreviewProps {
     }
   }
   onGenerateTestCases: () => void
-  onVerifyTestCases: () => void
   onAddChallenge: () => void
   testCases?: {
     input: string
     output: string
   }
   isGenerating: boolean
-  isVerifying: boolean
-  verificationResult?: {
-    success: boolean
-    message: string
-  }
 }
 
 export function LeetCodePreview({
   problemData,
   onGenerateTestCases,
-  onVerifyTestCases,
   onAddChallenge,
   testCases,
   isGenerating,
-  isVerifying,
-  verificationResult,
 }: LeetCodePreviewProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
@@ -294,7 +285,7 @@ export function LeetCodePreview({
                 </div>
               </div>
 
-              <div className="flex space-x-2">
+              {/* <div className="flex space-x-2">
                 <Button onClick={onVerifyTestCases} disabled={isVerifying} variant="outline">
                   {isVerifying ? (
                     <>
@@ -320,7 +311,7 @@ export function LeetCodePreview({
                     <span className="text-sm">{verificationResult.message}</span>
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
           )}
         </CardContent>
@@ -330,7 +321,7 @@ export function LeetCodePreview({
       <div className="flex justify-end">
         <Button
           onClick={onAddChallenge}
-          disabled={!testCases || !verificationResult?.success}
+          disabled={!testCases }
           className="bg-emerald-600 hover:bg-emerald-700"
         >
           <CheckCircle className="h-4 w-4 mr-2" />

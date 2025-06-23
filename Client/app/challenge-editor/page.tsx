@@ -88,7 +88,7 @@ export default function ChallengeEditor() {
   const [isGeneratingLeetCodeTestCases, setIsGeneratingLeetCodeTestCases] =
     useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<any>(null);
+  // const [verificationResult, setVerificationResult] = useState<any>(null);
   const [leetcodeTestCases, setLeetcodeTestCases] = useState<any>(null);
   const [generatedTestCases, setGeneratedTestCases] = useState<any>(null);
   const searchParams = useSearchParams();
@@ -148,8 +148,7 @@ export default function ChallengeEditor() {
 
     if (
       challengeMode === "leetcode" &&
-      leetcodeData &&
-      verificationResult?.success
+      leetcodeData 
     ) {
       // Add LeetCode challenge
       challengeData = {
@@ -223,7 +222,6 @@ export default function ChallengeEditor() {
     setLeetcodeData(null);
     setTestCaseFiles([]);
     setErrors({});
-    setVerificationResult(null);
     setLeetcodeTestCases(null);
     setGeneratedTestCases(null);
     setEditingChallenge(null);
@@ -301,16 +299,16 @@ export default function ChallengeEditor() {
     }, 3000);
   };
 
-  const handleVerifyTestCases = async () => {
-    setIsVerifying(true);
-    setTimeout(() => {
-      setVerificationResult({
-        success: true,
-        message: "All test cases verified successfully!",
-      });
-      setIsVerifying(false);
-    }, 2000);
-  };
+  // const handleVerifyTestCases = async () => {
+  //   setIsVerifying(true);
+  //   setTimeout(() => {
+  //     setVerificationResult({
+  //       success: true,
+  //       message: "All test cases verified successfully!",
+  //     });
+  //     setIsVerifying(false);
+  //   }, 2000);
+  // };
 
   const handleDeleteChallenge = async (id: string) => {
     try {
@@ -606,12 +604,10 @@ export default function ChallengeEditor() {
               <LeetCodePreview
                 problemData={leetcodeData}
                 onGenerateTestCases={handleGenerateLeetCodeTestCases}
-                onVerifyTestCases={handleVerifyTestCases}
                 onAddChallenge={handleAddChallenge}
                 testCases={leetcodeTestCases}
                 isGenerating={isGeneratingLeetCodeTestCases}
-                isVerifying={isVerifying}
-                verificationResult={verificationResult}
+                
               />
             ) : isAddingChallenge || editingChallenge ? (
               <div className="space-y-6">
