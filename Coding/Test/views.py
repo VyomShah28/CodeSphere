@@ -214,81 +214,14 @@ def contest_details(request):
     return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
 
 
-# challenge editor
-
-
-@api_view(["POST"])
-@parser_classes([MultiPartParser])
-def challenge_editor(request):
-    try:
-        contest_id = request.data.get("contest_id")
-        contest = get_object_or_404(Contest, id=contest_id)
-        idx = 0
-        while True:
-            prefix = f"challenges[{idx}]"
-            name = request.data.get(f"{prefix}[challenge_name]")
-            if not name:
-                break
-            id = request.data.get(f"{prefix}[id]")
-            try:
-                challenge = get_object_or_404(Challenges, id=id)
-                challenge.contest = contest
-                challenge.challenge_name = name
-                challenge.max_score = request.data.get(f"{prefix}[max_score]")
-                challenge.difficulty_level = request.data.get(
-                    f"{prefix}[difficulty_level]"
-                )
-                challenge.problem_statement = request.data.get(
-                    f"{prefix}[problem_statement]"
-                )
-                challenge.constraints = request.data.get(f"{prefix}[constraints]")
-                challenge.input_form = request.data.get(f"{prefix}[input_form]")
-                challenge.output_form = request.data.get(f"{prefix}[output_form]")
-                challenge.input_testcase = request.FILES.get(
-                    f"{prefix}[input_testcase]"
-                )
-                challenge.output_testcase = request.FILES.get(
-                    f"{prefix}[output_testcase]"
-                )
-                challenge.sample_testcase = request.data.get(
-                    f"{prefix}[sample_testcase]"
-                )
-                challenge.sample_output = request.data.get(f"{prefix}[sample_output]")
-                challenge.save()
-                idx += 1
-                continue
-            except Http404:
-                challenge = Challenges(
-                    contest=contest,
-                    challenge_name=name,
-                    max_score=request.data.get(f"{prefix}[max_score]"),
-                    difficulty_level=request.data.get(f"{prefix}[difficulty_level]"),
-                    problem_statement=request.data.get(f"{prefix}[problem_statement]"),
-                    constraints=request.data.get(f"{prefix}[constraints]"),
-                    input_form=request.data.get(f"{prefix}[input_form]"),
-                    output_form=request.data.get(f"{prefix}[output_form]"),
-                    input_testcase=request.FILES.get(f"{prefix}[input_testcase]"),
-                    output_testcase=request.FILES.get(f"{prefix}[output_testcase]"),
-                    sample_testcase=request.data.get(f"{prefix}[sample_testcase]"),
-                    sample_output=request.data.get(f"{prefix}[sample_output]"),
-                )
-                challenge.save()
-                idx += 1
-
-        return Response(
-            {"message": "Challenges received successfully"},
-            status=status.HTTP_201_CREATED,
-        )
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+# challanges
 
 @api_view(["GET"])
 def get_challenges(request):
     id = request.GET.get("contestId")
     contest = get_object_or_404(Contest, id=id)
     challenges = Challenges.objects.filter(contest=contest)
+    print(ChallengeSerializer(challenges, many=True).data)
     return Response(
         ChallengeSerializer(challenges, many=True).data, status=status.HTTP_200_OK
     )
@@ -298,6 +231,8 @@ def add_challenge(request):
     
         contest_id = request.data.get("contest_id")
         contest = get_object_or_404(Contest, id=contest_id)
+        
+        print(request.data)
 
         challenge = Challenges(
             contest=contest,
@@ -318,7 +253,9 @@ def add_challenge(request):
             java_code=request.data.get("java_code", ""),
         )
         challenge.save()
-
+        
+        print(challenge)
+         
         return Response(
             {"message": "Challenge added successfully"}, status=status.HTTP_201_CREATED
         )
@@ -582,92 +519,92 @@ def delete_contest(request):
 #     return JsonResponse({"success": False, "message": "Invalid request method."})
 
 
-def get_challenge(request):
-    challenge_id = request.GET.get("challenge_id")
-    challenge = Challenges.objects.get(id=challenge_id)
-    return JsonResponse(
-        {
-            "challenge_name": challenge.challenge_name,
-            "max_score": challenge.max_score,
-            "difficulty_level": challenge.difficulty_level,
-            "problem_statement": challenge.problem_statement,
-            "constraints": challenge.constraints,
-            "input_form": challenge.input_form,
-            "output_form": challenge.output_form,
-        }
-    )
+# def get_challenge(request):
+#     challenge_id = request.GET.get("challenge_id")
+#     challenge = Challenges.objects.get(id=challenge_id)
+#     return JsonResponse(
+#         {
+#             "challenge_name": challenge.challenge_name,
+#             "max_score": challenge.max_score,
+#             "difficulty_level": challenge.difficulty_level,
+#             "problem_statement": challenge.problem_statement,
+#             "constraints": challenge.constraints,
+#             "input_form": challenge.input_form,
+#             "output_form": challenge.output_form,
+#         }
+#     )
 
 
-def find_contest(request):
-    if request.method == "POST":
-        user = request.POST.get("user")
-        user1 = get_object_or_404(User, id=user)
-        contests = Contest.objects.filter(user=user1)
-        contests_data = []
-        for contest in contests:
-            contests_data.append(
-                {
-                    "contest_id": contest.id,
-                    "contest_name": contest.contest_name,
-                    "start_date": contest.start_date,
-                    "start_time": contest.start_time,
-                    "end_date": contest.end_date,
-                    "end_time": contest.end_time,
-                }
-            )
-        return JsonResponse(contests_data, safe=False)
+# def find_contest(request):
+#     if request.method == "POST":
+#         user = request.POST.get("user")
+#         user1 = get_object_or_404(User, id=user)
+#         contests = Contest.objects.filter(user=user1)
+#         contests_data = []
+#         for contest in contests:
+#             contests_data.append(
+#                 {
+#                     "contest_id": contest.id,
+#                     "contest_name": contest.contest_name,
+#                     "start_date": contest.start_date,
+#                     "start_time": contest.start_time,
+#                     "end_date": contest.end_date,
+#                     "end_time": contest.end_time,
+#                 }
+#             )
+#         return JsonResponse(contests_data, safe=False)
 
 
-def Response1(request):
-    if request.method == "POST":
-        contest = request.POST.get("contest")
-        scores = Score.objects.filter(contest=contest)
-        score_data = []
-        for score in scores:
-            score_data.append(
-                {
-                    "Name": score.user.full_name,
-                    "Email": score.user.email,
-                    "Score": score.score,
-                    "Time": time_format(score.time, "H:i:s"),
-                }
-            )
-        return render(request, "response.html", {"scores": json.dumps(score_data)})
+# def Response1(request):
+#     if request.method == "POST":
+#         contest = request.POST.get("contest")
+#         scores = Score.objects.filter(contest=contest)
+#         score_data = []
+#         for score in scores:
+#             score_data.append(
+#                 {
+#                     "Name": score.user.full_name,
+#                     "Email": score.user.email,
+#                     "Score": score.score,
+#                     "Time": time_format(score.time, "H:i:s"),
+#                 }
+#             )
+#         return render(request, "response.html", {"scores": json.dumps(score_data)})
 
 
-def Track(request):
-    if request.method == "POST":
-        user = request.POST.get("user")
-        try:
-            rank = get_object_or_404(Rank, user=user)
-        except Http404:
-            return render(
-                request,
-                "track.html",
-                {"user": user, "rank": json.dumps([]), "score": json.dumps([])},
-            )
-        score = Score.objects.filter(user=user)
-        rank_data = []
-        score_data = []
-        for r in rank.rank:
-            rank_data.append({"rank": rank.rank[r]})
-            contest = Contest.objects.get(id=r)
-            s = score.get(contest=contest)
-            score_data.append(
-                {
-                    "Contest": contest.contest_name,
-                    "Date": contest.start_date.strftime("%Y-%m-%d"),
-                    "Rank": rank.rank[r],
-                    "Score": s.score,
-                    "Time": time_format(s.time, "H:i:s"),
-                }
-            )
-        return render(
-            request,
-            "track.html",
-            {
-                "user": user,
-                "rank": json.dumps(rank_data),
-                "score": json.dumps(score_data),
-            },
-        )
+# def Track(request):
+#     if request.method == "POST":
+#         user = request.POST.get("user")
+#         try:
+#             rank = get_object_or_404(Rank, user=user)
+#         except Http404:
+#             return render(
+#                 request,
+#                 "track.html",
+#                 {"user": user, "rank": json.dumps([]), "score": json.dumps([])},
+#             )
+#         score = Score.objects.filter(user=user)
+#         rank_data = []
+#         score_data = []
+#         for r in rank.rank:
+#             rank_data.append({"rank": rank.rank[r]})
+#             contest = Contest.objects.get(id=r)
+#             s = score.get(contest=contest)
+#             score_data.append(
+#                 {
+#                     "Contest": contest.contest_name,
+#                     "Date": contest.start_date.strftime("%Y-%m-%d"),
+#                     "Rank": rank.rank[r],
+#                     "Score": s.score,
+#                     "Time": time_format(s.time, "H:i:s"),
+#                 }
+#             )
+#         return render(
+#             request,
+#             "track.html",
+#             {
+#                 "user": user,
+#                 "rank": json.dumps(rank_data),
+#                 "score": json.dumps(score_data),
+#             },
+#         )
