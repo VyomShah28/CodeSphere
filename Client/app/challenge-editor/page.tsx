@@ -311,6 +311,8 @@ export default function ChallengeEditor() {
   // };
 
   const handleDeleteChallenge = async (id: string) => {
+    const confirmed = window.confirm("Are you sure you want to delete this challenge?");
+    if (!confirmed) return;
     try {
       console.log("Deleting challenge with ID:", id);
       const response = await axios.post(
