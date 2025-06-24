@@ -97,9 +97,6 @@ def google_callback(request):
         )
 
 
-# contest
-
-
 @api_view(["PUT", "POST"])
 def create_contest(request):
     if request.method != "POST":
@@ -214,25 +211,29 @@ def contest_details(request):
     return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
 
 
-# challanges
+# challenge
+
 
 @api_view(["GET"])
 def get_challenges(request):
     id = request.GET.get("contestId")
     contest = get_object_or_404(Contest, id=id)
     challenges = Challenges.objects.filter(contest=contest)
-    print(ChallengeSerializer(challenges, many=True).data)
     return Response(
         ChallengeSerializer(challenges, many=True).data, status=status.HTTP_200_OK
     )
     
 @api_view(["POST"])
+@parser_classes([MultiPartParser])
 def add_challenge(request):
     
         contest_id = request.data.get("contest_id")
         contest = get_object_or_404(Contest, id=contest_id)
-        
-        print(request.data)
+        isLeetCode=request.data.get("isLeetCode")
+        if isLeetCode == "true":
+            isLeetCode = True
+        else : 
+            isLeetCode = False
 
         challenge = Challenges(
             contest=contest,
@@ -247,7 +248,7 @@ def add_challenge(request):
             output_testcase=request.FILES.get("output_testcase"),
             sample_testcase=request.data.get("sample_testcase"),
             sample_output=request.data.get("sample_output"),
-            isLeetCode=request.data.get("isLeetCode", False),
+            isLeetCode=isLeetCode,
             cpp_code=request.data.get("cpp_code", ""),
             python_code=request.data.get("python_code", ""),
             java_code=request.data.get("java_code", ""),

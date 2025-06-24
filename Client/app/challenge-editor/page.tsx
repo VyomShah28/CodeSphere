@@ -175,7 +175,6 @@ export default function ChallengeEditor() {
         python_code: leetcodeData.solutions.python,
       };
     } else {
-      // Add manual challenge
       if (!validateChallenge()) {
         return;
       }
@@ -185,12 +184,29 @@ export default function ChallengeEditor() {
       };
     }
     try {
+      const formData = new FormData();
+      formData.append("contest_id", searchParams.get("contestId") || "");
+      formData.append("challenge_name", challengeData.challenge_name);
+      formData.append("difficulty_level", challengeData.difficulty_level);
+      formData.append("max_score", challengeData.max_score.toString());
+      formData.append("problem_statement", challengeData.problem_statement);
+      formData.append("constraints", challengeData.constraints);
+      formData.append("input_form", challengeData.input_form);
+      formData.append("output_form", challengeData.output_form);
+      formData.append("sample_testcase", challengeData.sample_testcase);
+      formData.append("sample_output", challengeData.sample_output);
+      formData.append("input_testcase", challengeData.input_testcase);
+      formData.append("output_testcase", challengeData.output_testcase);
+      if (challengeData.isLeetCode) {
+        formData.append("isLeetCode", true as unknown as string);
+        formData.append("cpp_code", challengeData.cpp_code || "");
+        formData.append("java_code", challengeData.java_code || "");
+        formData.append("python_code", challengeData.python_code || "");
+      } else {
+        formData.append("isLeetCode",false as unknown as string);
+      }
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/add-challenge/",
-        {
-          ...challengeData,
-          contest_id: searchParams.get("contestId"),
-        }
+        "http://127.0.0.1:8000/api/add-challenge/",formData
       );
       console.log(response);
 
