@@ -1,5 +1,8 @@
 from django.urls import path
 from Test import views
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns=[
     path('api/google-login/',views.Login,name="Login"),
     path('auth/google/callback/', views.google_callback, name='google_callback'),
@@ -29,4 +32,4 @@ urlpatterns=[
     # path('enter_contest',views.Enter,name='Enter'),
     # path('response',views.Response,name='Response'),
     # path('track/',views.Track,name='Track')
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

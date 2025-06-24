@@ -43,6 +43,7 @@ import { LeetCodePreview } from "@/components/leetcode-preview";
 import { TestCasePreview } from "@/components/test-case-preview";
 import { LeetCodeViewModal } from "@/components/leetcode-view-modal";
 import { TestCaseGenerator } from "@/components/test-case-generator";
+import { SafePreview } from "@/components/safePreview";
 
 interface Challenge {
   id: string;
@@ -146,10 +147,7 @@ export default function ChallengeEditor() {
   const handleAddChallenge = async () => {
     let challengeData: Challenge;
 
-    if (
-      challengeMode === "leetcode" &&
-      leetcodeData 
-    ) {
+    if (challengeMode === "leetcode" && leetcodeData) {
       // Add LeetCode challenge
       challengeData = {
         id: Date.now().toString(),
@@ -203,10 +201,11 @@ export default function ChallengeEditor() {
         formData.append("java_code", challengeData.java_code || "");
         formData.append("python_code", challengeData.python_code || "");
       } else {
-        formData.append("isLeetCode",false as unknown as string);
+        formData.append("isLeetCode", false as unknown as string);
       }
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/add-challenge/",formData
+        "http://127.0.0.1:8000/api/add-challenge/",
+        formData
       );
       console.log(response);
 
@@ -251,11 +250,10 @@ export default function ChallengeEditor() {
     try {
       const response = axios.put(
         `http://127.0.0.1:8000/api/update-challenge/`,
-        {challenge_id: editingChallenge, ...currentChallenge},
-       
+        { challenge_id: editingChallenge, ...currentChallenge }
       );
       console.log(response);
-      
+
       const updatedChallenges = challenges.map((challenge) =>
         challenge.id === editingChallenge
           ? { ...challenge, ...currentChallenge }
@@ -286,6 +284,8 @@ export default function ChallengeEditor() {
         input_testcase: challengeToEdit.input_testcase,
         output_testcase: challengeToEdit.output_testcase,
       });
+      console.log(currentChallenge);
+
       setEditingChallenge(id);
       setIsAddingChallenge(true);
       setChallengeMode("manual"); // Set mode for editing
@@ -327,7 +327,9 @@ export default function ChallengeEditor() {
   // };
 
   const handleDeleteChallenge = async (id: string) => {
-    const confirmed = window.confirm("Are you sure you want to delete this challenge?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this challenge?"
+    );
     if (!confirmed) return;
     try {
       console.log("Deleting challenge with ID:", id);
@@ -471,7 +473,6 @@ export default function ChallengeEditor() {
         if (response.status === 200) {
           setChallenges(response.data);
           console.log("Fetched challenges:", response.data);
-          
         }
       } catch (error) {
         console.error("Error fetching challenges:", error);
@@ -625,7 +626,6 @@ export default function ChallengeEditor() {
                 onAddChallenge={handleAddChallenge}
                 testCases={leetcodeTestCases}
                 isGenerating={isGeneratingLeetCodeTestCases}
-                
               />
             ) : isAddingChallenge || editingChallenge ? (
               <div className="space-y-6">
@@ -972,19 +972,25 @@ export default function ChallengeEditor() {
                                 Choose File
                               </Button>
                             </div>
-                            {currentChallenge.input_testcase && (
-                              <p className="text-xs text-green-600 mt-2 text-center">
-                                ✓ {currentChallenge.input_testcase.name}
-                              </p>
-                            )}
+                            {currentChallenge.input_testcase &&
+                              (typeof currentChallenge.input_testcase ===
+                              "string" ? (
+                                <p className="text-xs text-green-600 mt-2 text-center">
+                                  ✓{" "}
+                                  {(currentChallenge.input_testcase as string)
+                                    .split("/")
+                                    .pop()}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-green-600 mt-2 text-center">
+                                  ✓ {currentChallenge.input_testcase.name}
+                                </p>
+                              ))}
                           </div>
-                          {testCaseFiles.find((f) => f.type === "input") && (
-                            <TestCasePreview
-                              {...testCaseFiles.find(
-                                (f) => f.type === "input"
-                              )!}
-                            />
-                          )}
+                          <SafePreview
+                            type="input"
+                            file={currentChallenge.input_testcase}
+                          />
                         </div>
                         <div className="space-y-3">
                           <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-emerald-300 transition-colors">
@@ -1006,19 +1012,25 @@ export default function ChallengeEditor() {
                             >
                               Choose File
                             </Button>
-                            {currentChallenge.output_testcase && (
-                              <p className="text-xs text-green-600 mt-2">
-                                ✓ {currentChallenge.output_testcase.name}
-                              </p>
-                            )}
+                            {currentChallenge.output_testcase &&
+                              (typeof currentChallenge.output_testcase ===
+                              "string" ? (
+                                <p className="text-xs text-green-600 mt-2 text-center">
+                                  ✓{" "}
+                                  {(currentChallenge.output_testcase as string)
+                                    .split("/")
+                                    .pop()}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-green-600 mt-2 text-center">
+                                  ✓ {currentChallenge.output_testcase.name}
+                                </p>
+                              ))}
                           </div>
-                          {testCaseFiles.find((f) => f.type === "output") && (
-                            <TestCasePreview
-                              {...testCaseFiles.find(
-                                (f) => f.type === "output"
-                              )!}
-                            />
-                          )}
+                            <SafePreview
+                            type="output"
+                            file={currentChallenge.output_testcase}
+                          />
                         </div>
                       </div>
                       {errors.files && (
