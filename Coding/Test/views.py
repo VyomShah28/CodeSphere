@@ -258,8 +258,12 @@ def add_challenge(request):
         print(challenge)
          
         return Response(
-            {"message": "Challenge added successfully"}, status=status.HTTP_201_CREATED
-        )
+        {
+            "message": "Challenge added successfully",
+            "challenge_id": challenge.id
+        },
+        status=status.HTTP_201_CREATED
+)
 
 
 

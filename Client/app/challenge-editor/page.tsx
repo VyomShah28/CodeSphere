@@ -209,7 +209,8 @@ export default function ChallengeEditor() {
       );
       console.log(response);
 
-      console.log("Adding new challenge:", challengeData);
+      console.log("Adding new challenge:", response.data.challenge_id);
+      challengeData.id = response.data.challenge_id; 
       setChallenges([...challenges, challengeData]);
       resetForm();
     } catch (error) {
