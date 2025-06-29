@@ -264,6 +264,7 @@ def add_challenge(request):
 
 
 @api_view(["PUT"])
+@parser_classes([MultiPartParser])
 def update_challenge(request):
     if request.method == "PUT":
         challenge_id = request.data.get("challenge_id")

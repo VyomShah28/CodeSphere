@@ -248,9 +248,25 @@ export default function ChallengeEditor() {
     }
 
     try {
+      const formData = new FormData();
+      formData.append("challenge_name", currentChallenge.challenge_name);
+      formData.append("difficulty_level", currentChallenge.difficulty_level);
+      formData.append("max_score", currentChallenge.max_score.toString());
+      formData.append("problem_statement", currentChallenge.problem_statement);
+      formData.append("constraints", currentChallenge.constraints);
+      formData.append("input_form", currentChallenge.input_form);
+      formData.append("output_form", currentChallenge.output_form);
+      formData.append("sample_testcase", currentChallenge.sample_testcase);
+      formData.append("sample_output", currentChallenge.sample_output);
+      formData.append("input_testcase", currentChallenge.input_testcase);
+      formData.append("output_testcase", currentChallenge.output_testcase);
+      formData.append("challenge_id",editingChallenge);
+
+      console.log(currentChallenge);
+      
       const response = axios.put(
         `http://127.0.0.1:8000/api/update-challenge/`,
-        { challenge_id: editingChallenge, ...currentChallenge }
+        formData
       );
       console.log(response);
 
@@ -1027,7 +1043,7 @@ export default function ChallengeEditor() {
                                 </p>
                               ))}
                           </div>
-                            <SafePreview
+                          <SafePreview
                             type="output"
                             file={currentChallenge.output_testcase}
                           />
