@@ -3,12 +3,34 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, Medal, Award, Users, Clock, Calendar, Home } from "lucide-react"
+import { Trophy, Medal, Award, Users, Clock, Calendar, Home, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
+import { useState, useEffect } from "react"
 
 export default function FinalLeaderboard() {
   const router = useRouter()
+
+  const [wasViolation, setWasViolation] = useState(false)
+  const [violationReason, setViolationReason] = useState("")
+
+  useEffect(() => {
+    // Check if user was redirected due to violations
+    const violation = sessionStorage.getItem("contestViolation")
+    const reason = sessionStorage.getItem("violationReason")
+
+    if (violation === "true") {
+      setWasViolation(true)
+      setViolationReason(reason || "Contest rule violations")
+    }
+
+    // Clear ALL contest-related session storage when reaching final leaderboard
+    sessionStorage.removeItem("contestViolation")
+    sessionStorage.removeItem("violationReason")
+    sessionStorage.removeItem("violationCount")
+    sessionStorage.removeItem("contestViolationCount")
+    sessionStorage.removeItem("contestInitialNoticeShown")
+  }, [])
 
   const contestInfo = {
     name: "Advanced Algorithms Championship",
@@ -163,6 +185,29 @@ export default function FinalLeaderboard() {
           </div>
         </div>
       </header>
+
+      {/* Violation Notice (if applicable) */}
+      {wasViolation && (
+        <Card className="mb-8 bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl text-red-800 flex items-center justify-center">
+              <XCircle className="h-8 w-8 mr-3" />
+              Contest Auto-Submitted Due to Violations
+            </CardTitle>
+            <CardDescription className="text-red-700">
+              Your contest was automatically submitted due to: {violationReason}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <div className="bg-red-100 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800 font-medium">
+                ⛔ Your contest participation was ended early due to multiple rule violations. Your progress up to that
+                point has been saved and submitted.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="container mx-auto px-4 py-8">
         {/* Contest Summary */}

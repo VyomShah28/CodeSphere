@@ -1,22 +1,38 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Code2, Trophy, Users, TrendingUp } from "lucide-react"
+import { Code2, Trophy, Users, TrendingUp, Github } from "lucide-react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
 
 export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isPageReady, setIsPageReady] = useState(false)
   const router = useRouter()
 
+  // Ensure page is fully loaded before enabling interactions
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageReady(true)
+    }, 100) // Small delay to ensure everything is mounted
+
+    return () => clearTimeout(timer)
+  }, [])
+
   const handleAuth = async () => {
+    if (!isPageReady) return
+
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+
+    try {
+      // Simulate authentication process
+      await new Promise((resolve) => setTimeout(resolve, 1500))
       router.push("/dashboard")
-    }, 1500)
+    } catch (error) {
+      console.error("Authentication failed:", error)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -77,14 +93,13 @@ export default function LandingPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <Button
-                      className="w-full bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => window.location.href = "http://127.0.0.1:8000/api/google-login"}
-                      disabled={isLoading}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleAuth}
+                      disabled={isLoading || !isPageReady}
                       size="lg"
                     >
-                      <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" className="h-7 w-7 mr-2 rounded-full bg-white p-1" />
-
-                      {isLoading ? "Signing in..." : "Continue with Google"}
+                      <Github className="mr-2 h-5 w-5" />
+                      {isLoading ? "Signing in..." : !isPageReady ? "Loading..." : "Continue with Google"}
                     </Button>
 
                     <p className="text-xs text-center text-slate-500">

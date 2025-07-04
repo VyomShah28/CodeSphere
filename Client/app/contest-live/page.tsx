@@ -15,18 +15,22 @@ import {
   Terminal,
   Sun,
   Moon,
-  List,
   Settings,
-  Maximize2,
-  Minimize2,
+  Grid3X3,
 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CodeEditor } from "@/components/code-editor"
+import { useContestFullscreen } from "@/hooks/use-contest-fullscreen"
+import { ContestExitModal } from "@/components/contest-exit-modal"
+import { useTabViolations } from "@/hooks/use-tab-violations"
+import { InitialContestNotice } from "@/components/initial-contest-notice"
+import { TabViolationWarning } from "@/components/tab-violation-warning"
+import { AutoSubmitNotification } from "@/components/auto-submit-notification"
 
 export default function ContestLive() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const problemId = searchParams.get("problem")
+  const challengeId = searchParams.get("challenge") || "1"
 
   const [selectedLanguage, setSelectedLanguage] = useState("python")
   const [code, setCode] = useState(`# Write your solution here
@@ -40,13 +44,42 @@ if __name__ == "__main__":
   const [testResults, setTestResults] = useState<any[]>([])
   const [isRunning, setIsRunning] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showExitModal, setShowExitModal] = useState(false)
+
+  const { isFullscreen, shouldEnforceFullscreen } = useContestFullscreen()
+
+  const {
+    violationCount,
+    showWarning,
+    showInitialNotice,
+    isTabActive,
+    dismissWarning,
+    dismissInitialNotice,
+    resumeViolationDetection,
+  } = useTabViolations()
+
+  // Resume violation detection when component mounts
+  useEffect(() => {
+    resumeViolationDetection()
+  }, [resumeViolationDetection])
+
+  // Contest challenges
+  const challenges = [
+    { id: 1, name: "Binary Tree Maximum Path Sum", difficulty: "Hard", points: 300 },
+    { id: 2, name: "Sliding Window Maximum", difficulty: "Hard", points: 250 },
+    { id: 3, name: "Longest Increasing Subsequence", difficulty: "Medium", points: 200 },
+    { id: 4, name: "Graph Shortest Path", difficulty: "Medium", points: 200 },
+    { id: 5, name: "Dynamic Programming Optimization", difficulty: "Hard", points: 350 },
+    { id: 6, name: "String Pattern Matching", difficulty: "Medium", points: 150 },
+  ]
+
+  const currentChallenge = challenges.find((c) => c.id === Number.parseInt(challengeId)) || challenges[0]
 
   const currentProblem = {
-    id: 1,
-    title: "A. Binary Tree Maximum Path Sum",
-    difficulty: "Hard",
-    points: 300,
+    id: currentChallenge.id,
+    title: currentChallenge.name,
+    difficulty: currentChallenge.difficulty,
+    points: currentChallenge.points,
     description: `Given a non-empty binary tree, find the maximum path sum. For this problem, a path is defined as any sequence of nodes from some starting node to any node in the tree along the parent-child connections. The path must contain at least one node and does not need to go through the root.`,
     constraints: `• The number of nodes in the tree is in the range [1, 3 * 10^4]
 • -1000 ≤ Node.val ≤ 1000`,
@@ -94,44 +127,6 @@ function solution() {
 
 // Test your solution
 console.log(solution());`,
-    typescript: `// Write your solution here
-function solution(): number {
-    // Your code goes here
-    return 0;
-}
-
-// Test your solution
-console.log(solution());`,
-    c: `#include <stdio.h>
-#include <stdlib.h>
-
-int main() {
-    // Your code goes here
-    
-    return 0;
-}`,
-    go: `package main
-
-import "fmt"
-
-func main() {
-    // Your code goes here
-    
-}
-
-func solution() int {
-    // Implement your solution here
-    return 0
-}`,
-    rust: `fn main() {
-    // Your code goes here
-    
-}
-
-fn solution() -> i32 {
-    // Implement your solution here
-    0
-}`,
   }
 
   const languages = [
@@ -139,16 +134,14 @@ fn solution() -> i32 {
     { id: "java", name: "Java", color: "bg-orange-500" },
     { id: "cpp", name: "C++", color: "bg-purple-500" },
     { id: "javascript", name: "JavaScript", color: "bg-yellow-500" },
-    { id: "typescript", name: "TypeScript", color: "bg-blue-600" },
-    { id: "c", name: "C", color: "bg-gray-500" },
-    { id: "go", name: "Go", color: "bg-cyan-500" },
-    { id: "rust", name: "Rust", color: "bg-orange-600" },
   ]
 
+  // Contest duration countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
+          router.push("/final-leaderboard")
           return prev
         }
 
@@ -164,7 +157,129 @@ fn solution() -> i32 {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [router])
+
+  // Auto-enable fullscreen and security measures
+  useEffect(() => {
+    if (!shouldEnforceFullscreen) return
+
+    // Auto-enable fullscreen on page load - no modal, just do it
+    const enableFullscreenOnLoad = async () => {
+      if (document.fullscreenElement === null) {
+        try {
+          await document.documentElement.requestFullscreen()
+        } catch (error) {
+          console.warn("Failed to enter fullscreen:", error)
+          // Don't show modal, just continue
+        }
+      }
+    }
+
+    // Disable right-click
+    window.oncontextmenu = (e) => {
+      e.preventDefault()
+      return false
+    }
+
+    // Enhanced keyboard blocking
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const blockedKeys = [
+        { key: "F12" },
+        { key: "I", ctrlKey: true, shiftKey: true },
+        { key: "J", ctrlKey: true, shiftKey: true },
+        { key: "C", ctrlKey: true, shiftKey: true },
+        { key: "U", ctrlKey: true },
+        { key: "T", ctrlKey: true },
+        { key: "N", ctrlKey: true },
+        { key: "W", ctrlKey: true },
+        { key: "R", ctrlKey: true },
+        { key: "F5" },
+        { key: "Tab", altKey: true },
+      ]
+
+      const isBlocked = blockedKeys.some(
+        (blocked) =>
+          e.key === blocked.key &&
+          !!e.ctrlKey === !!blocked.ctrlKey &&
+          !!e.shiftKey === !!blocked.shiftKey &&
+          !!e.altKey === !!blocked.altKey,
+      )
+
+      if (isBlocked) {
+        e.preventDefault()
+        e.stopPropagation()
+        return false
+      }
+    }
+
+    // Initialize security measures
+    enableFullscreenOnLoad()
+
+    // Add event listeners
+    document.addEventListener("keydown", handleKeyDown, true)
+
+    // Cleanup
+    return () => {
+      window.oncontextmenu = null
+      document.removeEventListener("keydown", handleKeyDown, true)
+    }
+  }, [shouldEnforceFullscreen])
+
+  // Disable text selection and copying
+  useEffect(() => {
+    if (!shouldEnforceFullscreen) return
+
+    // Disable text selection and copying
+    const disableSelection = (e: Event) => {
+      e.preventDefault()
+      return false
+    }
+
+    const disableCopy = (e: ClipboardEvent) => {
+      e.preventDefault()
+      e.clipboardData?.setData("text/plain", "")
+      return false
+    }
+
+    const disableDrag = (e: DragEvent) => {
+      e.preventDefault()
+      return false
+    }
+
+    // Add CSS to disable text selection
+    const style = document.createElement("style")
+    style.textContent = `
+    .contest-problem-area {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
+    .contest-problem-area::selection {
+      background: transparent !important;
+    }
+    .contest-problem-area::-moz-selection {
+      background: transparent !important;
+    }
+  `
+    document.head.appendChild(style)
+
+    // Add event listeners
+    document.addEventListener("selectstart", disableSelection)
+    document.addEventListener("copy", disableCopy)
+    document.addEventListener("cut", disableCopy)
+    document.addEventListener("dragstart", disableDrag)
+
+    return () => {
+      document.removeEventListener("selectstart", disableSelection)
+      document.removeEventListener("copy", disableCopy)
+      document.removeEventListener("cut", disableCopy)
+      document.removeEventListener("dragstart", disableDrag)
+      document.head.removeChild(style)
+    }
+  }, [shouldEnforceFullscreen])
 
   const handleLanguageChange = (language: string) => {
     setSelectedLanguage(language)
@@ -190,14 +305,15 @@ fn solution() -> i32 {
           memory: "2.3MB",
         },
         { id: 3, input: "[1]", expected: "1", actual: "1", status: "passed", time: "5ms", memory: "1.8MB" },
-        { id: 4, input: "[-3]", expected: "-3", actual: "-3", status: "passed", time: "3ms", memory: "1.9MB" },
+        { id: 4, input: "[-3]", expected: "-3", actual: "[-3]", status: "passed", time: "3ms", memory: "1.9MB" },
       ])
       setIsRunning(false)
     }, 2000)
   }
 
   const handleSubmit = () => {
-    router.push("/final-leaderboard")
+    // Mark challenge as solved and return to contest waiting
+    router.push("/contest-waiting")
   }
 
   const getDifficultyColor = (difficulty: string) => {
@@ -217,47 +333,28 @@ fn solution() -> i32 {
     setIsDarkMode(!isDarkMode)
   }
 
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen)
-  }
-
   return (
     <div className={`min-h-screen ${isDarkMode ? "dark bg-slate-900" : "bg-slate-50"}`}>
       {/* Header */}
-      <header
-        className={`border-b ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"} ${isFullscreen ? "block" : ""}`}
-      >
+      <header className={`border-b ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}>
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {!isFullscreen && (
-              <>
-                <Button variant="ghost" size="icon" onClick={() => router.push("/contest-waiting")}>
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => router.push("/contest-waiting")}>
-                  <List className="h-5 w-5" />
-                </Button>
-              </>
-            )}
+            <Button variant="ghost" size="icon" onClick={() => setShowExitModal(true)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => router.push("/contest-waiting")}>
+              <Grid3X3 className="h-5 w-5" />
+            </Button>
             <div>
               <h1 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-slate-800"}`}>
-                {isFullscreen ? "Code Editor - " : ""}
                 {currentProblem.title}
               </h1>
+              <p className={`text-sm ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+                Challenge {currentProblem.id} of 6
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            {isFullscreen && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFullscreen}
-                className={`${isDarkMode ? "hover:bg-slate-700 text-slate-300 hover:text-white" : "hover:bg-slate-100"}`}
-                title="Exit Fullscreen"
-              >
-                <Minimize2 className="h-4 w-4" />
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon"
@@ -268,6 +365,7 @@ fn solution() -> i32 {
             </Button>
             <div className={`flex items-center space-x-2 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
               <Clock className="h-4 w-4" />
+              <span className="text-xs mr-1">Time Remaining:</span>
               <span className="font-mono">
                 {timeLeft.hours.toString().padStart(2, "0")}:{timeLeft.minutes.toString().padStart(2, "0")}:
                 {timeLeft.seconds.toString().padStart(2, "0")}
@@ -279,14 +377,29 @@ fn solution() -> i32 {
             >
               Live Contest
             </Badge>
+            {violationCount > 0 && (
+              <Badge variant="destructive" className="animate-pulse">
+                Violations: {violationCount}/3
+              </Badge>
+            )}
+            {!isTabActive && (
+              <Badge variant="destructive" className="animate-pulse">
+                Tab Inactive
+              </Badge>
+            )}
+            {!isFullscreen && shouldEnforceFullscreen && (
+              <Badge variant="outline" className="text-orange-600 border-orange-300">
+                Entering Fullscreen...
+              </Badge>
+            )}
           </div>
         </div>
       </header>
 
-      <div className={`flex ${isFullscreen ? "h-screen" : "h-[calc(100vh-73px)]"}`}>
+      <div className="flex h-[calc(100vh-73px)]">
         {/* Problem Statement */}
         <div
-          className={`${isFullscreen ? "w-0 overflow-hidden" : "w-1/2"} border-r overflow-auto transition-all duration-300 ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}
+          className={`w-1/2 border-r overflow-auto contest-problem-area ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}
         >
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -295,7 +408,7 @@ fn solution() -> i32 {
               </h2>
               <div className="flex items-center space-x-2">
                 <Badge className={getDifficultyColor(currentProblem.difficulty)}>{currentProblem.difficulty}</Badge>
-                <Badge variant="outline">{currentProblem.points}</Badge>
+                <Badge variant="outline">{currentProblem.points} pts</Badge>
               </div>
             </div>
 
@@ -363,7 +476,7 @@ fn solution() -> i32 {
         </div>
 
         {/* Monaco Editor Section */}
-        <div className={`${isFullscreen ? "w-full" : "w-1/2"} flex flex-col transition-all duration-300`}>
+        <div className="w-1/2 flex flex-col">
           {/* Editor Header */}
           <div
             className={`border-b p-4 flex items-center justify-between ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}
@@ -373,8 +486,8 @@ fn solution() -> i32 {
                 <SelectTrigger
                   className={`w-48 ${
                     isDarkMode
-                      ? "bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600 focus:ring-slate-400 focus:border-slate-500"
-                      : "bg-white border-slate-300 hover:bg-slate-50 focus:ring-slate-400 focus:border-slate-400"
+                      ? "bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600"
+                      : "bg-white border-slate-300 hover:bg-slate-50"
                   }`}
                 >
                   <SelectValue />
@@ -390,8 +503,8 @@ fn solution() -> i32 {
                       value={lang.id}
                       className={`${
                         isDarkMode
-                          ? "text-slate-200 hover:bg-slate-700 focus:bg-slate-700 data-[highlighted]:bg-slate-700"
-                          : "text-slate-800 hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100"
+                          ? "text-slate-200 hover:bg-slate-700 focus:bg-slate-700"
+                          : "text-slate-800 hover:bg-slate-100 focus:bg-slate-100"
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -412,38 +525,20 @@ fn solution() -> i32 {
             </div>
 
             <div className="flex space-x-2">
-              {!isFullscreen && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleFullscreen}
-                  className={`${isDarkMode ? "hover:bg-slate-700 text-slate-300 hover:text-white" : "hover:bg-slate-100"}`}
-                  title="Fullscreen Editor"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </Button>
-              )}
               <Button
                 variant="outline"
                 onClick={handleRunCode}
                 disabled={isRunning}
                 className={`${
                   isDarkMode
-                    ? "bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600 hover:text-white hover:border-slate-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-700"
-                    : "bg-white border-slate-300 hover:bg-slate-50 hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400"
+                    ? "bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600 hover:text-white"
+                    : "bg-white border-slate-300 hover:bg-slate-50"
                 }`}
               >
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Code"}
               </Button>
-              <Button
-                onClick={handleSubmit}
-                className={`${
-                  isDarkMode
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 hover:border-emerald-700"
-                    : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                } shadow-sm`}
-              >
+              <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
                 <Send className="h-4 w-4 mr-2" />
                 Submit Solution
               </Button>
@@ -463,9 +558,7 @@ fn solution() -> i32 {
           </div>
 
           {/* Console */}
-          <div
-            className={`${isFullscreen ? "h-64" : "h-48"} border-t ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}
-          >
+          <div className={`h-48 border-t ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}>
             <div className={`p-3 border-b ${isDarkMode ? "bg-slate-700 border-slate-600" : "bg-slate-50"}`}>
               <h3 className={`font-semibold flex items-center ${isDarkMode ? "text-white" : ""}`}>
                 <Terminal className="h-4 w-4 mr-2" />
@@ -477,7 +570,7 @@ fn solution() -> i32 {
                 )}
               </h3>
             </div>
-            <div className={`p-3 overflow-auto ${isFullscreen ? "h-52" : "h-40"}`}>
+            <div className="p-3 overflow-auto h-40">
               {testResults.length > 0 ? (
                 <div className="space-y-3">
                   {testResults.map((result) => (
@@ -540,6 +633,26 @@ fn solution() -> i32 {
           </div>
         </div>
       </div>
+
+      <ContestExitModal
+        isOpen={showExitModal}
+        onStay={() => setShowExitModal(false)}
+        onExit={() => router.push("/contest-waiting")}
+        contestName="Advanced Algorithms Championship"
+      />
+
+      {/* Initial Contest Notice */}
+      <InitialContestNotice
+        isOpen={showInitialNotice}
+        onAccept={dismissInitialNotice}
+        contestName="Advanced Algorithms Championship"
+      />
+
+      {/* Tab Violation Warning */}
+      <TabViolationWarning isVisible={showWarning} violationCount={violationCount} onDismiss={dismissWarning} />
+
+      {/* Auto-Submit Notification */}
+      <AutoSubmitNotification isVisible={violationCount >= 3} onComplete={() => router.push("/final-leaderboard")} />
     </div>
   )
 }
