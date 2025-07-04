@@ -15,6 +15,7 @@ urlpatterns=[
     path('api/add-challenge/',views.add_challenge,name="add_Challenge"),
     path('api/update-challenge/',views.update_challenge,name="Edit_Challenge"),
     path('api/delete-challenge/',views.delete_challenge,name="Delete_Challenge"),
+    path('api/get-contest-by-id/',views.get_contest_byId,name="Get_Contest_By_Id"),
   
      
      

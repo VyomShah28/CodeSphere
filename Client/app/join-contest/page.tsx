@@ -8,36 +8,80 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Link, Users, Calendar, Clock, Trophy } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
+import axios from "axios"
+import { getTime } from "date-fns"
+
+interface Contest{
+  id: string
+  contest_name: string
+  description: string
+  start_date: string
+  start_time: string
+  end_date: string
+  end_time: string
+  duration?: string
+  participants?: number
+  challenges?: number
+  organizer?: string
+  status?: "upcoming" | "ongoing"| "completed"
+}
 
 export default function JoinContest() {
   const router = useRouter()
   const [contestLink, setContestLink] = useState("")
   const [isValidating, setIsValidating] = useState(false)
-  const [contestInfo, setContestInfo] = useState<any>(null)
+  const [showContestBox, setShowContestBox] = useState(false)
+  const [contestInfo, setContestInfo] = useState<Contest>({
+    id: "",
+    contest_name: "",
+    description: "",
+    start_date: "",
+    start_time: "",
+    end_date: "",
+    end_time: "",
+    duration: "",
+    participants: 0,
+    challenges: 0,
+    organizer: "",
+    status: "upcoming",})
 
   const handleValidateLink = async () => {
-    if (!contestLink.trim()) return
+    setIsValidating(true);
+  if (!contestLink.trim()) return;
 
-    setIsValidating(true)
+  const tempStr = contestLink.split("/").pop() || "";
+  const contestId = tempStr.split("=").pop();
 
-    // Simulate link validation
-    setTimeout(() => {
-      setContestInfo({
-        name: "Advanced Algorithms Championship",
-        description: "Test your skills with complex algorithmic problems",
-        startTime: "2024-01-25T14:00:00",
-        duration: "3 hours",
-        participants: 342,
-        challenges: 6,
-        organizer: "CodeMaster Pro",
-        status: "upcoming",
-      })
-      setIsValidating(false)
-    }, 1500)
+  try {
+    const response = await axios.get(`http://localhost:8000/api/get-contest-by-id?contestId=${contestId}`);
+    const data = response.data;
+    console.log("Contest data:", data);
+    
+
+    const d1: Date = new Date(`${data.start_date}T${data.start_time}`);
+    const d2: Date = new Date(`${data.end_date}T${data.end_time}`);
+
+    const hour: number = (d2.getTime() - d1.getTime()) / (1000 * 60 * 60);
+
+    setContestInfo({
+      ...data,
+      duration: `${hour.toFixed(2)} hours`
+    });
+
+    console.log("Duration in hours:", hour);
+    setIsValidating(false);
+    console.log(contestInfo);
+    
+    setShowContestBox(true);
+  } catch (error) {
+    console.error("Error validating link:", error);
+    setIsValidating(false);
   }
+};
+
 
   const handleJoinContest = () => {
-    router.push("/contest-waiting")
+    router.push("/contest-waiting/?contestId=" + contestInfo.id);
   }
 
   const formatDate = (dateString: string) => {
@@ -97,11 +141,11 @@ export default function JoinContest() {
         </Card>
 
         {/* Contest Info Card */}
-        {contestInfo && (
+        {showContestBox && (
           <Card className="border-emerald-200 bg-emerald-50">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-emerald-800">{contestInfo.name}</CardTitle>
+                <CardTitle className="text-emerald-800">{contestInfo.contest_name}</CardTitle>
                 <Trophy className="h-6 w-6 text-emerald-600" />
               </div>
               <CardDescription className="text-emerald-700">{contestInfo.description}</CardDescription>
@@ -113,7 +157,7 @@ export default function JoinContest() {
                     <Calendar className="h-5 w-5 text-emerald-600" />
                     <div>
                       <p className="font-medium text-emerald-800">Start Time</p>
-                      <p className="text-sm text-emerald-700">{formatDate(contestInfo.startTime)}</p>
+                      <p className="text-sm text-emerald-700">{formatDate(contestInfo.start_date)}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">

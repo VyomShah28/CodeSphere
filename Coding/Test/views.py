@@ -322,6 +322,16 @@ def delete_challenge(request):
     return Response(
         {"error": "Invalid method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED
     )
+    
+@api_view(["GET"])
+def get_contest_byId(request):
+    try:
+        contest_id =request.GET.get("contestId")
+        contest = get_object_or_404(Contest,id=contest_id)
+        return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
+    except Contest.DoesNotExist:
+        return Response({"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 # @ensure_csrf_cookie
 # def set_csrf_cookie(request):
