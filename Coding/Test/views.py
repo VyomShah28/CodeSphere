@@ -254,8 +254,10 @@ def add_challenge(request):
             java_code=request.data.get("java_code", ""),
         )
         challenge.save()
+             
+        contest.number_of_challenges += 1
+        contest.save()
         
-        print(challenge)
          
         return Response(
         {
@@ -310,7 +312,13 @@ def delete_challenge(request):
         challenge_id = request.data.get("challenge_id")
         try:
             challenge = Challenges.objects.get(id=challenge_id)
+            contest = challenge.contest
             challenge.delete()
+            
+            if contest and contest.number_of_challenges > 0:
+                contest.number_of_challenges -= 1
+                print(contest.number_of_challenges)
+                contest.save()
             return Response(
                 {"message": "Challenge deleted successfully"}, status=status.HTTP_200_OK
             )
@@ -328,6 +336,7 @@ def get_contest_byId(request):
     try:
         contest_id =request.GET.get("contestId")
         contest = get_object_or_404(Contest,id=contest_id)
+        print(contest.user.full_name)
         return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
     except Contest.DoesNotExist:
         return Response({"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND)

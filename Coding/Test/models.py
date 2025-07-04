@@ -23,6 +23,7 @@ class Contest(models.Model):
     end_time=models.TimeField()
     is_public=models.BooleanField(default=True)
     participants=models.IntegerField(default=0)
+    number_of_challenges=models.IntegerField(default=0)
     number_of_entries=models.IntegerField(default=2147483647)
     created_at=models.DateTimeField(auto_now_add=True)
 

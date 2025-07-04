@@ -21,7 +21,7 @@ interface Contest{
   end_time: string
   duration?: string
   participants?: number
-  challenges?: number
+  number_of_challenges: number
   organizer?: string
   status?: "upcoming" | "ongoing"| "completed"
 }
@@ -41,7 +41,7 @@ export default function JoinContest() {
     end_time: "",
     duration: "",
     participants: 0,
-    challenges: 0,
+    number_of_challenges: 0,
     organizer: "",
     status: "upcoming",})
 
@@ -60,12 +60,25 @@ export default function JoinContest() {
 
     const d1: Date = new Date(`${data.start_date}T${data.start_time}`);
     const d2: Date = new Date(`${data.end_date}T${data.end_time}`);
+    const today:Date = new Date();
 
     const hour: number = (d2.getTime() - d1.getTime()) / (1000 * 60 * 60);
 
+    let status: "upcoming" | "ongoing" | "completed"= "upcoming";
+
+    if (d1.getTime() < today.getTime()) {
+      status = "ongoing";
+    } else if (d2.getTime() < today.getTime()) {
+      status = "completed";
+    } else {
+      status = "upcoming";
+    }
+
     setContestInfo({
       ...data,
-      duration: `${hour.toFixed(2)} hours`
+      duration: `${hour.toFixed(2)} hours`,
+      status: status,
+      id: contestId,
     });
 
     console.log("Duration in hours:", hour);
@@ -180,7 +193,7 @@ export default function JoinContest() {
                     <Trophy className="h-5 w-5 text-emerald-600" />
                     <div>
                       <p className="font-medium text-emerald-800">Challenges</p>
-                      <p className="text-sm text-emerald-700">{contestInfo.challenges} problems</p>
+                      <p className="text-sm text-emerald-700">{contestInfo.number_of_challenges} problems</p>
                     </div>
                   </div>
                 </div>
