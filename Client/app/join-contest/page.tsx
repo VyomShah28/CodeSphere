@@ -31,6 +31,7 @@ export default function JoinContest() {
   const [contestLink, setContestLink] = useState("")
   const [isValidating, setIsValidating] = useState(false)
   const [showContestBox, setShowContestBox] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
   const [contestInfo, setContestInfo] = useState<Contest>({
     id: "",
     contest_name: "",
@@ -48,6 +49,8 @@ export default function JoinContest() {
   const handleValidateLink = async () => {
     setIsValidating(true);
   if (!contestLink.trim()) return;
+
+
 
   const tempStr = contestLink.split("/").pop() || "";
   const contestId = tempStr.split("=").pop();
@@ -88,6 +91,7 @@ export default function JoinContest() {
     setShowContestBox(true);
   } catch (error) {
     console.error("Error validating link:", error);
+    setErrorMessage("Invalid contest link. Please check the URL and try again.");
     setIsValidating(false);
   }
 };
@@ -133,6 +137,13 @@ export default function JoinContest() {
             </CardTitle>
             <CardDescription>Paste the contest invitation link you received</CardDescription>
           </CardHeader>
+          <div>
+            {errorMessage && (
+              <div className="bg-red-100 text-red-800 p-3 rounded mb-4">
+                <p>{errorMessage}</p>
+              </div>
+            )}
+          </div>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="contest-link">Contest URL</Label>
