@@ -14,8 +14,49 @@ import { useTabViolations } from "@/hooks/use-tab-violations"
 import { InitialContestNotice } from "@/components/initial-contest-notice"
 import { TabViolationWarning } from "@/components/tab-violation-warning"
 import { AutoSubmitNotification } from "@/components/auto-submit-notification"
+import { useSearchParams } from "next/navigation"
+import axios from "axios"
+
+interface Contest{
+  id: string
+  contest_name: string
+  description: string
+  start_date: string
+  start_time: string
+  end_date: string
+  end_time: string
+  duration?: string
+  participants?: number
+  number_of_challenges: number
+  organizer?: string
+  status?: "upcoming" | "ongoing"| "completed"
+}
+
+interface Challenge {
+  id: string;
+  challenge_name: string;
+  difficulty_level: "Easy" | "Medium" | "Hard";
+  max_score: number;
+  problem_statement: string;
+  constraints: string;
+  input_form: string;
+  output_form: string;
+  sample_testcase: string;
+  sample_output: string;
+  input_testcase: File;
+  output_testcase: File;
+  isLeetCode?: boolean;
+  cpp_code?: string;
+  java_code?: string;
+  python_code?: string;
+  solved?: boolean;
+}
 
 export default function ContestWaiting() {
+  const params = useSearchParams()
+  const contestId = params.get("contestId") as string
+  const [problems,setProblems] = useState<Challenge[]>([])
+  
   const router = useRouter()
   const [isStarted] = useState(true)
   const [timeLeft, setTimeLeft] = useState({
@@ -40,23 +81,80 @@ export default function ContestWaiting() {
   const { isFullscreen, enterFullscreen, isSupported, shouldEnforceFullscreen } = useContestFullscreen()
   const { enableSecurity } = useContestSecurity()
 
-  const contestInfo = {
-    name: "Advanced Algorithms Championship",
-    description: "Test your skills with complex algorithmic problems",
-    participants: 342,
-    challenges: 6,
-    duration: "3 hours",
-    organizer: "CodeMaster Pro",
-  }
+    const [contestInfo, setContestInfo] = useState<Contest>({
+      id: "",
+      contest_name: "",
+      description: "",
+      start_date: "",
+      start_time: "",
+      end_date: "",
+      end_time: "",
+      duration: "",
+      participants: 0,
+      number_of_challenges: 0,
+      organizer: "",
+      status: "upcoming",})
 
-  const problems = [
-    { id: 1, name: "Binary Tree Maximum Path Sum", difficulty: "Hard", points: 300, solved: false },
-    { id: 2, name: "Sliding Window Maximum", difficulty: "Hard", points: 250, solved: false },
-    { id: 3, name: "Longest Increasing Subsequence", difficulty: "Medium", points: 200, solved: true },
-    { id: 4, name: "Graph Shortest Path", difficulty: "Medium", points: 200, solved: false },
-    { id: 5, name: "Dynamic Programming Optimization", difficulty: "Hard", points: 350, solved: false },
-    { id: 6, name: "String Pattern Matching", difficulty: "Medium", points: 150, solved: false },
-  ]
+
+
+   const fetchContestInfo = async () => {
+      try {
+        // Simulate API call
+        const response = await fetch(`http://localhost:8000/api/get-contest-by-id?contestId=${contestId}`)
+        const data = await response.json()
+
+        if (data) {
+          const d1: Date = new Date(`${data.start_date}T${data.start_time}`)
+          const d2: Date = new Date(`${data.end_date}T${data.end_time}`)
+          const today: Date = new Date()
+
+          const hour: number = (d2.getTime() - d1.getTime()) / (1000 * 60 * 60)
+
+          let status: "upcoming" | "ongoing" | "completed" = "upcoming"
+
+          if (d1.getTime() < today.getTime()) {
+            status = "ongoing"
+          } else if (d2.getTime() < today.getTime()) {
+            status = "completed"
+          } else {
+            status = "upcoming"
+          }
+
+          setContestInfo({
+            ...data,
+            duration: `${hour.toFixed(2)} hours`,
+            status,
+          })
+        }
+      } catch (error) {
+        console.error("Failed to fetch contest info:", error)
+      }
+    }
+
+    const fetchChallenge = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/get-challenges/?contestId=" + contestId
+        );
+        if (response.status === 200) {
+          const data = response.data;
+          setProblems(data);
+          
+          
+          console.log("Fetched challenges:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching challenges:", error);
+      }
+    };
+
+
+  useEffect(() => {
+    fetchContestInfo()
+    fetchChallenge()
+  }, [contestId])
+
+
 
   const leaderboard = [
     { rank: 1, name: "AlgoMaster2024", score: 1200, solved: 5 },
@@ -157,13 +255,13 @@ export default function ContestWaiting() {
     }
   }
 
-  const handleProblemClick = (problemId: number) => {
+  const handleProblemClick = (problemId: string) => {
     // Pause violation detection before navigation
     pauseViolationDetection()
 
     // Small delay to ensure the pause takes effect
     setTimeout(() => {
-      router.push(`/contest-live?challenge=${problemId}`)
+      router.push(`/contest-live?contestId=${contestId}&challenge=${problemId}`)
     }, 100)
   }
 
@@ -199,7 +297,7 @@ export default function ContestWaiting() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">{contestInfo.name}</h1>
+              <h1 className="text-2xl font-bold text-slate-800">{contestInfo.contest_name}</h1>
               <p className="text-slate-600">Contest Live - Select Challenge</p>
             </div>
           </div>
@@ -266,7 +364,7 @@ export default function ContestWaiting() {
                 <Trophy className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="font-medium text-green-800">Problems</p>
-                  <p className="text-sm text-green-700">{contestInfo.challenges} challenges</p>
+                  <p className="text-sm text-green-700">{contestInfo.number_of_challenges} challenges</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -308,13 +406,13 @@ export default function ContestWaiting() {
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center space-x-2">
                             <span className="text-2xl">
-                              {problem.difficulty === "Easy" && "🟢"}
-                              {problem.difficulty === "Medium" && "🟡"}
-                              {problem.difficulty === "Hard" && "🔴"}
+                              {problem.difficulty_level === "Easy" && "🟢"}
+                              {problem.difficulty_level === "Medium" && "🟡"}
+                              {problem.difficulty_level === "Hard" && "🔴"}
                             </span>
                             <div>
                               <h4 className="font-semibold text-slate-800 flex items-center">
-                                {String.fromCharCode(64 + problem.id)}. {problem.name}
+                                {problem.challenge_name}
                                 {problem.solved && (
                                   <div className="ml-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                                     <span className="text-white text-xs">✓</span>
@@ -322,10 +420,10 @@ export default function ContestWaiting() {
                                 )}
                               </h4>
                               <div className="flex items-center space-x-3 mt-1">
-                                <Badge className={getDifficultyColor(problem.difficulty)}>{problem.difficulty}</Badge>
+                                <Badge className={getDifficultyColor(problem.difficulty_level)}>{problem.difficulty_level}</Badge>
                                 <div className="flex items-center space-x-1">
                                   <Star className="h-4 w-4 text-amber-500" />
-                                  <span className="text-sm font-medium text-slate-600">{problem.points} points</span>
+                                  <span className="text-sm font-medium text-slate-600">{problem.max_score} points</span>
                                 </div>
                               </div>
                             </div>
@@ -418,7 +516,7 @@ export default function ContestWaiting() {
       </div>
 
       {/* Initial Contest Notice */}
-      <InitialContestNotice isOpen={showInitialNotice} onAccept={dismissInitialNotice} contestName={contestInfo.name} />
+      <InitialContestNotice isOpen={showInitialNotice} onAccept={dismissInitialNotice} contestName={contestInfo.contest_name} />
 
       {/* Tab Violation Warning */}
       <TabViolationWarning isVisible={showWarning} violationCount={violationCount} onDismiss={dismissWarning} />
@@ -431,7 +529,7 @@ export default function ContestWaiting() {
         isOpen={showExitModal}
         onStay={handleStayInContest}
         onExit={handleExitContest}
-        contestName={contestInfo.name}
+        contestName={contestInfo.contest_name}
       />
 
       <Footer />

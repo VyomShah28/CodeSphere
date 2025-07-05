@@ -1,10 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
   Clock,
@@ -17,36 +23,67 @@ import {
   Moon,
   Settings,
   Grid3X3,
-} from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { CodeEditor } from "@/components/code-editor"
-import { useContestFullscreen } from "@/hooks/use-contest-fullscreen"
-import { ContestExitModal } from "@/components/contest-exit-modal"
-import { useTabViolations } from "@/hooks/use-tab-violations"
-import { InitialContestNotice } from "@/components/initial-contest-notice"
-import { TabViolationWarning } from "@/components/tab-violation-warning"
-import { AutoSubmitNotification } from "@/components/auto-submit-notification"
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { CodeEditor } from "@/components/code-editor";
+import { useContestFullscreen } from "@/hooks/use-contest-fullscreen";
+import { ContestExitModal } from "@/components/contest-exit-modal";
+import { useTabViolations } from "@/hooks/use-tab-violations";
+import { InitialContestNotice } from "@/components/initial-contest-notice";
+import { TabViolationWarning } from "@/components/tab-violation-warning";
+import { AutoSubmitNotification } from "@/components/auto-submit-notification";
+import axios from "axios";
+
+interface Challenge {
+  id: number;
+  challenge_name: string;
+  difficulty_level: "Easy" | "Medium" | "Hard";
+  max_score: number;
+  problem_statement: string;
+  constraints: string;
+  input_form: string;
+  output_form: string;
+  sample_testcase: string;
+  sample_output: string;
+  input_testcase: File;
+  output_testcase: File;
+  isLeetCode?: boolean;
+  cpp_code?: string;
+  java_code?: string;
+  python_code?: string;
+  solved?: boolean;
+}
 
 export default function ContestLive() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const challengeId = searchParams.get("challenge") || "1"
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const challengeId = searchParams.get("challenge");
+  const contestId = searchParams.get("contestId");
+  console.log("Contest ID:", contestId);
 
-  const [selectedLanguage, setSelectedLanguage] = useState("python")
+  const [currentProblem, setCurrentProblem] = useState<Challenge>(
+    {} as Challenge
+  );
+
+  const [selectedLanguage, setSelectedLanguage] = useState("python");
   const [code, setCode] = useState(`# Write your solution here
 def solution():
     # Your code goes here
     pass
 
 if __name__ == "__main__":
-    solution()`)
-  const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 45, seconds: 30 })
-  const [testResults, setTestResults] = useState<any[]>([])
-  const [isRunning, setIsRunning] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const [showExitModal, setShowExitModal] = useState(false)
+    solution()`);
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 2,
+    minutes: 45,
+    seconds: 30,
+  });
+  const [testResults, setTestResults] = useState<any[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showExitModal, setShowExitModal] = useState(false);
 
-  const { isFullscreen, shouldEnforceFullscreen } = useContestFullscreen()
+  const { isFullscreen, shouldEnforceFullscreen } = useContestFullscreen();
 
   const {
     violationCount,
@@ -56,39 +93,13 @@ if __name__ == "__main__":
     dismissWarning,
     dismissInitialNotice,
     resumeViolationDetection,
-  } = useTabViolations()
+  } = useTabViolations();
 
   // Resume violation detection when component mounts
   useEffect(() => {
-    resumeViolationDetection()
-  }, [resumeViolationDetection])
+    resumeViolationDetection();
+  }, [resumeViolationDetection]);
 
-  // Contest challenges
-  const challenges = [
-    { id: 1, name: "Binary Tree Maximum Path Sum", difficulty: "Hard", points: 300 },
-    { id: 2, name: "Sliding Window Maximum", difficulty: "Hard", points: 250 },
-    { id: 3, name: "Longest Increasing Subsequence", difficulty: "Medium", points: 200 },
-    { id: 4, name: "Graph Shortest Path", difficulty: "Medium", points: 200 },
-    { id: 5, name: "Dynamic Programming Optimization", difficulty: "Hard", points: 350 },
-    { id: 6, name: "String Pattern Matching", difficulty: "Medium", points: 150 },
-  ]
-
-  const currentChallenge = challenges.find((c) => c.id === Number.parseInt(challengeId)) || challenges[0]
-
-  const currentProblem = {
-    id: currentChallenge.id,
-    title: currentChallenge.name,
-    difficulty: currentChallenge.difficulty,
-    points: currentChallenge.points,
-    description: `Given a non-empty binary tree, find the maximum path sum. For this problem, a path is defined as any sequence of nodes from some starting node to any node in the tree along the parent-child connections. The path must contain at least one node and does not need to go through the root.`,
-    constraints: `• The number of nodes in the tree is in the range [1, 3 * 10^4]
-• -1000 ≤ Node.val ≤ 1000`,
-    inputFormat: `The input consists of a binary tree represented as an array where null values represent missing nodes.`,
-    outputFormat: `Return the maximum path sum as an integer.`,
-    sampleInput: `[1,2,3]`,
-    sampleOutput: `6`,
-    explanation: `The optimal path is 2 -> 1 -> 3 with a path sum of 2 + 1 + 3 = 6.`,
-  }
 
   const languageTemplates = {
     python: `# Write your solution here
@@ -127,59 +138,75 @@ function solution() {
 
 // Test your solution
 console.log(solution());`,
-  }
+  };
 
   const languages = [
     { id: "python", name: "Python 3", color: "bg-blue-500" },
     { id: "java", name: "Java", color: "bg-orange-500" },
     { id: "cpp", name: "C++", color: "bg-purple-500" },
     { id: "javascript", name: "JavaScript", color: "bg-yellow-500" },
-  ]
+  ];
+
+  const fetchChallenge = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/get-challenge-by-id?challengeId=${challengeId}`
+      );
+      setCurrentProblem(response.data);
+    } catch (error) {
+      console.error("Error fetching challenge:", error);
+      // Handle error appropriately
+    }
+  };
+
+  useEffect(() => {
+    fetchChallenge();
+  }, [challengeId]);
 
   // Contest duration countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-          router.push("/final-leaderboard")
-          return prev
+          router.push("/final-leaderboard");
+          return prev;
         }
 
         if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 }
+          return { ...prev, seconds: prev.seconds - 1 };
         } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
         } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
+          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
         }
-        return prev
-      })
-    }, 1000)
+        return prev;
+      });
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [router])
+    return () => clearInterval(timer);
+  }, [router]);
 
   // Auto-enable fullscreen and security measures
   useEffect(() => {
-    if (!shouldEnforceFullscreen) return
+    if (!shouldEnforceFullscreen) return;
 
     // Auto-enable fullscreen on page load - no modal, just do it
     const enableFullscreenOnLoad = async () => {
       if (document.fullscreenElement === null) {
         try {
-          await document.documentElement.requestFullscreen()
+          await document.documentElement.requestFullscreen();
         } catch (error) {
-          console.warn("Failed to enter fullscreen:", error)
+          console.warn("Failed to enter fullscreen:", error);
           // Don't show modal, just continue
         }
       }
-    }
+    };
 
     // Disable right-click
     window.oncontextmenu = (e) => {
-      e.preventDefault()
-      return false
-    }
+      e.preventDefault();
+      return false;
+    };
 
     // Enhanced keyboard blocking
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -195,59 +222,59 @@ console.log(solution());`,
         { key: "R", ctrlKey: true },
         { key: "F5" },
         { key: "Tab", altKey: true },
-      ]
+      ];
 
       const isBlocked = blockedKeys.some(
         (blocked) =>
           e.key === blocked.key &&
           !!e.ctrlKey === !!blocked.ctrlKey &&
           !!e.shiftKey === !!blocked.shiftKey &&
-          !!e.altKey === !!blocked.altKey,
-      )
+          !!e.altKey === !!blocked.altKey
+      );
 
       if (isBlocked) {
-        e.preventDefault()
-        e.stopPropagation()
-        return false
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
       }
-    }
+    };
 
     // Initialize security measures
-    enableFullscreenOnLoad()
+    enableFullscreenOnLoad();
 
     // Add event listeners
-    document.addEventListener("keydown", handleKeyDown, true)
+    document.addEventListener("keydown", handleKeyDown, true);
 
     // Cleanup
     return () => {
-      window.oncontextmenu = null
-      document.removeEventListener("keydown", handleKeyDown, true)
-    }
-  }, [shouldEnforceFullscreen])
+      window.oncontextmenu = null;
+      document.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [shouldEnforceFullscreen]);
 
   // Disable text selection and copying
   useEffect(() => {
-    if (!shouldEnforceFullscreen) return
+    if (!shouldEnforceFullscreen) return;
 
     // Disable text selection and copying
     const disableSelection = (e: Event) => {
-      e.preventDefault()
-      return false
-    }
+      e.preventDefault();
+      return false;
+    };
 
     const disableCopy = (e: ClipboardEvent) => {
-      e.preventDefault()
-      e.clipboardData?.setData("text/plain", "")
-      return false
-    }
+      e.preventDefault();
+      e.clipboardData?.setData("text/plain", "");
+      return false;
+    };
 
     const disableDrag = (e: DragEvent) => {
-      e.preventDefault()
-      return false
-    }
+      e.preventDefault();
+      return false;
+    };
 
     // Add CSS to disable text selection
-    const style = document.createElement("style")
+    const style = document.createElement("style");
     style.textContent = `
     .contest-problem-area {
       -webkit-user-select: none !important;
@@ -263,38 +290,48 @@ console.log(solution());`,
     .contest-problem-area::-moz-selection {
       background: transparent !important;
     }
-  `
-    document.head.appendChild(style)
+  `;
+    document.head.appendChild(style);
 
     // Add event listeners
-    document.addEventListener("selectstart", disableSelection)
-    document.addEventListener("copy", disableCopy)
-    document.addEventListener("cut", disableCopy)
-    document.addEventListener("dragstart", disableDrag)
+    document.addEventListener("selectstart", disableSelection);
+    document.addEventListener("copy", disableCopy);
+    document.addEventListener("cut", disableCopy);
+    document.addEventListener("dragstart", disableDrag);
 
     return () => {
-      document.removeEventListener("selectstart", disableSelection)
-      document.removeEventListener("copy", disableCopy)
-      document.removeEventListener("cut", disableCopy)
-      document.removeEventListener("dragstart", disableDrag)
-      document.head.removeChild(style)
-    }
-  }, [shouldEnforceFullscreen])
+      document.removeEventListener("selectstart", disableSelection);
+      document.removeEventListener("copy", disableCopy);
+      document.removeEventListener("cut", disableCopy);
+      document.removeEventListener("dragstart", disableDrag);
+      document.head.removeChild(style);
+    };
+  }, [shouldEnforceFullscreen]);
 
   const handleLanguageChange = (language: string) => {
-    setSelectedLanguage(language)
-    setCode(languageTemplates[language as keyof typeof languageTemplates] || "")
-  }
+    setSelectedLanguage(language);
+    setCode(
+      languageTemplates[language as keyof typeof languageTemplates] || ""
+    );
+  };
 
   const handleCodeChange = (value: string | undefined) => {
-    setCode(value || "")
-  }
+    setCode(value || "");
+  };
 
   const handleRunCode = () => {
-    setIsRunning(true)
+    setIsRunning(true);
     setTimeout(() => {
       setTestResults([
-        { id: 1, input: "[1,2,3]", expected: "6", actual: "6", status: "passed", time: "12ms", memory: "2.1MB" },
+        {
+          id: 1,
+          input: "[1,2,3]",
+          expected: "6",
+          actual: "6",
+          status: "passed",
+          time: "12ms",
+          memory: "2.1MB",
+        },
         {
           id: 2,
           input: "[-10,9,20,null,null,15,7]",
@@ -304,52 +341,94 @@ console.log(solution());`,
           time: "8ms",
           memory: "2.3MB",
         },
-        { id: 3, input: "[1]", expected: "1", actual: "1", status: "passed", time: "5ms", memory: "1.8MB" },
-        { id: 4, input: "[-3]", expected: "-3", actual: "[-3]", status: "passed", time: "3ms", memory: "1.9MB" },
-      ])
-      setIsRunning(false)
-    }, 2000)
-  }
+        {
+          id: 3,
+          input: "[1]",
+          expected: "1",
+          actual: "1",
+          status: "passed",
+          time: "5ms",
+          memory: "1.8MB",
+        },
+        {
+          id: 4,
+          input: "[-3]",
+          expected: "-3",
+          actual: "[-3]",
+          status: "passed",
+          time: "3ms",
+          memory: "1.9MB",
+        },
+      ]);
+      setIsRunning(false);
+    }, 2000);
+  };
 
   const handleSubmit = () => {
     // Mark challenge as solved and return to contest waiting
-    router.push("/contest-waiting")
-  }
+    router.push("/contest-waiting?contestId=" + contestId);
+  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "Medium":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "Hard":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+    setIsDarkMode(!isDarkMode);
+  };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "dark bg-slate-900" : "bg-slate-50"}`}>
+    <div
+      className={`min-h-screen ${
+        isDarkMode ? "dark bg-slate-900" : "bg-slate-50"
+      }`}
+    >
       {/* Header */}
-      <header className={`border-b ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}>
+      <header
+        className={`border-b ${
+          isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"
+        }`}
+      >
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" onClick={() => setShowExitModal(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowExitModal(true)}
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => router.push("/contest-waiting")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                router.push("/contest-waiting?contestId=" + contestId)
+              }
+            >
               <Grid3X3 className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-slate-800"}`}>
-                {currentProblem.title}
+              <h1
+                className={`text-xl font-bold ${
+                  isDarkMode ? "text-white" : "text-slate-800"
+                }`}
+              >
+                {currentProblem.challenge_name}
               </h1>
-              <p className={`text-sm ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+              <p
+                className={`text-sm ${
+                  isDarkMode ? "text-slate-300" : "text-slate-600"
+                }`}
+              >
                 Challenge {currentProblem.id} of 6
               </p>
             </div>
@@ -359,21 +438,38 @@ console.log(solution());`,
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className={`${isDarkMode ? "hover:bg-slate-700 text-slate-300 hover:text-white" : "hover:bg-slate-100"}`}
+              className={`${
+                isDarkMode
+                  ? "hover:bg-slate-700 text-slate-300 hover:text-white"
+                  : "hover:bg-slate-100"
+              }`}
             >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDarkMode ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
             </Button>
-            <div className={`flex items-center space-x-2 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>
+            <div
+              className={`flex items-center space-x-2 ${
+                isDarkMode ? "text-slate-300" : "text-slate-600"
+              }`}
+            >
               <Clock className="h-4 w-4" />
               <span className="text-xs mr-1">Time Remaining:</span>
               <span className="font-mono">
-                {timeLeft.hours.toString().padStart(2, "0")}:{timeLeft.minutes.toString().padStart(2, "0")}:
+                {timeLeft.hours.toString().padStart(2, "0")}:
+                {timeLeft.minutes.toString().padStart(2, "0")}:
                 {timeLeft.seconds.toString().padStart(2, "0")}
               </span>
             </div>
             <Badge
               variant="secondary"
-              className={`${isDarkMode ? "bg-slate-700 text-slate-200 border-slate-600" : "bg-slate-100 text-slate-800"}`}
+              className={`${
+                isDarkMode
+                  ? "bg-slate-700 text-slate-200 border-slate-600"
+                  : "bg-slate-100 text-slate-800"
+              }`}
             >
               Live Contest
             </Badge>
@@ -388,7 +484,10 @@ console.log(solution());`,
               </Badge>
             )}
             {!isFullscreen && shouldEnforceFullscreen && (
-              <Badge variant="outline" className="text-orange-600 border-orange-300">
+              <Badge
+                variant="outline"
+                className="text-orange-600 border-orange-300"
+              >
                 Entering Fullscreen...
               </Badge>
             )}
@@ -399,16 +498,28 @@ console.log(solution());`,
       <div className="flex h-[calc(100vh-73px)]">
         {/* Problem Statement */}
         <div
-          className={`w-1/2 border-r overflow-auto contest-problem-area ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}
+          className={`w-1/2 border-r overflow-auto contest-problem-area ${
+            isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"
+          }`}
         >
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-slate-800"}`}>
-                {currentProblem.title}
+              <h2
+                className={`text-2xl font-bold ${
+                  isDarkMode ? "text-white" : "text-slate-800"
+                }`}
+              >
+                {currentProblem.challenge_name}
               </h2>
               <div className="flex items-center space-x-2">
-                <Badge className={getDifficultyColor(currentProblem.difficulty)}>{currentProblem.difficulty}</Badge>
-                <Badge variant="outline">{currentProblem.points} pts</Badge>
+                <Badge
+                  className={getDifficultyColor(
+                    currentProblem.difficulty_level
+                  )}
+                >
+                  {currentProblem.difficulty_level}
+                </Badge>
+                <Badge variant="outline">{currentProblem.max_score} pts</Badge>
               </div>
             </div>
 
@@ -421,52 +532,112 @@ console.log(solution());`,
 
               <TabsContent value="problem" className="space-y-4">
                 <div>
-                  <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Description</h3>
-                  <p className={`leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}>
-                    {currentProblem.description}
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      isDarkMode ? "text-white" : ""
+                    }`}
+                  >
+                    Description
+                  </h3>
+                  <p
+                    className={`leading-relaxed ${
+                      isDarkMode ? "text-slate-300" : "text-slate-700"
+                    }`}
+                  >
+                    {currentProblem.problem_statement}
                   </p>
                 </div>
 
                 <div>
-                  <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Input Format</h3>
-                  <p className={isDarkMode ? "text-slate-300" : "text-slate-700"}>{currentProblem.inputFormat}</p>
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      isDarkMode ? "text-white" : ""
+                    }`}
+                  >
+                    Input Format
+                  </h3>
+                  <p
+                    className={isDarkMode ? "text-slate-300" : "text-slate-700"}
+                  >
+                    {currentProblem.input_form}
+                  </p>
                 </div>
 
                 <div>
-                  <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Output Format</h3>
-                  <p className={isDarkMode ? "text-slate-300" : "text-slate-700"}>{currentProblem.outputFormat}</p>
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      isDarkMode ? "text-white" : ""
+                    }`}
+                  >
+                    Output Format
+                  </h3>
+                  <p
+                    className={isDarkMode ? "text-slate-300" : "text-slate-700"}
+                  >
+                    {currentProblem.output_form}
+                  </p>
                 </div>
               </TabsContent>
 
               <TabsContent value="examples" className="space-y-4">
                 <div>
-                  <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Sample Input</h3>
-                  <pre
-                    className={`p-3 rounded text-sm font-mono ${isDarkMode ? "bg-slate-700 text-slate-200" : "bg-slate-100"}`}
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      isDarkMode ? "text-white" : ""
+                    }`}
                   >
-                    {currentProblem.sampleInput}
+                    Sample Input
+                  </h3>
+                  <pre
+                    className={`p-3 rounded text-sm font-mono ${
+                      isDarkMode
+                        ? "bg-slate-700 text-slate-200"
+                        : "bg-slate-100"
+                    }`}
+                  >
+                    {currentProblem.sample_testcase}
                   </pre>
                 </div>
 
                 <div>
-                  <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Sample Output</h3>
-                  <pre
-                    className={`p-3 rounded text-sm font-mono ${isDarkMode ? "bg-slate-700 text-slate-200" : "bg-slate-100"}`}
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      isDarkMode ? "text-white" : ""
+                    }`}
                   >
-                    {currentProblem.sampleOutput}
+                    Sample Output
+                  </h3>
+                  <pre
+                    className={`p-3 rounded text-sm font-mono ${
+                      isDarkMode
+                        ? "bg-slate-700 text-slate-200"
+                        : "bg-slate-100"
+                    }`}
+                  >
+                    {currentProblem.sample_output}
                   </pre>
                 </div>
 
-                <div>
+                {/* <div>
                   <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Explanation</h3>
                   <p className={isDarkMode ? "text-slate-300" : "text-slate-700"}>{currentProblem.explanation}</p>
-                </div>
+                </div> */}
               </TabsContent>
 
               <TabsContent value="constraints">
                 <div>
-                  <h3 className={`font-semibold mb-2 ${isDarkMode ? "text-white" : ""}`}>Constraints</h3>
-                  <div className={`whitespace-pre-line ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}>
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      isDarkMode ? "text-white" : ""
+                    }`}
+                  >
+                    Constraints
+                  </h3>
+                  <div
+                    className={`whitespace-pre-line ${
+                      isDarkMode ? "text-slate-300" : "text-slate-700"
+                    }`}
+                  >
                     {currentProblem.constraints}
                   </div>
                 </div>
@@ -479,10 +650,17 @@ console.log(solution());`,
         <div className="w-1/2 flex flex-col">
           {/* Editor Header */}
           <div
-            className={`border-b p-4 flex items-center justify-between ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}
+            className={`border-b p-4 flex items-center justify-between ${
+              isDarkMode
+                ? "bg-slate-800 border-slate-700"
+                : "bg-white border-slate-200"
+            }`}
           >
             <div className="flex items-center space-x-4">
-              <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
+              <Select
+                value={selectedLanguage}
+                onValueChange={handleLanguageChange}
+              >
                 <SelectTrigger
                   className={`w-48 ${
                     isDarkMode
@@ -494,7 +672,9 @@ console.log(solution());`,
                 </SelectTrigger>
                 <SelectContent
                   className={`${
-                    isDarkMode ? "bg-slate-800 border-slate-700 shadow-xl" : "bg-white border-slate-200 shadow-lg"
+                    isDarkMode
+                      ? "bg-slate-800 border-slate-700 shadow-xl"
+                      : "bg-white border-slate-200 shadow-lg"
                   }`}
                 >
                   {languages.map((lang) => (
@@ -508,7 +688,9 @@ console.log(solution());`,
                       }`}
                     >
                       <div className="flex items-center space-x-2">
-                        <div className={`w-3 h-3 ${lang.color} rounded-full`}></div>
+                        <div
+                          className={`w-3 h-3 ${lang.color} rounded-full`}
+                        ></div>
                         <span>{lang.name}</span>
                       </div>
                     </SelectItem>
@@ -517,7 +699,9 @@ console.log(solution());`,
               </Select>
 
               <div
-                className={`flex items-center space-x-2 text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+                className={`flex items-center space-x-2 text-sm ${
+                  isDarkMode ? "text-slate-400" : "text-slate-500"
+                }`}
               >
                 <Settings className="h-4 w-4" />
                 <span>Monaco Editor</span>
@@ -538,7 +722,10 @@ console.log(solution());`,
                 <Play className="h-4 w-4 mr-2" />
                 {isRunning ? "Running..." : "Run Code"}
               </Button>
-              <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+              <Button
+                onClick={handleSubmit}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+              >
                 <Send className="h-4 w-4 mr-2" />
                 Submit Solution
               </Button>
@@ -546,7 +733,11 @@ console.log(solution());`,
           </div>
 
           {/* Monaco Editor Container */}
-          <div className={`flex-1 relative ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
+          <div
+            className={`flex-1 relative ${
+              isDarkMode ? "bg-slate-900" : "bg-white"
+            }`}
+          >
             <CodeEditor
               value={code}
               onChange={handleCodeChange}
@@ -558,14 +749,27 @@ console.log(solution());`,
           </div>
 
           {/* Console */}
-          <div className={`h-48 border-t ${isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"}`}>
-            <div className={`p-3 border-b ${isDarkMode ? "bg-slate-700 border-slate-600" : "bg-slate-50"}`}>
-              <h3 className={`font-semibold flex items-center ${isDarkMode ? "text-white" : ""}`}>
+          <div
+            className={`h-48 border-t ${
+              isDarkMode ? "bg-slate-800 border-slate-700" : "bg-white"
+            }`}
+          >
+            <div
+              className={`p-3 border-b ${
+                isDarkMode ? "bg-slate-700 border-slate-600" : "bg-slate-50"
+              }`}
+            >
+              <h3
+                className={`font-semibold flex items-center ${
+                  isDarkMode ? "text-white" : ""
+                }`}
+              >
                 <Terminal className="h-4 w-4 mr-2" />
                 Test Results
                 {testResults.length > 0 && (
                   <Badge variant="secondary" className="ml-2">
-                    {testResults.filter((r) => r.status === "passed").length}/{testResults.length} Passed
+                    {testResults.filter((r) => r.status === "passed").length}/
+                    {testResults.length} Passed
                   </Badge>
                 )}
               </h3>
@@ -576,7 +780,11 @@ console.log(solution());`,
                   {testResults.map((result) => (
                     <div
                       key={result.id}
-                      className={`p-3 rounded-lg border ${isDarkMode ? "bg-slate-700 border-slate-600" : "bg-slate-50 border-slate-200"}`}
+                      className={`p-3 rounded-lg border ${
+                        isDarkMode
+                          ? "bg-slate-700 border-slate-600"
+                          : "bg-slate-50 border-slate-200"
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-3">
@@ -585,30 +793,71 @@ console.log(solution());`,
                           ) : (
                             <XCircle className="h-5 w-5 text-red-600" />
                           )}
-                          <span className={`font-medium ${isDarkMode ? "text-slate-300" : ""}`}>
+                          <span
+                            className={`font-medium ${
+                              isDarkMode ? "text-slate-300" : ""
+                            }`}
+                          >
                             Test Case {result.id}
                           </span>
-                          <Badge variant={result.status === "passed" ? "default" : "destructive"} className="text-xs">
+                          <Badge
+                            variant={
+                              result.status === "passed"
+                                ? "default"
+                                : "destructive"
+                            }
+                            className="text-xs"
+                          >
                             {result.status.toUpperCase()}
                           </Badge>
                         </div>
                         <div className="flex items-center space-x-4 text-xs">
-                          <span className={`${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>{result.time}</span>
-                          <span className={`${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>{result.memory}</span>
+                          <span
+                            className={`${
+                              isDarkMode ? "text-slate-400" : "text-slate-500"
+                            }`}
+                          >
+                            {result.time}
+                          </span>
+                          <span
+                            className={`${
+                              isDarkMode ? "text-slate-400" : "text-slate-500"
+                            }`}
+                          >
+                            {result.memory}
+                          </span>
                         </div>
                       </div>
                       <div className="text-xs space-y-1">
-                        <div className={`${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
+                        <div
+                          className={`${
+                            isDarkMode ? "text-slate-400" : "text-slate-600"
+                          }`}
+                        >
                           <span className="font-medium">Input:</span>{" "}
-                          <code className="bg-slate-200 dark:bg-slate-600 px-1 rounded">{result.input}</code>
+                          <code className="bg-slate-200 dark:bg-slate-600 px-1 rounded">
+                            {result.input}
+                          </code>
                         </div>
-                        <div className={`${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
+                        <div
+                          className={`${
+                            isDarkMode ? "text-slate-400" : "text-slate-600"
+                          }`}
+                        >
                           <span className="font-medium">Expected:</span>{" "}
-                          <code className="bg-slate-200 dark:bg-slate-600 px-1 rounded">{result.expected}</code>
+                          <code className="bg-slate-200 dark:bg-slate-600 px-1 rounded">
+                            {result.expected}
+                          </code>
                         </div>
-                        <div className={`${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
+                        <div
+                          className={`${
+                            isDarkMode ? "text-slate-400" : "text-slate-600"
+                          }`}
+                        >
                           <span className="font-medium">Output:</span>{" "}
-                          <code className="bg-slate-200 dark:bg-slate-600 px-1 rounded">{result.actual}</code>
+                          <code className="bg-slate-200 dark:bg-slate-600 px-1 rounded">
+                            {result.actual}
+                          </code>
                         </div>
                       </div>
                     </div>
@@ -618,13 +867,24 @@ console.log(solution());`,
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
                     <Terminal
-                      className={`h-12 w-12 mx-auto mb-3 ${isDarkMode ? "text-slate-600" : "text-slate-400"}`}
+                      className={`h-12 w-12 mx-auto mb-3 ${
+                        isDarkMode ? "text-slate-600" : "text-slate-400"
+                      }`}
                     />
-                    <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-slate-400" : "text-slate-500"
+                      }`}
+                    >
                       Click "Run Code" to test your solution
                     </p>
-                    <p className={`text-xs mt-1 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                      Your code will be tested against sample and hidden test cases
+                    <p
+                      className={`text-xs mt-1 ${
+                        isDarkMode ? "text-slate-500" : "text-slate-400"
+                      }`}
+                    >
+                      Your code will be tested against sample and hidden test
+                      cases
                     </p>
                   </div>
                 </div>
@@ -637,7 +897,7 @@ console.log(solution());`,
       <ContestExitModal
         isOpen={showExitModal}
         onStay={() => setShowExitModal(false)}
-        onExit={() => router.push("/contest-waiting")}
+        onExit={() => router.push("/contest-waiting?contestId=" + contestId)}
         contestName="Advanced Algorithms Championship"
       />
 
@@ -649,10 +909,17 @@ console.log(solution());`,
       />
 
       {/* Tab Violation Warning */}
-      <TabViolationWarning isVisible={showWarning} violationCount={violationCount} onDismiss={dismissWarning} />
+      <TabViolationWarning
+        isVisible={showWarning}
+        violationCount={violationCount}
+        onDismiss={dismissWarning}
+      />
 
       {/* Auto-Submit Notification */}
-      <AutoSubmitNotification isVisible={violationCount >= 3} onComplete={() => router.push("/final-leaderboard")} />
+      <AutoSubmitNotification
+        isVisible={violationCount >= 3}
+        onComplete={() => router.push("/final-leaderboard")}
+      />
     </div>
-  )
+  );
 }

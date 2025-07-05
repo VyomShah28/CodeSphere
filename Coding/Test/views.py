@@ -22,7 +22,6 @@ import uuid
 import datetime
 
 
-
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 flow = Flow.from_client_secrets_file(
@@ -222,51 +221,47 @@ def get_challenges(request):
     return Response(
         ChallengeSerializer(challenges, many=True).data, status=status.HTTP_200_OK
     )
-    
+
+
 @api_view(["POST"])
 @parser_classes([MultiPartParser])
 def add_challenge(request):
-    
-        contest_id = request.data.get("contest_id")
-        contest = get_object_or_404(Contest, id=contest_id)
-        isLeetCode=request.data.get("isLeetCode")
-        if isLeetCode == "true":
-            isLeetCode = True
-        else : 
-            isLeetCode = False
 
-        challenge = Challenges(
-            contest=contest,
-            challenge_name=request.data.get("challenge_name"),
-            max_score=request.data.get("max_score"),
-            difficulty_level=request.data.get("difficulty_level"),
-            problem_statement=request.data.get("problem_statement"),
-            constraints=request.data.get("constraints"),
-            input_form=request.data.get("input_form"),
-            output_form=request.data.get("output_form"),
-            input_testcase=request.FILES.get("input_testcase"),
-            output_testcase=request.FILES.get("output_testcase"),
-            sample_testcase=request.data.get("sample_testcase"),
-            sample_output=request.data.get("sample_output"),
-            isLeetCode=isLeetCode,
-            cpp_code=request.data.get("cpp_code", ""),
-            python_code=request.data.get("python_code", ""),
-            java_code=request.data.get("java_code", ""),
-        )
-        challenge.save()
-             
-        contest.number_of_challenges += 1
-        contest.save()
-        
-         
-        return Response(
-        {
-            "message": "Challenge added successfully",
-            "challenge_id": challenge.id
-        },
-        status=status.HTTP_201_CREATED
-)
+    contest_id = request.data.get("contest_id")
+    contest = get_object_or_404(Contest, id=contest_id)
+    isLeetCode = request.data.get("isLeetCode")
+    if isLeetCode == "true":
+        isLeetCode = True
+    else:
+        isLeetCode = False
 
+    challenge = Challenges(
+        contest=contest,
+        challenge_name=request.data.get("challenge_name"),
+        max_score=request.data.get("max_score"),
+        difficulty_level=request.data.get("difficulty_level"),
+        problem_statement=request.data.get("problem_statement"),
+        constraints=request.data.get("constraints"),
+        input_form=request.data.get("input_form"),
+        output_form=request.data.get("output_form"),
+        input_testcase=request.FILES.get("input_testcase"),
+        output_testcase=request.FILES.get("output_testcase"),
+        sample_testcase=request.data.get("sample_testcase"),
+        sample_output=request.data.get("sample_output"),
+        isLeetCode=isLeetCode,
+        cpp_code=request.data.get("cpp_code", ""),
+        python_code=request.data.get("python_code", ""),
+        java_code=request.data.get("java_code", ""),
+    )
+    challenge.save()
+
+    contest.number_of_challenges += 1
+    contest.save()
+
+    return Response(
+        {"message": "Challenge added successfully", "challenge_id": challenge.id},
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["PUT"])
@@ -314,7 +309,7 @@ def delete_challenge(request):
             challenge = Challenges.objects.get(id=challenge_id)
             contest = challenge.contest
             challenge.delete()
-            
+
             if contest and contest.number_of_challenges > 0:
                 contest.number_of_challenges -= 1
                 print(contest.number_of_challenges)
@@ -330,16 +325,31 @@ def delete_challenge(request):
     return Response(
         {"error": "Invalid method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED
     )
-    
+
+
+@api_view(["GET"])
+def get_challenge_byId(request):
+    try:
+        challenge_id = request.GET.get("challengeId")
+        challenge = get_object_or_404(Challenges, id=challenge_id)
+        return Response(ChallengeSerializer(challenge).data, status=status.HTTP_200_OK)
+    except Challenges.DoesNotExist:
+        return Response(
+            {"error": "Challenge not found"}, status=status.HTTP_404_NOT_FOUND
+        )
+
+
 @api_view(["GET"])
 def get_contest_byId(request):
     try:
-        contest_id =request.GET.get("contestId")
-        contest = get_object_or_404(Contest,id=contest_id)
+        contest_id = request.GET.get("contestId")
+        contest = get_object_or_404(Contest, id=contest_id)
         print(contest.user.full_name)
         return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
     except Contest.DoesNotExist:
-        return Response({"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
 
 # @ensure_csrf_cookie
