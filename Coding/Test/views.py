@@ -94,6 +94,22 @@ def google_callback(request):
         return HttpResponse(
             f"<h3>OAuth Callback Error</h3><pre>{str(e)}</pre>", status=500
         )
+        
+@api_view(["GET"])
+def user_details(request):
+    user_id = request.GET.get("user_id")
+    if not user_id:
+        return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = get_object_or_404(User, id=user_id)
+        user_data = {
+            "contest_created": user.contest_created,
+            "contest_participated": user.contest_participated,
+        }
+        return Response(user_data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["PUT", "POST"])
@@ -142,6 +158,9 @@ def create_contest(request):
 
         contest.link = link
         contest.save()
+        
+        user.contest_created += 1
+        user.save()
 
         return Response(ContestSerializer(contest).data, status=status.HTTP_201_CREATED)
     except Exception as e:
@@ -193,13 +212,35 @@ def get_contests(request):
 
 @api_view(["POST"])
 def delete_contest_api(request):
-    data = request.body.decode("utf-8")
-    data = json.loads(data)
-    deleted_contests = data["ids"]
-    if deleted_contests:
-        Contest.objects.filter(id__in=deleted_contests).delete()
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        deleted_contests = data.get("ids", [])
 
-    return Response({"status": "ok", "deleted": deleted_contests})
+        if deleted_contests:
+            contests = Contest.objects.filter(id__in=deleted_contests)
+
+            # Group contests by user and update their `contest_created` field
+            user_contest_map = {}
+            for contest in contests:
+                user = contest.user
+                if user not in user_contest_map:
+                    user_contest_map[user] = 0
+                user_contest_map[user] += 1
+
+            # Update each user's `contest_created` count
+            for user, count in user_contest_map.items():
+                if user.contest_created >= count:
+                    user.contest_created -= count
+                    user.save()
+
+            contests.delete()
+
+        return Response({"status": "ok", "deleted": deleted_contests})
+
+    except Exception as e:
+        return Response({"status": "error", "message": str(e)}, status=500)
+
+
 
 
 @api_view(["GET"])
@@ -525,13 +566,6 @@ def Main(request):
             return render(request, "main.html", {"user": user})
 
 
-def delete_contest(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        contest = get_object_or_404(Contest, id=data["id"])
-        contest.delete()
-        return JsonResponse({"success": True})
-    return JsonResponse({"success": False})
 
 
 # def update_challenge(request):

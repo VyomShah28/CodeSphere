@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("api/google-login/", views.Login, name="Login"),
     path("auth/google/callback/", views.google_callback, name="google_callback"),
+    path("api/user-details/", views.user_details, name="User_Details"),
     path("api/create-contest/", views.create_contest, name="Create_Contest"),
     # path("api/challenge-editor/", views.challenge_editor,name="Challenge_Editor"),
     path("api/get-contests/", views.get_contests, name="Get_Contest"),

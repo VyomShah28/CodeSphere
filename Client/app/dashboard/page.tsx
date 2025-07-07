@@ -9,19 +9,45 @@ import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
 import { useSearchParams } from "next/navigation"
 import { useUser } from "../../context/userContext";
+import axios from "axios"
 
 export default function Dashboard() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const {user,setUser} = useUser();
-  
-   useEffect(() => {
+   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, setUser } = useUser();
+
+  const fetchUserDetails = async (id: string) => {
+      if (!id) return;
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/user-details/?user_id=${id}`
+      );
+
+      sessionStorage.setItem("contestsCreated", response.data.contest_created);
+      sessionStorage.setItem("contestsJoined", response.data.contest_participated);
+
+      const updatedUser = {
+        ...user,
+        contestsCreated: response.data.contest_created,
+        contestsJoined: response.data.contest_participated,
+      };
+
+      setUser(updatedUser);
+      console.log(updatedUser);
+      
+      console.log("Updated User Details:", updatedUser);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  useEffect(() => {
     const id = searchParams.get("id");
     const name = searchParams.get("full_name");
     const avatar = searchParams.get("url");
 
     if (id && name && avatar) {
-      const updatedUser = {
+      const initialUser = {
         id,
         name,
         avatar,
@@ -29,15 +55,14 @@ export default function Dashboard() {
         contestsJoined: 0,
         currentRank: 0,
       };
-      setUser(updatedUser);
 
+      setUser(initialUser);
+      fetchUserDetails(id);
       sessionStorage.setItem("userId", id);
       sessionStorage.setItem("userName", name);
-      sessionStorage.setItem("userAvatar",avatar);
-    }
+      sessionStorage.setItem("userAvatar", avatar);
 
-    console.log(user);
-    
+    }
   }, [searchParams]);
 
   return (
@@ -84,7 +109,7 @@ export default function Dashboard() {
               <Trophy className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{user.contestsCreated}</div>
+              <div className="text-2xl font-bold">{sessionStorage.getItem("contestsCreated")}</div>
               <p className="text-xs text-slate-500">+2 from last month</p>
             </CardContent>
           </Card>
