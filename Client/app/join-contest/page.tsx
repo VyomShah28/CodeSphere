@@ -32,6 +32,7 @@ export default function JoinContest() {
   const [isValidating, setIsValidating] = useState(false)
   const [showContestBox, setShowContestBox] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [isCompleted, setIsCompleted] = useState(false)
   const [contestInfo, setContestInfo] = useState<Contest>({
     id: "",
     contest_name: "",
@@ -69,12 +70,21 @@ export default function JoinContest() {
 
     let status: "upcoming" | "ongoing" | "completed"= "upcoming";
 
-    if (d1.getTime() < today.getTime()) {
+    if (d1.getTime() < today.getTime() && d2.getTime() > today.getTime()) {
       status = "ongoing";
+      console.log("Contest is ongoing");
+      
     } else if (d2.getTime() < today.getTime()) {
       status = "completed";
+      console.log("Contest has ended");
+      
+      setIsCompleted(true);
+      setIsValidating(false);
+      return
     } else {
       status = "upcoming";
+      console.log("Contest is upcoming");
+      
     }
 
     setContestInfo({
@@ -144,6 +154,11 @@ export default function JoinContest() {
               </div>
             )}
           </div>
+          {isCompleted && (
+            <div className="bg-yellow-100 text-yellow-800 p-3 rounded mb-4">
+              <p>This contest has already ended. You cannot join it.</p>
+            </div>
+          )}
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="contest-link">Contest URL</Label>

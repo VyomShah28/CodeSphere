@@ -38,7 +38,17 @@ export default function ContestsPage() {
       try {
         const response = await axios.get("http://127.0.0.1:8000/api/get-contests?userId=" + sessionStorage.getItem("userId"))
         if (response.status === 200) {
-          setContests(response.data.data)
+
+          const contestsData = response.data.data
+           
+          contestsData.forEach((contest: Contest) => {
+            contest.startDate = new Date(contest.startDate).toISOString()
+            contest.endDate = new Date(contest.endDate).toISOString()
+            contest.status = new Date(contest.startDate) > new Date() ? "upcoming" :
+              new Date(contest.endDate) < new Date() ? "completed" : "active"
+          })
+
+          setContests(contestsData)
         } else {
           console.error("Failed to fetch contests:", response.statusText)
         }
