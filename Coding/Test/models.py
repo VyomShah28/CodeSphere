@@ -7,6 +7,8 @@ class User(models.Model):
     full_name=models.TextField(default=None,null=True)
     email=models.TextField(default=None,null=True)
     profile_photo = models.URLField(default=None, null=True)
+    contest_created=models.IntegerField(default=0)
+    contest_participated=models.IntegerField(default=0)
 
 class Rank(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
