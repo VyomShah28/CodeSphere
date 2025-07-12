@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 urlpatterns=[
+    path("api/get_leetcode_problem_description", views.get_leetcode_problem_description, name="Get_Leetcode_Problem_Description"),
+    path("api/generate_test_cases", views.generate_test_cases, name="Generate_Test_Cases"),
+    
     path('test1',views.test,name="Test_C"),
     path('start',views.start,name="Start"),
     path('get',views.get,name="Get"),

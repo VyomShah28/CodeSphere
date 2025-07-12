@@ -44,6 +44,8 @@ import { TestCasePreview } from "@/components/test-case-preview";
 import { LeetCodeViewModal } from "@/components/leetcode-view-modal";
 import { TestCaseGenerator } from "@/components/test-case-generator";
 import { SafePreview } from "@/components/safePreview";
+import { OTPInput } from "input-otp";
+
 
 interface Challenge {
   id: string;
@@ -76,6 +78,7 @@ export default function ChallengeEditor() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [isAddingChallenge, setIsAddingChallenge] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<string | null>(null);
+  const [backendChallenge, setBackendChallenge] = useState<any>(null);
   const [viewingChallenge, setViewingChallenge] = useState<Challenge | null>(
     null
   );
@@ -83,13 +86,29 @@ export default function ChallengeEditor() {
   const [challengeMode, setChallengeMode] = useState<
     "manual" | "leetcode" | null
   >(null);
-  const [leetcodeData, setLeetcodeData] = useState<any>(null);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [leetcodeData, setLeetcodeData] = useState<Challenge>({
+    id: "",
+    challenge_name: "",
+    difficulty_level: "Easy",
+    max_score: 100,
+    problem_statement: "",
+    constraints: "",
+    input_form: "",
+    output_form: "",
+    sample_testcase: "",
+    sample_output: "",
+    input_testcase: null as unknown as File,
+    output_testcase: null as unknown as File,
+    isLeetCode: true,
+    cpp_code: "",
+    java_code: "",
+    python_code: "",  
+  });
   const [isGeneratingTestCase, setIsGeneratingTestCase] = useState(false);
   const [isGeneratingLeetCodeTestCases, setIsGeneratingLeetCodeTestCases] =
     useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  // const [verificationResult, setVerificationResult] = useState<any>(null);
+
   const [leetcodeTestCases, setLeetcodeTestCases] = useState<any>(null);
   const [generatedTestCases, setGeneratedTestCases] = useState<any>(null);
   const searchParams = useSearchParams();
@@ -151,26 +170,26 @@ export default function ChallengeEditor() {
       // Add LeetCode challenge
       challengeData = {
         id: Date.now().toString(),
-        challenge_name: leetcodeData.title,
-        difficulty_level: leetcodeData.difficulty,
+        challenge_name: leetcodeData.challenge_name,
+        difficulty_level: leetcodeData.difficulty_level,
         max_score:
-          leetcodeData.difficulty === "Easy"
+          leetcodeData.difficulty_level === "Easy"
             ? 100
-            : leetcodeData.difficulty === "Medium"
+            : leetcodeData.difficulty_level=== "Medium"
             ? 200
             : 300,
-        problem_statement: leetcodeData.description,
+        problem_statement: leetcodeData.problem_statement,
         constraints: leetcodeData.constraints,
         input_form: "Standard LeetCode format",
         output_form: "Standard LeetCode format",
-        sample_testcase: leetcodeData.sampleInput,
-        sample_output: leetcodeData.sampleOutput,
+        sample_testcase: leetcodeData.sample_testcase,
+        sample_output: leetcodeData.sample_output,
         input_testcase: new File([""], "leetcode_input.txt"),
         output_testcase: new File([""], "leetcode_output.txt"),
         isLeetCode: true,
-        cpp_code: leetcodeData.solutions.cpp,
-        java_code: leetcodeData.solutions.java,
-        python_code: leetcodeData.solutions.python,
+        cpp_code: leetcodeData.cpp_code,
+        java_code: leetcodeData.java_code,
+        python_code: leetcodeData.python_code,
       };
     } else {
       if (!validateChallenge()) {
@@ -235,7 +254,24 @@ export default function ChallengeEditor() {
     });
     setIsAddingChallenge(false);
     setChallengeMode(null);
-    setLeetcodeData(null);
+    setLeetcodeData({
+      id: "",
+      challenge_name: "",
+      difficulty_level: "Easy",
+      max_score: 100,
+      problem_statement: "",
+      constraints: "",
+      input_form: "",
+      output_form: "",
+      sample_testcase: "",
+      sample_output: "",
+      input_testcase: null as unknown as File,
+      output_testcase: null as unknown as File,
+      isLeetCode: true,
+      cpp_code: "",
+      java_code: "",
+      python_code: "",
+    });
     setTestCaseFiles([]);
     setErrors({});
     setLeetcodeTestCases(null);
@@ -322,14 +358,33 @@ export default function ChallengeEditor() {
 
   const handleGenerateLeetCodeTestCases = async () => {
     setIsGeneratingLeetCodeTestCases(true);
-    setTimeout(() => {
-      setLeetcodeTestCases({
+
+    try {
+       const response = await axios.post("http://localhost:8000/api/generate_test_cases", {"description":backendChallenge})
+      console.log(response);
+
+      const outputCases = response.data.output_cases
+      .split(",")
+      .map((line: string) => line.trim())
+      .join("\n");
+
+
+       setLeetcodeTestCases({
         input:
-          "10\n[2,7,11,15]\n9\n[3,2,4]\n6\n[3,3]\n6\n[1,2,3,4,5]\n8\n[5,5,5,5]\n10",
-        output: "[0,1]\n[1,2]\n[0,1]\n[2,3]\n[0,3]",
+          response.data.test_cases,
+        output:outputCases,
       });
+      
+    } catch (error) {
+      console.error("Error generating LeetCode test cases:", error);
       setIsGeneratingLeetCodeTestCases(false);
-    }, 3000);
+      return;
+      
+    }
+   
+     
+      setIsGeneratingLeetCodeTestCases(false);
+   
   };
 
   // const handleVerifyTestCases = async () => {
@@ -474,7 +529,40 @@ export default function ChallengeEditor() {
   const handleModeSelect = (mode: "manual" | "leetcode", data?: any) => {
     setChallengeMode(mode);
     if (mode === "leetcode" && data) {
-      setLeetcodeData(data);
+
+       console.log("LeetCode data received:", data);
+       setBackendChallenge(data)
+
+       const sample_testcase = data.sample_testcases.map((test: any) => test.input).join("\n");
+       const sample_output = data.sample_testcases.map((test: any) => test.output).join("\n");
+
+     
+      setLeetcodeData({
+        id: "",
+        challenge_name: data.title || "",
+        difficulty_level: data.difficulty,
+        problem_statement: data.description,
+        constraints: data.constraints,
+        sample_testcase: sample_testcase,
+        sample_output: sample_output ,
+        cpp_code: data.solutions?.cpp || "",
+        java_code: data.solutions?.java || "",
+        python_code: data.solutions?.python || "",
+        input_form: data.input_format,
+        output_form: data.output_format,
+        max_score:
+          leetcodeData.difficulty_level === "Easy"
+            ? 100
+            : leetcodeData.difficulty_level=== "Medium"
+            ? 200
+            : 300,
+        input_testcase: null as unknown as File,
+        output_testcase: null as unknown as File,
+      });
+      console.log(leetcodeData);
+      setViewingChallenge(leetcodeData);
+      
+      
     } else {
       setIsAddingChallenge(true);
     }

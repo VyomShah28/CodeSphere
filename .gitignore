@@ -19,5 +19,11 @@ Coding/.env
 /venv
 Coding/media
 Coding/client_secret.json
+Coding/code.py
+Coding/code.cpp
+Coding/code.exe
+Coding/test_cases.txt
+Coding/output.txt
+
 
 

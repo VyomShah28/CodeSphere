@@ -1,17 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Code, Loader2, AlertCircle } from "lucide-react"
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { BookOpen, Code, Loader2, AlertCircle } from "lucide-react";
+import axios from "axios";
 
 interface AddChallengeModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSelectMode: (mode: "manual" | "leetcode", data?: any) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectMode: (mode: "manual" | "leetcode", data?: any) => void;
 }
 
 // Dummy LeetCode problems for testing
@@ -358,66 +371,91 @@ public:
         return max_profit`,
     },
   },
-}
+};
 
-export function AddChallengeModal({ isOpen, onClose, onSelectMode }: AddChallengeModalProps) {
-  const [leetcodeNumber, setLeetcodeNumber] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+export function AddChallengeModal({
+  isOpen,
+  onClose,
+  onSelectMode,
+}: AddChallengeModalProps) {
+  const [leetcodeNumber, setLeetcodeNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleManualMode = () => {
-    onSelectMode("manual")
-    onClose()
-  }
+    onSelectMode("manual");
+    onClose();
+  };
 
   const handleLeetCodeMode = async () => {
     if (!leetcodeNumber.trim()) {
-      setError("Please enter a LeetCode problem number")
-      return
+      setError("Please enter a LeetCode problem number");
+      return;
     }
 
-    setIsLoading(true)
-    setError("")
+    setIsLoading(true);
+    setError("");
 
     // Simulate API call delay
-    setTimeout(() => {
-      const problemData = DUMMY_LEETCODE_PROBLEMS[leetcodeNumber]
+
+    try {
+
+      const response = await axios.post("http://localhost:8000/api/get_leetcode_problem_description", {
+        question_number: leetcodeNumber,
+      });
+     
+      
+      const problemData = response.data.challange;
+      
+      const parsedData = JSON.parse(problemData);
 
       if (problemData) {
-        onSelectMode("leetcode", problemData)
-        onClose()
-        setLeetcodeNumber("")
+        onSelectMode("leetcode", parsedData);
+        onClose();
+        setLeetcodeNumber("");
       } else {
-        setError(`Problem #${leetcodeNumber} not found. Try: 1, 3, 4, or 121`)
+        setError(`Problem #${leetcodeNumber} not found. Try: 1, 3, 4, or 121`);
       }
 
-      setIsLoading(false)
-    }, 1500)
-  }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching LeetCode problem:", error);
+      setError("Failed to fetch problem data. Please try again later.");
+      setIsLoading(false);
+      return;
+    }
+  };
 
   const handleClose = () => {
-    setLeetcodeNumber("")
-    setError("")
-    onClose()
-  }
+    setLeetcodeNumber("");
+    setError("");
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>How do you want to add a challenge?</DialogTitle>
-          <DialogDescription>Choose your preferred method to create a new coding challenge</DialogDescription>
+          <DialogDescription>
+            Choose your preferred method to create a new coding challenge
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
           {/* Manual Entry */}
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleManualMode}>
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleManualMode}
+          >
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
                 <BookOpen className="h-6 w-6 text-blue-600" />
               </div>
               <CardTitle className="text-lg">Manual Entry</CardTitle>
-              <CardDescription>Create a challenge from scratch with full customization</CardDescription>
+              <CardDescription>
+                Create a challenge from scratch with full customization
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm text-slate-600 space-y-1">
@@ -436,7 +474,9 @@ export function AddChallengeModal({ isOpen, onClose, onSelectMode }: AddChalleng
                 <Code className="h-6 w-6 text-emerald-600" />
               </div>
               <CardTitle className="text-lg">Import from LeetCode</CardTitle>
-              <CardDescription>Import existing problems with solutions and test cases</CardDescription>
+              <CardDescription>
+                Import existing problems with solutions and test cases
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="text-sm text-slate-600 space-y-1 mb-4">
@@ -448,14 +488,16 @@ export function AddChallengeModal({ isOpen, onClose, onSelectMode }: AddChalleng
 
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="leetcode-number">LeetCode Problem Number</Label>
+                  <Label htmlFor="leetcode-number">
+                    LeetCode Problem Number
+                  </Label>
                   <Input
                     id="leetcode-number"
                     placeholder="e.g., 1, 3, 4, 121"
                     value={leetcodeNumber}
                     onChange={(e) => {
-                      setLeetcodeNumber(e.target.value)
-                      setError("")
+                      setLeetcodeNumber(e.target.value);
+                      setError("");
                     }}
                     className={error ? "border-red-500" : ""}
                   />
@@ -465,7 +507,9 @@ export function AddChallengeModal({ isOpen, onClose, onSelectMode }: AddChalleng
                       <span>{error}</span>
                     </div>
                   )}
-                  <p className="text-xs text-slate-500 mt-1">Available demo problems: 1, 3, 4, 121</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Available demo problems: 1, 3, 4, 121
+                  </p>
                 </div>
 
                 <Button
@@ -494,5 +538,5 @@ export function AddChallengeModal({ isOpen, onClose, onSelectMode }: AddChalleng
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
