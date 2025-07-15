@@ -30,16 +30,8 @@ export default function Dashboard() {
         contestsJoined: response.data.contest_participated,
         currentRank: 0,
       };
-       console.log("Fetched user details:", completeUser);
-      setUser(completeUser);
-      console.log("User set in context:", user);
 
-    
-      sessionStorage.setItem("userId", id);
-      sessionStorage.setItem("userName", name);
-      sessionStorage.setItem("userAvatar", avatar);
-      sessionStorage.setItem("contestsCreated", response.data.contest_created);
-      sessionStorage.setItem("contestsJoined", response.data.contest_participated);
+      setUser(completeUser); 
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -53,30 +45,20 @@ export default function Dashboard() {
     const storedId = sessionStorage.getItem("userId");
     const storedName = sessionStorage.getItem("userName");
     const storedAvatar = sessionStorage.getItem("userAvatar");
-    const storedCreated = sessionStorage.getItem("contestsCreated");
-    const storedJoined = sessionStorage.getItem("contestsJoined");
 
-  
     if (idFromUrl && nameFromUrl && avatarFromUrl) {
-      fetchUserDetails(idFromUrl, nameFromUrl, avatarFromUrl); 
-    }
 
-
-    else if (storedId && storedName && storedAvatar) {
-      setUser({
-        id: storedId,
-        name: storedName,
-        avatar: storedAvatar,
-        contestsCreated: Number(storedCreated || 0),
-        contestsJoined: Number(storedJoined || 0),
-        currentRank: 0,
-      });
-    }
-
-    else {
+      sessionStorage.setItem("userId", idFromUrl);
+      sessionStorage.setItem("userName", nameFromUrl);
+      sessionStorage.setItem("userAvatar", avatarFromUrl);
+      fetchUserDetails(idFromUrl, nameFromUrl, avatarFromUrl);
+    } else if (storedId && storedName && storedAvatar) {
+   
+      fetchUserDetails(storedId, storedName, storedAvatar);
+    } else {
       router.push("/login");
     }
-  }, [searchParams]);
+  }, []); 
 
   return (
     <div className="min-h-screen bg-slate-50">
