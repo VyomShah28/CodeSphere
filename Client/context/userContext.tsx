@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
@@ -26,25 +26,27 @@ const defaultUser: User = {
 
 const UserContext = createContext<UserContextType>({
   user: defaultUser,
-  setUser: () => {}, // No-op
+  setUser: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User>(defaultUser);
 
-  // Auto load from sessionStorage on page reload
+  // Restore from sessionStorage on reload
   useEffect(() => {
     const storedId = sessionStorage.getItem("userId");
     const storedName = sessionStorage.getItem("userName");
     const storedAvatar = sessionStorage.getItem("userAvatar");
+    const storedCreated = sessionStorage.getItem("contestsCreated");
+    const storedJoined = sessionStorage.getItem("contestsJoined");
 
     if (storedId && storedName && storedAvatar) {
       setUser({
         id: storedId,
         name: storedName,
         avatar: storedAvatar,
-        contestsCreated: 0,
-        contestsJoined: 0,
+        contestsCreated: Number(storedCreated || 0),
+        contestsJoined: Number(storedJoined || 0),
         currentRank: 0,
       });
     }

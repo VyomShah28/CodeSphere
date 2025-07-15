@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useContext, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,56 +12,69 @@ import { useUser } from "../../context/userContext";
 import axios from "axios"
 
 export default function Dashboard() {
-   const router = useRouter();
+ const router = useRouter();
   const searchParams = useSearchParams();
   const { user, setUser } = useUser();
 
-  const fetchUserDetails = async (id: string) => {
-      if (!id) return;
+  const fetchUserDetails = async (id: string, name: string, avatar: string) => {
     try {
       const response = await axios.get(
         `http://localhost:8000/api/user-details/?user_id=${id}`
       );
 
-      sessionStorage.setItem("contestsCreated", response.data.contest_created);
-      sessionStorage.setItem("contestsJoined", response.data.contest_participated);
-
-      const updatedUser = {
-        ...user,
+      const completeUser = {
+        id,
+        name,
+        avatar,
         contestsCreated: response.data.contest_created,
         contestsJoined: response.data.contest_participated,
+        currentRank: 0,
       };
+       console.log("Fetched user details:", completeUser);
+      setUser(completeUser);
+      console.log("User set in context:", user);
 
-      setUser(updatedUser);
-      console.log(updatedUser);
-      
-      console.log("Updated User Details:", updatedUser);
+    
+      sessionStorage.setItem("userId", id);
+      sessionStorage.setItem("userName", name);
+      sessionStorage.setItem("userAvatar", avatar);
+      sessionStorage.setItem("contestsCreated", response.data.contest_created);
+      sessionStorage.setItem("contestsJoined", response.data.contest_participated);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
 
   useEffect(() => {
-    const id = searchParams.get("id");
-    const name = searchParams.get("full_name");
-    const avatar = searchParams.get("url");
+    const idFromUrl = searchParams.get("id");
+    const nameFromUrl = searchParams.get("full_name");
+    const avatarFromUrl = searchParams.get("url");
 
-    if (id && name && avatar) {
-      const initialUser = {
-        id,
-        name,
-        avatar,
-        contestsCreated: 0,
-        contestsJoined: 0,
+    const storedId = sessionStorage.getItem("userId");
+    const storedName = sessionStorage.getItem("userName");
+    const storedAvatar = sessionStorage.getItem("userAvatar");
+    const storedCreated = sessionStorage.getItem("contestsCreated");
+    const storedJoined = sessionStorage.getItem("contestsJoined");
+
+  
+    if (idFromUrl && nameFromUrl && avatarFromUrl) {
+      fetchUserDetails(idFromUrl, nameFromUrl, avatarFromUrl); 
+    }
+
+
+    else if (storedId && storedName && storedAvatar) {
+      setUser({
+        id: storedId,
+        name: storedName,
+        avatar: storedAvatar,
+        contestsCreated: Number(storedCreated || 0),
+        contestsJoined: Number(storedJoined || 0),
         currentRank: 0,
-      };
+      });
+    }
 
-      setUser(initialUser);
-      fetchUserDetails(id);
-      sessionStorage.setItem("userId", id);
-      sessionStorage.setItem("userName", name);
-      sessionStorage.setItem("userAvatar", avatar);
-
+    else {
+      router.push("/login");
     }
   }, [searchParams]);
 
@@ -109,7 +122,7 @@ export default function Dashboard() {
               <Trophy className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{sessionStorage.getItem("contestsCreated")}</div>
+              <div className="text-2xl font-bold">{user.contestsCreated}</div>
               <p className="text-xs text-slate-500">+2 from last month</p>
             </CardContent>
           </Card>
