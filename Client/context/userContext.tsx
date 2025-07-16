@@ -28,7 +28,6 @@ const defaultUser: User = {
 const UserContext = createContext<UserContextType>({
   user: defaultUser,
   setUser: () => {},
-  setUser: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -38,6 +37,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const storedId = sessionStorage.getItem("userId");
     const storedName = sessionStorage.getItem("userName");
     const storedAvatar = sessionStorage.getItem("userAvatar");
+    const storedCreated = sessionStorage.getItem("contestsCreated");
+    const storedJoined = sessionStorage.getItem("contestsJoined");
 
     console.log("Stored User Data:", {
       id: storedId,
