@@ -28,6 +28,7 @@ const defaultUser: User = {
 const UserContext = createContext<UserContextType>({
   user: defaultUser,
   setUser: () => {},
+  setUser: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -49,8 +50,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         id: storedId,
         name: storedName,
         avatar: storedAvatar,
-        contestsCreated: 0,
-        contestsJoined: 0,
+        contestsCreated: Number(storedCreated || 0),
+        contestsJoined: Number(storedJoined || 0),
         currentRank: 0,
       });
     }

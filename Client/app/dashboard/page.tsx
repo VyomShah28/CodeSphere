@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useContext, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,63 +12,53 @@ import { useUser } from "../../context/userContext";
 import axios from "axios"
 
 export default function Dashboard() {
-   const router = useRouter();
+ const router = useRouter();
   const searchParams = useSearchParams();
   const { user, setUser } = useUser();
 
-  const fetchUserDetails = async (id: string) => {
-      if (!id) return;
+  const fetchUserDetails = async (id: string, name: string, avatar: string) => {
     try {
       const response = await axios.get(
         `http://localhost:8000/api/user-details/?user_id=${id}`
       );
-      sessionStorage.setItem("contestsCreated", response.data.contest_created);
-      sessionStorage.setItem("contestsJoined", response.data.contest_participated);
-      console.log(user);
-      const updatedUser = {
-        ...user,
+
+      const completeUser = {
+        id,
+        name,
+        avatar,
         contestsCreated: response.data.contest_created,
         contestsJoined: response.data.contest_participated,
+        currentRank: 0,
       };
 
-      setUser(updatedUser);
-      console.log("Updated User", updatedUser);
-      console.log(user);
+      setUser(completeUser); 
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
 
   useEffect(() => {
-    const id = searchParams.get("id");
-    const name = searchParams.get("full_name");
-    const avatar = searchParams.get("url");
+    const idFromUrl = searchParams.get("id");
+    const nameFromUrl = searchParams.get("full_name");
+    const avatarFromUrl = searchParams.get("url");
 
-    if (id && name && avatar) {
-      const initialUser = {
-        id,
-        name,
-        avatar,
-        contestsCreated: 0,
-        contestsJoined: 0,
-        currentRank: 0,
-      };
-      console.log(initialUser," Hello "); 
-      setUser(initialUser);
-      console.log(user);
-      sessionStorage.setItem("userId", id);
-      sessionStorage.setItem("userName", name);
-      sessionStorage.setItem("userAvatar", avatar);
+    const storedId = sessionStorage.getItem("userId");
+    const storedName = sessionStorage.getItem("userName");
+    const storedAvatar = sessionStorage.getItem("userAvatar");
 
+    if (idFromUrl && nameFromUrl && avatarFromUrl) {
+
+      sessionStorage.setItem("userId", idFromUrl);
+      sessionStorage.setItem("userName", nameFromUrl);
+      sessionStorage.setItem("userAvatar", avatarFromUrl);
+      fetchUserDetails(idFromUrl, nameFromUrl, avatarFromUrl);
+    } else if (storedId && storedName && storedAvatar) {
+   
+      fetchUserDetails(storedId, storedName, storedAvatar);
+    } else {
+      router.push("/login");
     }
-  }, []);
-
-  useEffect(() => { 
-    const userId = sessionStorage.getItem("userId");
-    if (userId) {
-      fetchUserDetails(userId);
-    }
-  },[])
+  }, []); 
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -121,7 +111,8 @@ export default function Dashboard() {
               <Trophy className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{sessionStorage.getItem("contestsCreated")}</div>
+              <div className="text-2xl font-bold">{user.contestsCreated}</div>
+              <p className="text-xs text-slate-500">+2 from last month</p>
             </CardContent>
           </Card>
 
