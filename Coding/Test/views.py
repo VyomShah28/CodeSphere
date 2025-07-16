@@ -98,6 +98,7 @@ def google_callback(request):
 @api_view(["GET"])
 def user_details(request):
     user_id = request.GET.get("user_id")
+    print(user_id,"Hello")
     if not user_id:
         return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -107,6 +108,7 @@ def user_details(request):
             "contest_created": user.contest_created,
             "contest_participated": user.contest_participated,
         }
+        
         return Response(user_data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from Test.models import Contest, Challenges, User, Rank
-from .models import Score
+from .models import Score, Testcase, Leetcode_Description, slug_map
 import json
 from django.http import JsonResponse
 from datetime import datetime, date, time as dt_time
@@ -68,9 +68,24 @@ def get_leetcode_slug_map():
 
 
 def get_leetcode_problem_data(question_number):
+    
+    if slug_map.objects.exists()==False:
+        id_slug = get_leetcode_slug_map()
 
-    id_slug = get_leetcode_slug_map()
-    title_slug = id_slug[question_number]
+        print(id_slug)
+
+        title_slug = id_slug[question_number]
+
+        slug=slug_map(
+            slug=id_slug
+        )
+        slug.save()
+
+    else : 
+        id_slug = slug_map.objects.first().slug   
+        title_slug = id_slug[str(question_number)]
+
+    print(title_slug)
 
     graphql_url = "https://leetcode.com/graphql"
     query = {
@@ -108,7 +123,6 @@ def get_leetcode_problem_data(question_number):
 
 
 def get_leetcode_problem_description_Gemini(question_number):
-
     description_html = get_leetcode_problem_data(question_number)
     prompt = f"""
     You are an expert LeetCode assistant AI designed to transform raw LeetCode problem content into two precise outputs:
@@ -177,7 +191,7 @@ def get_leetcode_problem_description_Gemini(question_number):
     print(response)
 
     val = json.loads(response.text)
-    print(val)
+
     del val["sample_testcases"]
     return response.text, val
 
@@ -610,20 +624,39 @@ def get_CPP_code(val, list1):
 
 @api_view(["POST"])
 def get_leetcode_problem_description(request):
+
     if request.method == "POST":
         question_number = request.data.get("question_number")
         question_number = int(question_number)
 
-        print(f"Received question number: {question_number}")
+        if Leetcode_Description.objects.filter(number=question_number).exists():
+            print("Fetching from database")
+            leetcode = Leetcode_Description.objects.get(number=question_number)
+            description = leetcode.description
+            val = json.loads(description)
+            del val["sample_testcases"]
+
+            return Response(
+                {"question": val, "challange": description}, status=200
+            )
+        
         if not question_number:
             return Response({"error": "Question number is required"}, status=400)
 
         try:
-            description_html, val = get_leetcode_problem_description_Gemini(
+            description, val = get_leetcode_problem_description_Gemini(
                 question_number
             )
+            print(type(description),type(val))
+            print(f"Received description type: {json.loads(description)}")
+
+            leetcode=Leetcode_Description(
+                number=question_number,
+                description=description
+            )
+            leetcode.save()
             return Response(
-                {"question": val, "challange": description_html}, status=200
+                {"question": val, "challange": description}, status=200
             )
         except Exception as e:
             return Response({"error": str(e)}, status=500)
@@ -635,10 +668,18 @@ def generate_test_cases(request):
     if request.method == "POST":
         description = request.data.get("description")
         print(f"Received description: {type(description)}")
-        
+        question_number = request.data.get("question_number")
         if not description:
             return Response({"error": "Description is required"}, status=400)
         
+        if Testcase.objects.filter(question_number=question_number).exists():
+            test = Testcase.objects.get(question_number=question_number)
+            return Response({
+                "message": "Test cases already generated",
+                "test_cases": test.test_cases.split("\n")[0:10],
+                "output_cases": test.output_cases.split("\n"),
+            }, status=200)
+
         try:
             file_name = "code.py"
             code = get_python_code(description)
@@ -711,8 +752,16 @@ def generate_test_cases(request):
                 
                 
             with open("output.txt", "r") as f:
-             output_lines = [line.strip() for line in f.readlines()]
+                output_lines = [line.strip() for line in f.readlines()]
             
+            test=Testcase(
+                question_number=question_number,
+                input="\n".join(test_cases),
+                output="\n".join(output_lines),
+                code_template=get_cpp_code,
+            )
+            test.save()
+
             return Response({"message": "Test cases generated successfully", "test_cases": test_cases[0:10], "output_cases": output_lines}, status=200)
                 
         except Exception as e:
@@ -727,7 +776,6 @@ def cpp_create_output_file(code_template, challenge_file_path):
     
     print("🔧 Starting code compilation and execution process...\n")
     
-    # FIX: Add common MinGW paths to environment PATH
     if platform.system() == "Windows":
         common_paths = [
             "C:\\msys64\\mingw64\\bin",
@@ -883,7 +931,6 @@ def cpp_create_output_file(code_template, challenge_file_path):
     return True
 
 
-
 def cleanup_files():
     """Clean up temporary files"""
     files_to_remove = ["code.py", "code.cpp", "code.exe", "code", "test_cases.txt", "output.txt"]
@@ -894,6 +941,8 @@ def cleanup_files():
                 print(f"🗑️ Removed {file_name}")
         except Exception as e:
             print(f"❌ Failed to remove {file_name}: {e}")
+
+
 
 
 # OLD Code

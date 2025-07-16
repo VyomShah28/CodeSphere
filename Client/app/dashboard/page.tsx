@@ -22,10 +22,9 @@ export default function Dashboard() {
       const response = await axios.get(
         `http://localhost:8000/api/user-details/?user_id=${id}`
       );
-
       sessionStorage.setItem("contestsCreated", response.data.contest_created);
       sessionStorage.setItem("contestsJoined", response.data.contest_participated);
-
+      console.log(user);
       const updatedUser = {
         ...user,
         contestsCreated: response.data.contest_created,
@@ -33,9 +32,8 @@ export default function Dashboard() {
       };
 
       setUser(updatedUser);
-      console.log(updatedUser);
-      
-      console.log("Updated User Details:", updatedUser);
+      console.log("Updated User", updatedUser);
+      console.log(user);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -55,15 +53,22 @@ export default function Dashboard() {
         contestsJoined: 0,
         currentRank: 0,
       };
-
+      console.log(initialUser," Hello "); 
       setUser(initialUser);
-      fetchUserDetails(id);
+      console.log(user);
       sessionStorage.setItem("userId", id);
       sessionStorage.setItem("userName", name);
       sessionStorage.setItem("userAvatar", avatar);
 
     }
-  }, [searchParams]);
+  }, []);
+
+  useEffect(() => { 
+    const userId = sessionStorage.getItem("userId");
+    if (userId) {
+      fetchUserDetails(userId);
+    }
+  },[])
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -87,6 +92,13 @@ export default function Dashboard() {
             <Button variant="ghost" size="icon">
               <Settings className="h-5 w-5" />
             </Button>
+            <Button variant="ghost" size="icon">
+              <img
+                src={sessionStorage.getItem("userAvatar") || user.avatar}
+                alt={user.name}
+                className="h-8 w-8 rounded-full border border-slate-200"
+              />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => router.push("/")}>
               <LogOut className="h-5 w-5" />
             </Button>
@@ -97,7 +109,7 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome back, {user.name}! 👋</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome back, {sessionStorage.getItem('userName')}! 👋</h1>
           <p className="text-slate-600">Ready to create amazing contests or join exciting challenges?</p>
         </div>
 
@@ -110,7 +122,6 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{sessionStorage.getItem("contestsCreated")}</div>
-              <p className="text-xs text-slate-500">+2 from last month</p>
             </CardContent>
           </Card>
 
@@ -121,7 +132,6 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{user.contestsJoined}</div>
-              <p className="text-xs text-slate-500">+5 from last month</p>
             </CardContent>
           </Card>
 
@@ -132,7 +142,6 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">#{user.currentRank}</div>
-              <p className="text-xs text-slate-500">↑12 from last week</p>
             </CardContent>
           </Card>
         </div>

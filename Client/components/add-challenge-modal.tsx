@@ -406,7 +406,7 @@ export function AddChallengeModal({
      
       
       const problemData = response.data.challange;
-      
+      console.log("Received problem data:", problemData);
       const parsedData = JSON.parse(problemData);
 
       if (problemData) {
