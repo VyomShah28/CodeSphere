@@ -97,12 +97,16 @@ export default function EditContest() {
     router.push("/challenge-editor?contestId=" + params.id+'&&edited='+true)
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
-    }
+const handleInputChange = (field: string, value: string) => {
+  console.log(`Updating field: ${field} with value: ${value}`);
+  
+  setFormData((prev) => ({ ...prev, [field]: value }));
+
+  if (errors[field]) {
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   }
+};
+
 
   if (isLoading) {
     return (
@@ -146,7 +150,7 @@ export default function EditContest() {
                   id="contest-name"
                   placeholder="e.g., Weekly Algorithm Challenge #43"
                   value={formData.contest_name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  onChange={(e) => handleInputChange("contest_name", e.target.value)}
                   className={errors.name ? "border-red-500" : ""}
                 />
                 {errors.name && (
@@ -181,7 +185,7 @@ export default function EditContest() {
                         id="start-date"
                         type="date"
                         value={formData.start_date}
-                        onChange={(e) => handleInputChange("startDate", e.target.value)}
+                        onChange={(e) => handleInputChange("start_date", e.target.value)}
                         className={errors.startDate ? "border-red-500" : ""}
                       />
                       {errors.startDate && (
@@ -197,7 +201,7 @@ export default function EditContest() {
                         id="start-time"
                         type="time"
                         value={formData.start_time}
-                        onChange={(e) => handleInputChange("startTime", e.target.value)}
+                        onChange={(e) => handleInputChange("star_tTime", e.target.value)}
                         className={errors.startTime ? "border-red-500" : ""}
                       />
                       {errors.startTime && (
@@ -222,7 +226,7 @@ export default function EditContest() {
                         id="end-date"
                         type="date"
                         value={formData.end_date}
-                        onChange={(e) => handleInputChange("endDate", e.target.value)}
+                        onChange={(e) => handleInputChange("end_date", e.target.value)}
                         className={errors.endDate ? "border-red-500" : ""}
                       />
                       {errors.endDate && (
@@ -238,7 +242,7 @@ export default function EditContest() {
                         id="end-time"
                         type="time"
                         value={formData.end_time}
-                        onChange={(e) => handleInputChange("endTime", e.target.value)}
+                        onChange={(e) => handleInputChange("end_time", e.target.value)}
                         className={errors.endTime ? "border-red-500" : ""}
                       />
                       {errors.endTime && (
