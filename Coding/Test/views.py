@@ -432,81 +432,64 @@ def get_contest_byId(request):
 
 
 def format(description,list1):
-    prompt4 = f"""
-    You are a hyper-specialized, deterministic parsing engine. Your function is to operate as a compiler front-end that analyzes programming problem specifications and raw test data to produce a definitive, machine-readable explanation of the input structure. You are not a creative assistant; you are a technical analyzer. Your output must be precise, logical, and devoid of any extraneous information.
+    str1='\n'.join(list1)
+    prompt2=f"""
+        You are an expert parsing system for competitive programming problems. Your sole function is to analyze a problem's description and raw test case inputs to produce a human-readable explanation of the input format. You must determine how the raw, single-line string of a test case maps to the data structures and variables described in the problem.
+        Your Task:
+        You will be given two pieces of information:
 
-    Core Mission:
-    Your single objective is to analyze the provided problem description and a set of raw, single-line test cases, then generate a single JSON object that explains the exact parsing logic for the raw input string.
+        Problem JSON (<PROBLEM_JSON>): A JSON object containing the full problem details, including description, constraints, and format information from a platform like LeetCode.
+        Test Cases (<TEST_CASES>): A block of 5 separate, single-line raw test cases.
+        Based on this information, you must generate a single, valid JSON object and nothing else. Extraneous text, explanations, or conversational filler are strictly forbidden.
 
-    Input You Will Receive:
-    <PROBLEM_JSON>: A JSON object containing the complete problem specification (description, variable names, constraints, etc.).
-    <TEST_CASES>: A multi-line block of raw, single-line test cases. These test cases are the GROUND TRUTH for the input structure.
+        Output Requirements:
 
-    Strict Rules of Engagement (Non-negotiable):
-    JSON Purity: Your entire output MUST be a single, valid JSON object. Do not include json markers, comments, apologies, or any text before the opening {{ or after the closing }}.
-    Fixed Schema: The JSON object MUST contain exactly one key: "input_format_explanation". No other keys are permitted.
-    Synthesis is Mandatory: You MUST NOT simply rephrase the input_format string from the problem description. That field is often a high-level guide. Your primary task is to deduce the parsing logic by reconciling the problem description (e.g., variables N, M, grid) with the actual patterns observed in the raw <TEST_CASES>. If the test cases show 2 5 followed by 10 numbers, you must infer this means an N x M matrix, not just "a grid."
-    Variable Naming Convention: In your explanation, use the exact variable names (N, queries, k, etc.) if they are provided in the problem description. If no specific names are given, use logical and standard placeholders (e.g., rows, cols, num_nodes, num_edges).
-    Completeness: Your explanation must account for every single part of the raw input string, from the first character to the last. Do not omit any part of the input sequence.
+        The output must be a valid JSON object.
+        The JSON object must contain a single key: "input_format_explanation".
+        The value for this key must be a string that provides a clear, precise, and accurate step-by-step description of how to parse the raw, single-line test case.
+        The explanation must connect the elements in the raw input string to the variables and data structures mentioned in the <PROBLEM_JSON> (e.g., N, M, grid, queries). It should describe the order, type, and meaning of each part of the input.
+        The explanation must be detailed enough for a programmer to write code that correctly reads the input.
 
-    Forbidden Actions:
-    DO NOT add conversational filler (e.g., "Here is the JSON you requested...").
-    DO NOT hallucinate variables or steps not supported by the test cases.
-    DO NOT provide multiple output formats or alternatives. There is only one correct parsing logic.
-    DO NOT explain your own reasoning. Only provide the final JSON.
-    Critical Training Example (Study This Carefully)
-    This example will train you on the required level of precision and the concept of synthesis over repetition.
+        Crucial Example
+        To ensure you understand the required output format and precision, here is an example.
 
-    EXAMPLE INPUT:
+        EXAMPLE INPUT:
 
-    <PROBLEM_JSON>
-    {{
-    "title": "Graph Connectivity",
-    "description": "You are given a directed graph with N nodes and M edges. Determine if a path exists between two given nodes, U and V.",
-    "input_format": "The first line contains two integers, N and M. The next M lines each contain two integers, representing an edge. The final line contains the two integers U and V.",
-    "constraints": "1 <= N <= 1000\n1 <= M <= 5000"
-    }}
-    </PROBLEM_JSON>
+        <PROBLEM_JSON>
+        {{
+        "title": "Matrix and Queries",
+        "description": "You are given a matrix of size N x M. After the matrix, you are given Q queries. Each query consists of two integers, r and c. For each query, find the value at matrix[r][c].",
+        "input_format": "The first line contains two integers, N and M. The next N lines contain M integers each. The next line contains an integer Q. The next Q lines contain two integers, r and c.",
+        "constraints": "1 <= N, M <= 100\n1 <= Q <= 1000"
+        }}
+        </PROBLEM_JSON>
 
-    <TEST_CASES>
-    4 3 0 1 1 2 2 3 0 3
-    5 5 0 1 0 2 0 3 0 4 4 0 0 4
-    2 1 0 1 1 0
-    </TEST_CASES>
-    Analysis of the Example:
-    The problem describes N and M, then M edges, then U and V.
-    The raw test case 4 3 0 1 1 2 2 3 0 3 matches this. N=4, M=3. This is followed by M=3 pairs of numbers (0 1, 1 2, 2 3). Finally, it ends with the two query nodes U=0 and V=3.
-    A lazy response would just rephrase the input_format string. A correct response synthesizes this into a parsing plan for a single line.
+        <TEST_CASES>
+        2 3 1 2 3 4 5 6 2 0 1 1 2
+        3 3 9 8 7 6 5 4 3 2 1 1 2 2
+        1 1 100 1 0 0
+        </TEST_CASES>
+        REQUIRED OUTPUT FOR THE EXAMPLE:
 
-    Correct Output for the Example:
-    JSON
+        JSON
 
-    {{
-    "input_format_explanation": "The input line starts with two space-separated integers, N (number of nodes) and M (number of edges). This is followed by M pairs of space-separated integers, where each pair represents a directed edge from one node to another. The input concludes with two final space-separated integers, U and V, representing the start and end nodes for the path query."
-    }}
-    Incorrect/Bad Output for the Example (What NOT to do):
-    JSON
+        {{
+        "input_format_explanation": "The input begins with two space-separated integers, N and M, representing the number of rows and columns of the matrix. These are followed by N * M space-separated integers, which represent the elements of the matrix provided in row-major order. After the matrix elements, there is a single integer Q, indicating the number of queries. Finally, this is followed by Q pairs of space-separated integers (r and c), representing the coordinates for each query."
+        }}
+        Now, analyze the following problem JSON and test cases and generate the required JSON output.
 
-    {{
-    "input_format_explanation": "The first line contains N and M. Then there are M lines for edges. The last line has U and V."
-    }}
-    (This is WRONG because it incorrectly describes multi-line input and fails to explain how the provided single-line test case is structured.)
+        <PROBLEM_JSON>
+        {description}
+        </PROBLEM_JSON>
 
-    Your Turn: Execute the Mission
-    Analyze the following inputs and generate the single, correct JSON object according to the strict rules defined above.
-
-    <PROBLEM_JSON>
-    {description}
-
-    </PROBLEM_JSON>
-
-    <TEST_CASES>
-    { list1}
-    </TEST_CASES>
-    """
+        <TEST_CASES>
+        {str1}
+        </TEST_CASES>
+        """
 
     model = genai.GenerativeModel("gemini-2.5-flash")
-    return model.generate_content(prompt4)
+    print(model.generate_content(prompt2))
+    return model.generate_content(prompt2)
 
 
 

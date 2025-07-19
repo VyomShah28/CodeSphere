@@ -54,7 +54,7 @@ def testcases(request):
         )
     test_cases = execute_stdout.strip().split("\n")
     list1 = test_cases[19:]
-    get_cpp_code = get_CPP_code(val, list1)
+    # get_cpp_code = get_CPP_code(val, list1)
 
     # The Code for the C++ code functioning is remaining
 
@@ -201,22 +201,20 @@ def get_leetcode_problem_description_Gemini(question_number):
 
 
 def get_python_code(description):
-    print(description, type(description))
-    print("2")
     response = None
-    prompt2 = f"""
+    prompt3 = f"""
         You are an expert in creating test cases for competitive programming problems. Your task is to generate exactly 15 test cases and their corresponding correct solutions based on the problem description provided, including all sample test cases from the problem specification.
 
         # PRIMARY OBJECTIVE
         - Generate 15 formatted test case inputs and 15 corresponding correct solution outputs, incorporating all sample test cases from the PROBLEM SPECIFICATION SECTION and generating additional test cases to reach a total of 15.
 
         # OUTPUT STRUCTURE
-You MUST provide your response in the following exact JSON format. Do NOT include any explanations, Python code, or other text — only the JSON data.
+        You MUST provide your response in the following exact JSON format. Do NOT include any explanations, Python code, or other text — only the JSON data.
 
         ## JSON Format:
         - A JSON object with exactly two keys: "input" and "output".
-        - The "input" field contains all 15 test case inputs, each on a separate line (line-separated).
-        - The "output" field contains all 15 corresponding test case outputs, each on a separate line (line-separated).
+        - The "input" field contains all 15 test case inputs, each on a separate line (line-separated).Each test case must be on a new line, separated by a single newline character (`\n`). **There must be no extra blank lines between test cases.**
+        - The "output" field contains all 15 corresponding test case outputs, each on a separate line (line-separated).Each output must be on a new line, separated by a single newline character (`\n`). **There must be no extra blank lines between outputs.**
         - The first \\(S\\) lines in both fields must be the sample test cases from the PROBLEM SPECIFICATION SECTION, reformatted to match the formatting rules below.
         - The remaining \\(15 - S\\) lines are generated test cases.
         - All input and output formatting rules below must be strictly followed.
@@ -227,7 +225,7 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
         "input": "line1_input\nline2_input\nline3_input\n...\nline15_input",
         "output": "line1_output\nline2_output\nline3_output\n...\nline15_output"
         }}
-
+                
         ## Part 1: Test Case Inputs
         - Exactly 15 lines of input data.
         - Each line is a complete, single-line, space-separated test case.
@@ -244,48 +242,48 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
 
         # TEST CASE GENERATION RULES (15 Cases Total)
 
-        - *Incorporate Sample Test Cases*: Extract all sample test cases (inputs and outputs) from the sample_testcases section of the PROBLEM SPECIFICATION SECTION. Convert each sample input to a single-line, space-separated format, adding size prefixes for collections as per the formatting rules below. Include these as the first \\(S\\) lines in Part 1 (inputs) and Part 2 (outputs).
-        - *Generate Additional Cases: Generate \\(15 - S\\) additional test cases to reach a total of 15. These must be diverse, including basic, moderate, and edge cases. The values within a test case should be interrelated to test specific scenarios (e.g., sorted data, all identical values, etc.). *Do not simply use random, unrelated values.
+        - **Incorporate Sample Test Cases**: Extract all sample test cases (inputs and outputs) from the `sample_testcases` section of the PROBLEM SPECIFICATION SECTION. Convert each sample input to a single-line, space-separated format, adding size prefixes for collections as per the formatting rules below. Include these as the first \\(S\\) lines in Part 1 (inputs) and Part 2 (outputs).
+        - **Generate Additional Cases**: Generate \\(15 - S\\) additional test cases to reach a total of 15. These must be diverse, including basic, moderate, and edge cases. The values within a test case should be interrelated to test specific scenarios (e.g., sorted data, all identical values, etc.). *Do not simply use random, unrelated values.*
 
         ## Constraint Adherence:
-        - *CRITICAL SIZE RESTRICTION*: For generated test cases (not samples), any dimension (e.g., array size N, matrix rows M) must NOT exceed 30% of its maximum allowed constraint.
-        Example: If a problem constraint is 1 <= N <= 1000, generated N for the additional test cases must be in the range 1 <= N <= 300.
-        - *Value Range*: All element values (for both sample and generated test cases) must be within their full specified constraint ranges.
-        - *Sample Test Cases*: Sample test cases may use any valid sizes within the problem constraints, as they are provided by the problem description, but must be formatted correctly.
+        - **CRITICAL SIZE RESTRICTION**: For generated test cases (not samples), any dimension (e.g., array size N, matrix rows M) must NOT exceed 30% of its maximum allowed constraint.
+        Example: If a problem constraint is `1 <= N <= 1000`, generated `N` for the additional test cases must be in the range `1 <= N <= 300`.
+        - **Value Range**: All element values (for both sample and generated test cases) must be within their full specified constraint ranges.
+        - **Sample Test Cases**: Sample test cases may use any valid sizes within the problem constraints, as they are provided by the problem description, but must be formatted correctly.
 
         # MANDATORY INPUT & OUTPUT FORMATTING (SIZE PREFIXING)
 
         For ANY collection of data (arrays, lists, matrices, etc.) in both your inputs and outputs (including sample test cases), you MUST prefix it with its dimensional size information.
 
-        *CRITICAL: ELEMENT COUNT MUST EXACTLY MATCH THE DECLARED SIZE PREFIX.*
+        **CRITICAL: ELEMENT COUNT MUST EXACTLY MATCH THE DECLARED SIZE PREFIX.**
 
-        If you declare size N, you MUST generate EXACTLY N elements.
-        If you declare dimensions M x N, you MUST generate EXACTLY M * N elements.
-        *NO EXCEPTIONS.*
+        If you declare size `N`, you MUST generate EXACTLY `N` elements.
+        If you declare dimensions `M x N`, you MUST generate EXACTLY `M * N` elements.
+        **NO EXCEPTIONS.**
 
         ## Dimension-based Size Prefixing Rules:
-        - *1D Collections*: {{size}} {{elements...}}
-        - *2D Collections*: {{rows}} {{cols}} {{elements...}} (flattened row-by-row)
-        - *nD Collections*: {{dim1}} {{dim2}} ... {{dimN}} {{elements...}} (flattened)
+        - **1D Collections**: {{size}} {{elements...}}
+        - **2D Collections**: {{rows}} {{cols}} {{elements...}} (flattened row-by-row)
+        - **nD Collections**: {{dim1}} {{dim2}} ... {{dimN}} {{elements...}} (flattened)
 
         ---
 
-        *CRITICAL RULE*: Element Count MUST Match Size Prefix.
+        **CRITICAL RULE**: Element Count MUST Match Size Prefix.
         This is the most important formatting rule.
 
         ### Examples:
-        - 1D Array:
-        If size is 4, the input must be: 4 e1 e2 e3 e4
-        ❌ Incorrect: 4 e1 e2 e3
-        ❌ Incorrect: 4 e1 e2 e3 e4 e5
+        - *1D Array*:
+        If size is `4`, the input must be: `4 e1 e2 e3 e4`
+        ❌ Incorrect: `4 e1 e2 e3`
+        ❌ Incorrect: `4 e1 e2 e3 e4 e5`
 
-        - 2D Matrix:
-        If rows = 2 and cols = 3, input must be: 2 3 e11 e12 e13 e21 e22 e23
-        The number of elements = 2 * 3 = 6.
+        - *2D Matrix*:
+        If rows = `2` and cols = `3`, input must be: `2 3 e11 e12 e13 e21 e22 e23`
+        The number of elements = `2 * 3 = 6`.
 
         Failure to follow this rule invalidates the entire test case.
 
-        *Note: Single values (like an integer or string) are *not collections and must NOT be prefixed.
+        **Note**: Single values (like an integer or string) are *not* collections and must NOT be prefixed.
 
         MANDATORY OUTPUT FORMATTING
             -CRITICAL: Do NOT include size prefixes for any collection in the output.
@@ -299,19 +297,19 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
             -String "hello" must be output as: "hello"
 
         ### Collection Examples:
-        - Array [5, 3, 8]: 3 5 3 8
-        - Integer 42: 42
-        - Matrix [[1, 2], [3, 4]]: 2 2 1 2 3 4
-        - String "hello": hello
+        - Array `[5, 3, 8]`: `3 5 3 8`
+        - Integer `42`: `42`
+        - Matrix `[[1, 2], [3, 4]]`: `2 2 1 2 3 4`
+        - String `"hello"`: `hello`
 
         ---
 
         # INPUT ORDER PRESERVATION
 
-        The order of input parameters in each test case (both sample and generated) MUST exactly match the order specified in the sample_testcases section of the problem.
+        The order of input parameters in each test case (both sample and generated) MUST exactly match the order specified in the `sample_testcases` section of the problem.
 
-        - Add the required size prefix *only* for collections (arrays, matrices, etc.).
-        - Maintain the exact order of input parameters (collections and non-collections) as they appear.
+        - Add the required size prefix **only** for collections (arrays, matrices, etc.).
+        - Maintain the *exact* order of input parameters (collections and non-collections) as they appear.
 
         ---
 
@@ -328,17 +326,17 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
             -The identified Input Template is: (Array, String).
             -A valid line MUST look like: 4 10 20 30 40 hello_world.
             -A line like 4 10 20 30 40 is a COMPLETE FAILURE because the string is missing.
-            -*CRITICAL MANDATE: EVERY SINGLE ONE of the 15 generated input lines MUST perfectly match the Input Template in number, type, and order of parameters. NO PARAMETERS MAY BE ADDED OR OMITTED. EVER*.
+            -**CRITICAL MANDATE: EVERY SINGLE ONE of the 15 generated input lines MUST perfectly match the Input Template in number, type, and order of parameters. NO PARAMETERS MAY BE ADDED OR OMITTED. EVER**.
             
         ---
 
         # PROBLEM ANALYSIS & SOLVING
 
-        - *Analyze the Problem*: Read the PROBLEM SPECIFICATION SECTION to identify input data structures, constraints, and the input order from the sample_testcases section.
-        - *Extract Sample Test Cases*: Identify all sample inputs and outputs from the PROBLEM SPECIFICATION SECTION. Convert sample inputs to single-line, space-separated format, adding size prefixes for collections. Use the provided sample outputs, reformatted if necessary to match output formatting rules.
-        - *Generate Additional Inputs*: Create \\(15 - S\\) additional inputs following all size restriction, formatting, and input order preservation rules.
-        - *Solve the Problem*: Compute the correct output for each of the 15 inputs (sample and generated).
-        - *Format Outputs*: Present the 15 answers as Part 2 of your response, ensuring sample outputs are listed first, followed by outputs for generated test cases.
+        - **Analyze the Problem**: Read the PROBLEM SPECIFICATION SECTION to identify input data structures, constraints, and the input order from the `sample_testcases` section.
+        - **Extract Sample Test Cases**: Identify all sample inputs and outputs from the PROBLEM SPECIFICATION SECTION. Convert sample inputs to single-line, space-separated format, adding size prefixes for collections. Use the provided sample outputs, reformatted if necessary to match output formatting rules.
+        - **Generate Additional Inputs**: Create \\(15 - S\\) additional inputs following all size restriction, formatting, and input order preservation rules.
+        - **Solve the Problem**: Compute the correct output for each of the 15 inputs (sample and generated).
+        - **Format Outputs**: Present the 15 answers as Part 2 of your response, ensuring sample outputs are listed first, followed by outputs for generated test cases.
 
         ---
 
@@ -356,18 +354,17 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
         - [x] Generated input sizes ≤ 30% of max constraints?
         - [x] All collections (input & output) have size prefixes?
         - [x] Element counts match prefixes exactly?
-        - [x] Input parameter order matches sample_testcases?
+        - [x] Input parameter order matches `sample_testcases`?
         - [x] Outputs are correct solutions?
         - [x] Is there any extra text, code, or explanation? ❌ No
-        """
-    print("3")
+    """
 
     try:
 
         client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         completion = client.chat.completions.create(
             model="deepseek-r1-distill-llama-70b",
-            messages=[{"role": "user", "content": prompt2}],
+            messages=[{"role": "user", "content": prompt3}],
             temperature=0.4,
             max_completion_tokens=8192,
             top_p=0.95,
@@ -401,55 +398,6 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
 
     if not response:
         raise Exception("Failed to generate test cases from description")
-
-
-def get_CPP_code(val, list1):
-
-    prompt3 = f"""
-    You are an expert C++ programmer and a master of algorithm design. Your task is to write a complete, single-file C++ solution for the problem described below. Your code must be robust, generalized, and should not be hardcoded for specific examples.
-
-    ** Problem Description : **
-    {val}
-
-    ### 2. Input Format Specification
-
-    Your C++ code's `main()` function must parse input delivered as a single stream of **space-separated values**. You should use standard input streams (e.g., `std::cin`) to read the data.
-
-    **Input Structure:**
-    The input will be provided in the following specific order, with each item separated by one or more spaces:
-    1.  An integer `m` (the number of rows in the grid).
-    2.  An integer `n` (the number of columns in the grid).
-    3.  `m * n` characters, representing the grid's content, provided in row-major order.
-    4.  The string `word` to be searched for in the grid.
-
-    **Example Input:**
-    For a grid `[['A','B','C'],['S','F','S']]` and the word `SEE`, the corresponding space-separated input stream would be:
-    `2 3 A B C S F S SEE`
-
-    **Guiding Principle for Deduction:**
-    -When you analyze the sample test cases, you should look for a general, underlying pattern. As a universal hint for the problems you'll receive, this pattern is:
-    -Multi-Element Collections (e.g., vectors, arrays): Are always preceded in the input stream by their dimension(s) as integers. A 1D collection will be preceded by its size; a 2D collection by its rows and columns.
-    -Single Values (e.g., int, std::string): Are given directly in the input stream without any preceding size integer.
-    -Your generated code must be a direct implementation of the format you deduce by applying this principle to the problem description and the provided test cases.
-
-
-    Your parsing logic must be robust enough to handle any valid input that follows this structure, not just the example provided. The sample test cases in the next section will also adhere to this space-separated format.
-
-    **Sample Test Cases (for logic validation):**
-    {list1}
-
-    ### 3. Code Generation Requirements
-
-    * Generate a complete C++ solution in a single code block.
-    * The solution must include a `main()` function.
-    * The `main()` function must contain all necessary code to read the input according to the **space-separated format** specified above.
-    * Implement the full logic required to solve the problem efficiently using a backtracking algorithm.
-    * Adhere to modern C++ best practices (e.g., use `<vector>`, `<string>`, `<iostream>`).
-    * `#include <cstddef>` ← *Add this to safely use `size_t` and related types.*
-    * Do not add any explanatory text or comments outside of the code block in your final output.
-    """
-    response2 = model.generate_content(prompt3)
-    return response2.text
 
 
 # API
@@ -538,10 +486,6 @@ CODE_EXECUTION_TIMEOUT = 5
 
 
 def get_windows_compilers_env():
-    """
-    On Windows, finds potential MinGW paths and returns a modified environment
-    if a valid g++ is found. This helps the compiler find its required DLLs.
-    """
 
     common_paths = [
         "C:\\msys64\\mingw64\\bin",
@@ -573,10 +517,7 @@ def get_compilers():
 
 @api_view(["POST"])
 def run_code(request):
-    """
-    Securely compiles and runs C++ code by trying multiple compilers in an
-    isolated temporary directory, with detailed logging for each step.
-    """
+
 
     code = request.data.get("code")
     language = request.data.get("language", "").lower()
@@ -594,10 +535,10 @@ def run_code(request):
     if language == "java":
         return Response(run_java_code(code, input_data, expected_output), status=200)
 
-    if language != "cpp":
-        return Response(
-            {"success": False, "error": "Only C++ is supported currently."}, status=400
-        )
+    # if language != "cpp":
+    #     return Response(
+    #         {"success": False, "error": "Only C++ is supported currently."}, status=400
+    #     )
 
     with tempfile.TemporaryDirectory() as temp_dir:
 
@@ -616,7 +557,6 @@ def run_code(request):
             compile_command = [compiler, "-std=c++17", cpp_path, "-o", executable_path]
 
             try:
-                # Pass the modified environment to the subprocess
                 compile_process = subprocess.Popen(
                     compile_command,
                     stdout=subprocess.PIPE,
@@ -716,6 +656,8 @@ def run_code(request):
                 },
                 status=200,
             )
+
+
 def run_python_code(code, input_data, expected_output):
     with tempfile.TemporaryDirectory() as temp_dir:
         py_path = os.path.join(temp_dir, "source.py")
@@ -745,10 +687,12 @@ def run_python_code(code, input_data, expected_output):
         else:
             return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
 
+
 def run_java_code(code, input_data, expected_output):
     match = re.search(r'public\s+class\s+(\w+)', code)
     if not match:
-        return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."}
+        return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."} 
+    
     main_class_name = match.group(1)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -791,9 +735,264 @@ def run_java_code(code, input_data, expected_output):
         else:
             return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
 
+@api_view(["POST"])
+def submit_code(request):
+    code = request.data.get("code")
+    language = request.data.get("language", "").lower()
+    input_data = request.data.get("inputs", "")
+    print(f"Input data: {input_data}")
+    expected_output = request.data.get("outputs", "")
+    print(f"Expected output: {expected_output}")
+
+    if not code or not language:
+        return Response(
+            {"success": False, "error": "Code and language are required"}, status=400
+        )
+
+    if language == "python":
+        return Response(submit_python_code(code, input_data, expected_output), status=200)
+    
+    if language == "java":
+        return Response(submit_java_code(code, input_data, expected_output), status=200)
+
+    # if language != "cpp":
+    #     return Response(
+    #         {"success": False, "error": "Only C++ is supported currently."}, status=400
+    #     )
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+
+        cpp_path = os.path.join(temp_dir, "source.cpp")
+        executable_name = "program.exe" if platform.system() == "Windows" else "program"
+        executable_path = os.path.join(temp_dir, executable_name)
+
+        with open(cpp_path, "w") as source_file:
+            source_file.write(code)
+
+        compilers_to_try, env = get_compilers()
+        compilation_successful = False
+        compile_stderr_details = ""
+
+        for compiler in compilers_to_try:
+            compile_command = [compiler, "-std=c++17", cpp_path, "-o", executable_path]
+
+            try:
+                compile_process = subprocess.Popen(
+                    compile_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
+                )
+                _, compile_stderr = compile_process.communicate()
+
+                if compile_process.returncode == 0:
+                    print(f"[*] Compilation successful with '{compiler}'.")
+                    compilation_successful = True
+                    break
+                else:
+                    compile_stderr_details += f"--- {compiler} ---\n{compile_stderr or 'No error message produced.'}\n"
+
+            except FileNotFoundError:
+                compile_stderr_details += (
+                    f"--- {compiler} ---\nCompiler not found in system PATH.\n"
+                )
+                continue
+
+        if not compilation_successful:
+            print("[ERROR] All compilation attempts failed.")
+            return Response(
+                {
+                    "success": False,
+                    "error": "Compilation Failed",
+                    "details": compile_stderr_details,
+                },
+                status=400,
+            )
+
+        try:
+            run_command = [executable_path]
+            execute_process = subprocess.Popen(
+                run_command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            testcase=input_data.split('\n')
+            for test,out in zip(testcase,expected_output.split('\n')):
+                try : 
+                    actual_output, runtime_stderr = execute_process.communicate(
+                        input=test, timeout=CODE_EXECUTION_TIMEOUT
+                    )
+
+                    if execute_process.returncode != 0:
+                        return Response(
+                            {
+                                "success": False,
+                                "error": "Runtime Error",
+                                "details": runtime_stderr,
+                            },
+                            status=400,
+                        )
+                except subprocess.TimeoutExpired:
+                    execute_process.kill()
+                    return Response(
+                        {"success": False, "error": "Time Limit Exceeded"}, status=400
+                    )
+
+                if actual_output.strip() != out.strip():
+                    return Response(
+                        {
+                            "success": True,
+                            "result": {
+                                "status": "failed",
+                                "actual_output": actual_output.strip(),
+                                "expected_output": expected_output.strip(),
+                                "execution_time": "0.1ms",
+                                "memory_used": "N/A",
+                            },
+                        },
+                        status=200,
+                    )
+
+                    
+        except Exception as e:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Server execution error.",
+                    "details": str(e),
+                },
+                status=500,
+            )
+        
+        return Response({"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}, status=200)
+
+
+def submit_python_code(code,input_data,expected_output):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        py_path = os.path.join(temp_dir, "source.py")
+        with open(py_path, "w") as source_file:
+            source_file.write(code)
+        
+        start_time = time_mod.time()
+        execute_process = subprocess.Popen(
+            ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
+            try : 
+                actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
+                end_time = time_mod.time()
+                execution_time = round(end_time - start_time, 4)
+                if execute_process.returncode != 0:
+                    return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+
+            except subprocess.TimeoutExpired:
+                execute_process.kill()
+                return {"success": False, "error": "Time Limit Exceeded"}
+            except FileNotFoundError:
+                return {"success": False, "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH."}
+
+            if actual_output.strip() != out.strip():
+                return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+        return {"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}
+                
+
+def submit_java_code(code,input_data,expected_output):    
+    match = re.search(r'public\s+class\s+(\w+)', code)
+    if not match:
+        return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."}
+    main_class_name = match.group(1)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        java_path = os.path.join(temp_dir, f"{main_class_name}.java")
+        with open(java_path, "w") as source_file:
+            source_file.write(code)
+
+        try:
+            compile_process = subprocess.Popen(
+                ["javac", java_path], cwd=temp_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            _, compile_stderr = compile_process.communicate(timeout=CODE_EXECUTION_TIMEOUT)
+            if compile_process.returncode != 0:
+                return {"success": False, "error": f"Compilation Failed:\n{compile_stderr.strip()}"}
+        except FileNotFoundError:
+            return {"success": False, "error": "JDK not found. Please ensure 'javac' is in the system's PATH."}
+        except subprocess.TimeoutExpired:
+            return {"success": False, "error": "Compilation Timed Out"}
+
+        start_time = time_mod.time()
+        execute_process = subprocess.Popen(
+            ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
+            try :
+                actual_output, runtime_stderr = execute_process.communicate(input=input_data, timeout=CODE_EXECUTION_TIMEOUT)
+                end_time = time_mod.time()
+                execution_time = round(end_time - start_time, 4)
+
+                if execute_process.returncode != 0:
+                    return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+            except subprocess.TimeoutExpired:
+                execute_process.kill()
+                return {"success": False, "error": "Time Limit Exceeded"}
+            except FileNotFoundError:
+                return {"success": False, "error": "JRE not found. Please ensure 'java' is in the system's PATH."}
+
+            if actual_output.strip() != out.strip():
+                return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+        return {"success": True, "result": {"status": "passed", "execution_time": execution_time, "memory_used": "N/A"}}
 
 
 
+# def get_CPP_code(val, list1):
+
+    # prompt3 = f"""
+    # You are an expert C++ programmer and a master of algorithm design. Your task is to write a complete, single-file C++ solution for the problem described below. Your code must be robust, generalized, and should not be hardcoded for specific examples.
+
+    # ** Problem Description : **
+    # {val}
+
+    # ### 2. Input Format Specification
+
+    # Your C++ code's `main()` function must parse input delivered as a single stream of **space-separated values**. You should use standard input streams (e.g., `std::cin`) to read the data.
+
+    # **Input Structure:**
+    # The input will be provided in the following specific order, with each item separated by one or more spaces:
+    # 1.  An integer `m` (the number of rows in the grid).
+    # 2.  An integer `n` (the number of columns in the grid).
+    # 3.  `m * n` characters, representing the grid's content, provided in row-major order.
+    # 4.  The string `word` to be searched for in the grid.
+
+    # **Example Input:**
+    # For a grid `[['A','B','C'],['S','F','S']]` and the word `SEE`, the corresponding space-separated input stream would be:
+    # `2 3 A B C S F S SEE`
+
+    # **Guiding Principle for Deduction:**
+    # -When you analyze the sample test cases, you should look for a general, underlying pattern. As a universal hint for the problems you'll receive, this pattern is:
+    # -Multi-Element Collections (e.g., vectors, arrays): Are always preceded in the input stream by their dimension(s) as integers. A 1D collection will be preceded by its size; a 2D collection by its rows and columns.
+    # -Single Values (e.g., int, std::string): Are given directly in the input stream without any preceding size integer.
+    # -Your generated code must be a direct implementation of the format you deduce by applying this principle to the problem description and the provided test cases.
+
+
+    # Your parsing logic must be robust enough to handle any valid input that follows this structure, not just the example provided. The sample test cases in the next section will also adhere to this space-separated format.
+
+    # **Sample Test Cases (for logic validation):**
+    # {list1}
+
+    # ### 3. Code Generation Requirements
+
+    # * Generate a complete C++ solution in a single code block.
+    # * The solution must include a `main()` function.
+    # * The `main()` function must contain all necessary code to read the input according to the **space-separated format** specified above.
+    # * Implement the full logic required to solve the problem efficiently using a backtracking algorithm.
+    # * Adhere to modern C++ best practices (e.g., use `<vector>`, `<string>`, `<iostream>`).
+    # * `#include <cstddef>` ← *Add this to safely use `size_t` and related types.*
+    # * Do not add any explanatory text or comments outside of the code block in your final output.
+    # """
+    # response2 = model.generate_content(prompt3)
+    # return response2.text
 
 
 # @api_view(["POST"])

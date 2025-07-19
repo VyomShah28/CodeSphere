@@ -323,7 +323,7 @@ console.log(solution());`,
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/submit-contest", {
+      const response = await fetch("http://localhost:8000/api/submitContest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -332,6 +332,8 @@ console.log(solution());`,
           contestId,
           challengeId,
           code,
+          inputs: currentProblem.input_testcase,
+          outputs: currentProblem.output_testcase,
           language: selectedLanguage,
         }),
       })
