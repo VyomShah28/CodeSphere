@@ -19,3 +19,4 @@ class slug_map(models.Model):
 class Leetcode_Description(models.Model):
     number=models.IntegerField(default=0)
     description=models.TextField(default=None,null=True)
+    input_description=models.TextField(default=None,null=True)

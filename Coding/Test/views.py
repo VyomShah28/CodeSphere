@@ -20,6 +20,9 @@ from rest_framework.decorators import parser_classes
 from .serializers import ContestSerializer, ChallengeSerializer
 import uuid
 import datetime
+from compiler.models import Testcase, Leetcode_Description
+import google.generativeai as genai
+
 
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -292,6 +295,7 @@ def add_challenge(request):
         sample_testcase=request.data.get("sample_testcase"),
         sample_output=request.data.get("sample_output"),
         isLeetCode=isLeetCode,
+        leetCodeNumber=request.data.get("leetCodeNumber", ""),
         cpp_code=request.data.get("cpp_code", ""),
         python_code=request.data.get("python_code", ""),
         java_code=request.data.get("java_code", ""),
@@ -375,7 +379,37 @@ def get_challenge_byId(request):
     try:
         challenge_id = request.GET.get("challengeId")
         challenge = get_object_or_404(Challenges, id=challenge_id)
-        return Response(ChallengeSerializer(challenge).data, status=status.HTTP_200_OK)
+        
+        if challenge.isLeetCode:
+            
+           test_case = Testcase.objects.filter(question_number=challenge.leetCodeNumber).first()
+
+           if test_case:
+                input_leetcode_testcase = test_case.input
+                output_leetcode_testcase = test_case.output
+           else:
+                input_leetcode_testcase = output_leetcode_testcase = None
+                
+           leetcode_problem = Leetcode_Description.objects.filter(number=challenge.leetCodeNumber).first()
+           
+           if leetcode_problem.input_description == None:
+              input_formate = format(leetcode_problem.description, input_leetcode_testcase.split("\n")[0:5])
+              
+              input_formate = input_formate.text.replace("```json", " ")
+              input_formate = input_formate.replace("```", " ")
+              
+              input_formate = json.loads(input_formate)
+              leetcode_problem.input_description = input_formate["input_format_explanation"]
+              leetcode_problem.save()
+           else:
+                input_formate = leetcode_problem.input_description
+               
+        response_data = ChallengeSerializer(challenge).data
+        response_data['input_leetcode_testcase'] = input_leetcode_testcase
+        response_data['output_leetcode_testcase'] = output_leetcode_testcase
+        response_data['input_formate'] = input_formate if challenge.isLeetCode else challenge.input_form
+          
+        return Response(response_data, status=status.HTTP_200_OK)
     except Challenges.DoesNotExist:
         return Response(
             {"error": "Challenge not found"}, status=status.HTTP_404_NOT_FOUND
@@ -393,6 +427,87 @@ def get_contest_byId(request):
         return Response(
             {"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND
         )
+
+
+
+
+def format(description,list1):
+    prompt4 = f"""
+    You are a hyper-specialized, deterministic parsing engine. Your function is to operate as a compiler front-end that analyzes programming problem specifications and raw test data to produce a definitive, machine-readable explanation of the input structure. You are not a creative assistant; you are a technical analyzer. Your output must be precise, logical, and devoid of any extraneous information.
+
+    Core Mission:
+    Your single objective is to analyze the provided problem description and a set of raw, single-line test cases, then generate a single JSON object that explains the exact parsing logic for the raw input string.
+
+    Input You Will Receive:
+    <PROBLEM_JSON>: A JSON object containing the complete problem specification (description, variable names, constraints, etc.).
+    <TEST_CASES>: A multi-line block of raw, single-line test cases. These test cases are the GROUND TRUTH for the input structure.
+
+    Strict Rules of Engagement (Non-negotiable):
+    JSON Purity: Your entire output MUST be a single, valid JSON object. Do not include json markers, comments, apologies, or any text before the opening {{ or after the closing }}.
+    Fixed Schema: The JSON object MUST contain exactly one key: "input_format_explanation". No other keys are permitted.
+    Synthesis is Mandatory: You MUST NOT simply rephrase the input_format string from the problem description. That field is often a high-level guide. Your primary task is to deduce the parsing logic by reconciling the problem description (e.g., variables N, M, grid) with the actual patterns observed in the raw <TEST_CASES>. If the test cases show 2 5 followed by 10 numbers, you must infer this means an N x M matrix, not just "a grid."
+    Variable Naming Convention: In your explanation, use the exact variable names (N, queries, k, etc.) if they are provided in the problem description. If no specific names are given, use logical and standard placeholders (e.g., rows, cols, num_nodes, num_edges).
+    Completeness: Your explanation must account for every single part of the raw input string, from the first character to the last. Do not omit any part of the input sequence.
+
+    Forbidden Actions:
+    DO NOT add conversational filler (e.g., "Here is the JSON you requested...").
+    DO NOT hallucinate variables or steps not supported by the test cases.
+    DO NOT provide multiple output formats or alternatives. There is only one correct parsing logic.
+    DO NOT explain your own reasoning. Only provide the final JSON.
+    Critical Training Example (Study This Carefully)
+    This example will train you on the required level of precision and the concept of synthesis over repetition.
+
+    EXAMPLE INPUT:
+
+    <PROBLEM_JSON>
+    {{
+    "title": "Graph Connectivity",
+    "description": "You are given a directed graph with N nodes and M edges. Determine if a path exists between two given nodes, U and V.",
+    "input_format": "The first line contains two integers, N and M. The next M lines each contain two integers, representing an edge. The final line contains the two integers U and V.",
+    "constraints": "1 <= N <= 1000\n1 <= M <= 5000"
+    }}
+    </PROBLEM_JSON>
+
+    <TEST_CASES>
+    4 3 0 1 1 2 2 3 0 3
+    5 5 0 1 0 2 0 3 0 4 4 0 0 4
+    2 1 0 1 1 0
+    </TEST_CASES>
+    Analysis of the Example:
+    The problem describes N and M, then M edges, then U and V.
+    The raw test case 4 3 0 1 1 2 2 3 0 3 matches this. N=4, M=3. This is followed by M=3 pairs of numbers (0 1, 1 2, 2 3). Finally, it ends with the two query nodes U=0 and V=3.
+    A lazy response would just rephrase the input_format string. A correct response synthesizes this into a parsing plan for a single line.
+
+    Correct Output for the Example:
+    JSON
+
+    {{
+    "input_format_explanation": "The input line starts with two space-separated integers, N (number of nodes) and M (number of edges). This is followed by M pairs of space-separated integers, where each pair represents a directed edge from one node to another. The input concludes with two final space-separated integers, U and V, representing the start and end nodes for the path query."
+    }}
+    Incorrect/Bad Output for the Example (What NOT to do):
+    JSON
+
+    {{
+    "input_format_explanation": "The first line contains N and M. Then there are M lines for edges. The last line has U and V."
+    }}
+    (This is WRONG because it incorrectly describes multi-line input and fails to explain how the provided single-line test case is structured.)
+
+    Your Turn: Execute the Mission
+    Analyze the following inputs and generate the single, correct JSON object according to the strict rules defined above.
+
+    <PROBLEM_JSON>
+    {description}
+
+    </PROBLEM_JSON>
+
+    <TEST_CASES>
+    { list1}
+    </TEST_CASES>
+    """
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    return model.generate_content(prompt4)
+
 
 
 # @ensure_csrf_cookie

@@ -16,6 +16,12 @@ import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import platform
+from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+import tempfile
+import time as time_module
+from groq import Groq
+
 
 # New Code Added
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -68,21 +74,19 @@ def get_leetcode_slug_map():
 
 
 def get_leetcode_problem_data(question_number):
-    
-    if slug_map.objects.exists()==False:
+
+    if slug_map.objects.exists() == False:
         id_slug = get_leetcode_slug_map()
 
         print(id_slug)
 
         title_slug = id_slug[question_number]
 
-        slug=slug_map(
-            slug=id_slug
-        )
+        slug = slug_map(slug=id_slug)
         slug.save()
 
-    else : 
-        id_slug = slug_map.objects.first().slug   
+    else:
+        id_slug = slug_map.objects.first().slug
         title_slug = id_slug[str(question_number)]
 
     print(title_slug)
@@ -197,377 +201,210 @@ def get_leetcode_problem_description_Gemini(question_number):
 
 
 def get_python_code(description):
-
+    print(description, type(description))
+    print("2")
+    response = None
     prompt2 = f"""
-    You are an expert Python programmer creating test case generators for competitive programming problems. Your generated Python script MUST run without ANY errors and produce exactly 20 test cases.
+        You are an expert in creating test cases for competitive programming problems. Your task is to generate exactly 15 test cases and their corresponding correct solutions based on the problem description provided, including all sample test cases from the problem specification.
 
-    CRITICAL RESTRICTION: You are ONLY generating test input data, NOT solving the problem. Do NOT import any problem-solving libraries. ONLY use basic Python functionality (random, string) for test case generation.
+        # PRIMARY OBJECTIVE
+        - Generate 15 formatted test case inputs and 15 corresponding correct solution outputs, incorporating all sample test cases from the PROBLEM SPECIFICATION SECTION and generating additional test cases to reach a total of 15.
 
-    PRIMARY OBJECTIVE:
-    Generate a Python script that creates exactly 20 test cases formatted as single-line, space-separated values compatible with C++ cin parsing.
+        # OUTPUT STRUCTURE
+You MUST provide your response in the following exact JSON format. Do NOT include any explanations, Python code, or other text — only the JSON data.
 
-    TEST CASE DISTRIBUTION:
-    - 5 Basic Cases: Small sizes (1-10 elements)
-    - 5 Edge Cases: Boundary testing (min/max constraint values) - ALL DIFFERENT
-    - 5 Moderate Cases: Medium sizes (30%-80% of max constraint)
-    - 3 Large Cases: Near-maximum sizes (90%-99% of max constraint)
-    - 2 Stress Cases: Maximum constraint sizes - BOTH DIFFERENT
+        ## JSON Format:
+        - A JSON object with exactly two keys: "input" and "output".
+        - The "input" field contains all 15 test case inputs, each on a separate line (line-separated).
+        - The "output" field contains all 15 corresponding test case outputs, each on a separate line (line-separated).
+        - The first \\(S\\) lines in both fields must be the sample test cases from the PROBLEM SPECIFICATION SECTION, reformatted to match the formatting rules below.
+        - The remaining \\(15 - S\\) lines are generated test cases.
+        - All input and output formatting rules below must be strictly followed.
 
-    SIZE PREFIXING RULES:
+        Example structure:
+        json
+        {{
+        "input": "line1_input\nline2_input\nline3_input\n...\nline15_input",
+        "output": "line1_output\nline2_output\nline3_output\n...\nline15_output"
+        }}
 
-    MANDATORY: For ANY collection of data (arrays, lists, matrices, vectors, sets, sequences, etc.), ALWAYS prefix with dimensional size information: {{dimension_sizes}} {{element1}} {{element2}} ... {{elementN}}
+        ## Part 1: Test Case Inputs
+        - Exactly 15 lines of input data.
+        - Each line is a complete, single-line, space-separated test case.
+        - The first \\(S\\) lines must be the sample test cases from the PROBLEM SPECIFICATION SECTION, reformatted to match the formatting rules below.
+        - The remaining \\(15 - S\\) lines are generated test cases.
+        - All input formatting rules below must be strictly followed.
 
-    CRITICAL ELEMENT COUNT MATCHING RULE:
-    THE NUMBER OF ELEMENTS GENERATED MUST EXACTLY EQUAL THE SIZE PREFIX(ES) DECLARED.
-    - If you declare size N, you MUST generate EXACTLY N elements
-    - If you declare dimensions M x N, you MUST generate EXACTLY M*N elements
-    - If you declare dimensions D1 x D2 x D3, you MUST generate EXACTLY D1*D2*D3 elements
-    - NO EXCEPTIONS - the element count must mathematically match the declared dimensions
+        ## Part 2: Corresponding Outputs
+        - Exactly 15 lines of output data.
+        - The N-th line of output MUST be the correct solution for the N-th line of input.
+        - The first \\(S\\) lines correspond to the sample test case outputs, reformatted as needed.
+        - The remaining \\(15 - S\\) lines correspond to the generated test cases.
+        - All output formatting rules below must be strictly followed.
 
-    IMPORTANT NOTE: Sample test cases provided are ONLY for reference to understand the problem context. They do NOT dictate the input format requirements. You MUST still apply size prefixing rules regardless of how sample test cases are formatted.
+        # TEST CASE GENERATION RULES (15 Cases Total)
 
-    Dimension-based size prefixing:
-    - 1D Collections: {{size}} {{elements...}} → EXACTLY {{size}} number of elements must follow
-    - 2D Collections: {{rows}} {{cols}} {{elements...}} → EXACTLY {{rows*cols}} number of elements must follow (row by row)
-    - 3D Collections: {{dim1}} {{dim2}} {{dim3}} {{elements...}} → EXACTLY {{dim1*dim2*dim3}} number of elements must follow (flattened in order)
-    - nD Collections: {{dim1}} {{dim2}} ... {{dimN}} {{elements...}} → EXACTLY {{dim1*dim2*...*dimN}} number of elements must follow (flattened in order)
+        - *Incorporate Sample Test Cases*: Extract all sample test cases (inputs and outputs) from the sample_testcases section of the PROBLEM SPECIFICATION SECTION. Convert each sample input to a single-line, space-separated format, adding size prefixes for collections as per the formatting rules below. Include these as the first \\(S\\) lines in Part 1 (inputs) and Part 2 (outputs).
+        - *Generate Additional Cases: Generate \\(15 - S\\) additional test cases to reach a total of 15. These must be diverse, including basic, moderate, and edge cases. The values within a test case should be interrelated to test specific scenarios (e.g., sorted data, all identical values, etc.). *Do not simply use random, unrelated values.
 
-    This rule applies to ALL data structures containing multiple elements, regardless of:
-    - Dimension (1D, 2D, 3D, nD)
-    - Data type (integers, strings, floats, etc.)
-    - Collection type (array, list, vector, matrix, set, etc.)
-    - Input format description (even if size seems obvious or fixed)
-    - How sample test cases are formatted (sample cases are just examples, NOT format specifications)
+        ## Constraint Adherence:
+        - *CRITICAL SIZE RESTRICTION*: For generated test cases (not samples), any dimension (e.g., array size N, matrix rows M) must NOT exceed 30% of its maximum allowed constraint.
+        Example: If a problem constraint is 1 <= N <= 1000, generated N for the additional test cases must be in the range 1 <= N <= 300.
+        - *Value Range*: All element values (for both sample and generated test cases) must be within their full specified constraint ranges.
+        - *Sample Test Cases*: Sample test cases may use any valid sizes within the problem constraints, as they are provided by the problem description, but must be formatted correctly.
 
-    Examples:
-    - 1D Array [5, 3, 8] → Output: "3 5 3 8" (size=3, then EXACTLY 3 elements)
-    - 1D List of numbers [1, 7, 2] → Output: "3 1 7 2" (size=3, then EXACTLY 3 elements)
-    - Single integer 42 → Output: "42" (no size prefix for single values)
-    - 2D Matrix (2x3) [[1,2,3],[4,5,6]] → Output: "2 3 1 2 3 4 5 6" (rows=2, cols=3, then EXACTLY 2*3=6 elements row by row)
-    - 2D Matrix (3x2) [[1,2],[3,4],[5,6]] → Output: "3 2 1 2 3 4 5 6" (rows=3, cols=2, then EXACTLY 3*2=6 elements row by row)
-    - 2D Square matrix (3x3) [[1,2,3],[4,5,6],[7,8,9]] → Output: "3 3 1 2 3 4 5 6 7 8 9" (rows=3, cols=3, then EXACTLY 3*3=9 elements row by row)
-    - 3D array (2x3x4) → Output: "2 3 4 elem1 elem2 ... elem24" (dim1=2, dim2=3, dim3=4, then EXACTLY 2*3*4=24 elements)
-    - 1D Vector of 5 elements [10,20,30,40,50] → Output: "5 10 20 30 40 50" (size=5, then EXACTLY 5 elements)
-    - 1D Set {{7,3,9}} → Output: "3 7 3 9" (size=3, then EXACTLY 3 elements)
-    - 1D String array ["hello","world","test"] → Output: "3 hello world test" (size=3, then EXACTLY 3 elements)
-    - Grid of Chars [['A','B'],['C','D']] → Output: "2 2 A B C D" (each char is a space-separated element)
+        # MANDATORY INPUT & OUTPUT FORMATTING (SIZE PREFIXING)
 
-    PROBLEM CONTEXT ANALYSIS:
+        For ANY collection of data (arrays, lists, matrices, etc.) in both your inputs and outputs (including sample test cases), you MUST prefix it with its dimensional size information.
 
-    When analyzing the problem, you must:
-    1. Read the problem description to identify what INPUT data structures are needed
-    2. Ignore how sample test cases are formatted - they are just examples of expected problem behavior
-    3. **CRITICAL EXCEPTION**: A single string variable (e.g., a "word" to be searched for) is **NOT** a collection and should **NOT** be prefixed with its length. It should be appended directly.
-    4. Focus on what the algorithm needs as input to solve the problem
-    5. Apply size prefixing rules to ALL collections regardless of sample format
-    6. ALWAYS ensure element count matches declared size EXACTLY
+        *CRITICAL: ELEMENT COUNT MUST EXACTLY MATCH THE DECLARED SIZE PREFIX.*
 
-    For example:
-    - If problem mentions "two arrays" → Generate: size1 array1_elements (EXACTLY size1 elements) size2 array2_elements (EXACTLY size2 elements)
-    - If problem mentions "matrix" → Generate: rows cols matrix_elements (EXACTLY rows*cols elements)
-    - If problem mentions "list of integers" → Generate: size list_elements (EXACTLY size elements)
-    - Even if sample shows "l1 = [2,4,3], l2 = [5,6,4]" → Still generate: "3 2 4 3 3 5 6 4" (3 elements + 3 elements)
+        If you declare size N, you MUST generate EXACTLY N elements.
+        If you declare dimensions M x N, you MUST generate EXACTLY M * N elements.
+        *NO EXCEPTIONS.*
 
-    CRITICAL DIMENSIONAL ANALYSIS RULES:
+        ## Dimension-based Size Prefixing Rules:
+        - *1D Collections*: {{size}} {{elements...}}
+        - *2D Collections*: {{rows}} {{cols}} {{elements...}} (flattened row-by-row)
+        - *nD Collections*: {{dim1}} {{dim2}} ... {{dimN}} {{elements...}} (flattened)
 
-    BEFORE generating any code, you MUST analyze the input format specification to determine:
+        ---
 
-    1. DIMENSIONAL INDEPENDENCE DETECTION:
-    - Look for indicators that dimensions can vary INDEPENDENTLY:
-        * "m x n matrix" (m ≠ n allowed)
-        * "rows x cols matrix" (rows ≠ cols allowed)
-        * "height x width grid" (height ≠ width allowed)
-        * "r rows and c columns" (r ≠ c allowed)
-        * Separate constraint ranges for different dimensions
-    - Look for indicators that dimensions are DEPENDENT:
-        * "n x n matrix" (square matrix only)
-        * "size x size grid" (square grid only)
-        * "square matrix of size n"
-        * Same constraint variable used for multiple dimensions
+        *CRITICAL RULE*: Element Count MUST Match Size Prefix.
+        This is the most important formatting rule.
 
-    2. CONSTRAINT PARSING LOGIC:
-    - If constraints specify DIFFERENT variables for dimensions (e.g., "1 <= m <= 10, 1 <= n <= 20"):
-        → Generate matrices with INDEPENDENT row and column sizes
-        → rows can be different from cols in the same test case
-    - If constraints specify SAME variable for dimensions (e.g., "1 <= n <= 10" for "n x n matrix"):
-        → Generate square matrices only
-        → rows must equal cols in every test case
+        ### Examples:
+        - 1D Array:
+        If size is 4, the input must be: 4 e1 e2 e3 e4
+        ❌ Incorrect: 4 e1 e2 e3
+        ❌ Incorrect: 4 e1 e2 e3 e4 e5
 
-    3. SIZE GENERATION STRATEGY:
-    - For INDEPENDENT dimensions: Generate each dimension separately using its own constraint range
-    - For DEPENDENT dimensions: Generate one size value and use it for all dependent dimensions
+        - 2D Matrix:
+        If rows = 2 and cols = 3, input must be: 2 3 e11 e12 e13 e21 e22 e23
+        The number of elements = 2 * 3 = 6.
 
+        Failure to follow this rule invalidates the entire test case.
 
-    ## PROBLEM CONTEXT IS KING:
-    -The **PROBLEM SPECIFICATION SECTION** provided at the end is the **ultimate source of truth**. You MUST adapt the generation logic in the template below to fit the data types (integers, strings, etc.) and structures (1D array, 2D matrix, etc.) described in the PROBLEM SPECIFICATION SECTION. Do not blindly copy the template's examples if the problem requires a different data type.
+        *Note: Single values (like an integer or string) are *not collections and must NOT be prefixed.
 
-
-    ENHANCED PYTHON SCRIPT TEMPLATE:
-
-    ```python
-    import random
-    import string
-
-    def generate_test_cases():
-        ## Generates a list of 20 test cases based on the defined structure.
-        ## This function should be adapted for each specific problem.
-
-        test_cases = []
-
-        # --------------------------------------------------------------------------
-        # STEP 1: DEFINE PROBLEM-SPECIFIC CONSTRAINTS
-        # Fill these placeholders with the actual constraints from the problem statement.
-        # --------------------------------------------------------------------------
-
-        # Example for a 1D array of integers:
-        # N_MIN, N_MAX = 1, 10**5
-        # VAL_MIN, VAL_MAX = -10**9, 10**9
-
-        # Example for a 2D matrix (M x N):
-        # M_MIN, M_MAX = 1, 100
-        # N_MIN, N_MAX = 1, 100
-        # VAL_MIN, VAL_MAX = 0, 1
-
-        # Example for an array of strings:
-        # ARRAY_LEN_MIN, ARRAY_LEN_MAX = 1, 10**4
-        # STR_LEN_MIN, STR_LEN_MAX = 1, 100
-
-
-        # --------------------------------------------------------------------------
-        # STEP 2: IMPLEMENT THE GENERATION LOGIC FOR EACH CASE TYPE
-        # Adapt the code inside each loop to generate the correct data format.
-        # --------------------------------------------------------------------------
-
-        # -- Basic Cases (5) --
-        # Goal: Small, simple inputs.
-        for i in range(5):
-            random.seed(42 + i)
-            # --- [IMPLEMENT BASIC CASE GENERATION LOGIC HERE] ---
-            # Example:
-            # n = random.randint(N_MIN, min(10, N_MAX))
-            # elements = [random.randint(VAL_MIN, VAL_MAX) for _ in range(n)]
-            # test_case = f"{{n}} {{' '.join(map(str, elements))}}"
-            # test_cases.append(test_case)
+        MANDATORY OUTPUT FORMATTING
+            -CRITICAL: Do NOT include size prefixes for any collection in the output.
+            -All output values on a single line MUST be space-separated.
+            -For any collection (array, matrix, etc.), flatten it into a single line of space-separated values.
             
-            pass # Remove this line after implementing
+            Examples (Output Only):
+            -Array [5, 3, 8] must be output as: 5 3 8
+            -Single integer 42 must be output as: 42
+            -Matrix [[1, 2], [3, 4]] must be output as: 1 2 3 4
+            -String "hello" must be output as: "hello"
 
-        # -- Edge Cases (5) --
-        # Goal: Test boundary conditions (min/max sizes, special values).
-        # Ensure these 5 cases are all different and test meaningful boundaries.
-        for i in range(5):
-            random.seed(42 + i + 5)
-            # --- [IMPLEMENT EDGE CASE GENERATION LOGIC HERE] ---
-            # Example: Test min size, max size, etc.
-            # if i == 0:
-            #     n = N_MIN
-            # elif i == 1:
-            #     n = N_MAX
-            # # ... add other edge conditions
-            # elements = [random.randint(VAL_MIN, VAL_MAX) for _ in range(n)]
-            # test_case = f"{{n}} {{' '.join(map(str, elements))}}"
-            # test_cases.append(test_case)
-            pass # Remove this line after implementing
+        ### Collection Examples:
+        - Array [5, 3, 8]: 3 5 3 8
+        - Integer 42: 42
+        - Matrix [[1, 2], [3, 4]]: 2 2 1 2 3 4
+        - String "hello": hello
 
-        # -- Moderate Cases (5) --
-        # Goal: Test average-sized inputs, between 30% and 80% of max constraints.
-        for i in range(5):
-            random.seed(42 + i + 10)
-            # --- [IMPLEMENT MODERATE CASE GENERATION LOGIC HERE] ---
-            # Example:
-            # n = random.randint(int(0.3 * N_MAX), int(0.8 * N_MAX))
-            # elements = [random.randint(VAL_MIN, VAL_MAX) for _ in range(n)]
-            # test_case = f"{{n}} {{' '.join(map(str, elements))}}"
-            # test_cases.append(test_case)
-            pass # Remove this line after implementing
+        ---
 
-        # -- Large Cases (3) --
-        # Goal: Test inputs near the maximum constraints, between 90% and 99%.
-        for i in range(3):
-            random.seed(42 + i + 15)
-            # --- [IMPLEMENT LARGE CASE GENERATION LOGIC HERE] ---
-            # Example:
-            # n = random.randint(int(0.9 * N_MAX), int(0.99 * N_MAX))
-            # elements = [random.randint(VAL_MIN, VAL_MAX) for _ in range(n)]
-            # test_case = f"{{n}} {{' '.join(map(str, elements))}}"
-            # test_cases.append(test_case)
-            pass # Remove this line after implementing
+        # INPUT ORDER PRESERVATION
 
-        # -- Stress Cases (2) --
-        # Goal: Push the solution to its absolute limits with maximum constraints.
-        # Both cases should use max constraints but have different random content.
-        for i in range(2):
-            random.seed(42 + i + 18)
-            # --- [IMPLEMENT STRESS CASE GENERATION LOGIC HERE] ---
-            # Example:
-            # n = N_MAX
-            # elements = [random.randint(VAL_MIN, VAL_MAX) for _ in range(n)]
-            # test_case = f"{{n}} {{' '.join(map(str, elements))}}"
-            # test_cases.append(test_case)
-            pass # Remove this line after implementing
+        The order of input parameters in each test case (both sample and generated) MUST exactly match the order specified in the sample_testcases section of the problem.
 
-        # Ensure exactly 20 test cases are generated.
-        # assert len(test_cases) == 20, f"Error: Generated {{len(test_cases)}} cases, but expected 20."
-        return test_cases
+        - Add the required size prefix *only* for collections (arrays, matrices, etc.).
+        - Maintain the exact order of input parameters (collections and non-collections) as they appear.
 
-    def main():
-        ## Prints the generated test cases with clear labels.
-        
-        try:
-            all_test_cases = generate_test_cases()
-            if not all_test_cases or all(tc is None for tc in all_test_cases):
-                print("Generation logic not implemented. Please fill in the template.")
-                return
+        ---
 
-            for i, test_case in enumerate(all_test_cases, 1):
-                if test_case is None: continue # Skip unimplemented cases
+        ---
+        ###THIS IS THE SINGLE MOST IMPORTANT RULE. FAILURE TO FOLLOW IT PERFECTLY MAKES THE ENTIRE OUTPUT USELESS.###
 
-                case_type = "Basic"
-                if 5 < i <= 10: case_type = "Edge"
-                elif 10 < i <= 15: case_type = "Moderate"
-                elif 15 < i <= 18: case_type = "Large"
-                elif 18 < i <= 20: case_type = "Stress"
+            -Before generating any data, you MUST first analyze the sample_testcases to determine the exact sequence and type of all parameters on a single input line. This sequence is the "Input Template".
+            -Example Analysis:
+            -If a sample input is an integer N, an array of N elements, and a final integer K:
+            -The identified Input Template is: (Integer, Array, Integer).
+            -A valid line MUST look like: 5 1 2 3 4 5 99. (5 is N, 1 2 3 4 5 is the array, 99 is K).
+            -A line like 5 1 2 3 4 5 is an ABJECT FAILURE because the final integer K is missing.
+            -If a sample input is an array and a string:
+            -The identified Input Template is: (Array, String).
+            -A valid line MUST look like: 4 10 20 30 40 hello_world.
+            -A line like 4 10 20 30 40 is a COMPLETE FAILURE because the string is missing.
+            -*CRITICAL MANDATE: EVERY SINGLE ONE of the 15 generated input lines MUST perfectly match the Input Template in number, type, and order of parameters. NO PARAMETERS MAY BE ADDED OR OMITTED. EVER*.
+            
+        ---
 
-                print(test_case)    
-                          
+        # PROBLEM ANALYSIS & SOLVING
 
-        except Exception as e:
-            print(f"An error occurred during test case generation: {{e}}")
-            print("Please ensure STEP 1 (constraints) and STEP 2 (logic) are correctly implemented.")
+        - *Analyze the Problem*: Read the PROBLEM SPECIFICATION SECTION to identify input data structures, constraints, and the input order from the sample_testcases section.
+        - *Extract Sample Test Cases*: Identify all sample inputs and outputs from the PROBLEM SPECIFICATION SECTION. Convert sample inputs to single-line, space-separated format, adding size prefixes for collections. Use the provided sample outputs, reformatted if necessary to match output formatting rules.
+        - *Generate Additional Inputs*: Create \\(15 - S\\) additional inputs following all size restriction, formatting, and input order preservation rules.
+        - *Solve the Problem*: Compute the correct output for each of the 15 inputs (sample and generated).
+        - *Format Outputs*: Present the 15 answers as Part 2 of your response, ensuring sample outputs are listed first, followed by outputs for generated test cases.
 
-    if __name__ == "__main__":
-        main()
-    ```
+        ---
 
-    CRITICAL RULES FOR RANDOM VALUE GENERATION:
+        # PROBLEM SPECIFICATION SECTION
 
-    1. ALL VALUES MUST BE COMPLETELY RANDOM:
-    - Use random.randint(min_constraint, max_constraint) for every single value
-    - EVERY element must be independently generated - NO repetition
-    - NO ascending patterns like [1,2,3,4,5]
-    - NO descending patterns like [5,4,3,2,1]
-    - NO repetitive patterns like [1,2,1,2,1,2]
-    - NO filling arrays with same value repeated (like [max_val] * size)
-    - Each element must be random.randint(val_min, val_max) or random string generation - not a repeated value
+        {description}
 
-    2. RANDOM SEED MANAGEMENT:
-    - Use different seeds for each test case to ensure diversity
-    - random.seed(42 + test_case_number) for each test case
+        ---
 
-    3. CONSTRAINT ADHERENCE:
-    - Every generated value must be within [min_constraint, max_constraint]
-    - Size constraints must be respected exactly for each dimension independently
+        # FINAL CHECKLIST
 
-    4. DIMENSIONAL CONSISTENCY:
-    - For INDEPENDENT dimensions: Generate each dimension separately within its own constraints
-    - For DEPENDENT dimensions: Use the same size value for all dependent dimensions
-    - Always verify that the total element count matches the declared dimensions EXACTLY
+        - [x] 15 Input Lines?
+        - [x] 15 Output Lines?
+        - [x] First \\(S\\) inputs are sample test cases, correctly formatted?
+        - [x] Generated input sizes ≤ 30% of max constraints?
+        - [x] All collections (input & output) have size prefixes?
+        - [x] Element counts match prefixes exactly?
+        - [x] Input parameter order matches sample_testcases?
+        - [x] Outputs are correct solutions?
+        - [x] Is there any extra text, code, or explanation? ❌ No
+        """
+    print("3")
 
-    5. NO PATTERN GENERATION:
-    - Do NOT use range() for value generation
-    - Do NOT use arithmetic sequences
-    - Do NOT use repetitive patterns
-    - ONLY use random.randint() for numeric values or appropriate random generation for strings/chars
+    try:
 
-    MANDATORY VERIFICATION PATTERN FOR COLLECTIONS:
+        client = Groq(
+            api_key=os.environ.get("GROQ_API_KEY")
+        )
+        completion = client.chat.completions.create(
+            model="deepseek-r1-distill-llama-70b",
+            messages=[{"role": "user", "content": prompt2}],
+            temperature=0.4,
+            max_completion_tokens=8192,
+            top_p=0.95,
+            stream=False,
+            stop=None,
+        )
 
-    ```python
-    # For 1D Collections:
-    size = random.randint(min_size, max_size)
-    values = [random.randint(min_val, max_val) for _ in range(size)]  # EXACTLY size elements
-    output = f"{{size}} {{' '.join(map(str, values))}}"
+        raw_content = completion.choices[0].message.content
 
-    # For 1D String Collections:
-    size = random.randint(min_size, max_size)
-    strings = [''.join(random.choices(string.ascii_lowercase, k=random.randint(min_len, max_len))) for _ in range(size)]  # EXACTLY size strings
-    output = f"{{size}} {{' '.join(strings)}}"
+        raw_content = completion.choices[0].message.content
 
-    # For 2D Collections with INDEPENDENT dimensions:
-    rows = random.randint(min_rows, max_rows)
-    cols = random.randint(min_cols, max_cols)  # Can be different from rows
-    total_elements = rows * cols  # Calculate exact count needed
-    elements = [random.randint(min_val, max_val) for _ in range(total_elements)]  # EXACTLY rows*cols elements
-    output = f"{{rows}} {{cols}} {{' '.join(map(str, elements))}}"
+        start_index = raw_content.find("{")
 
-    # For 2D Collections with DEPENDENT dimensions (square matrices):
-    size = random.randint(min_size, max_size)
-    total_elements = size * size  # Calculate exact count needed
-    elements = [random.randint(min_val, max_val) for _ in range(total_elements)]  # EXACTLY size*size elements
-    output = f"{{size}} {{size}} {{' '.join(map(str, elements))}}"
+        if start_index != -1:
+            clean_output = raw_content[start_index:]
+            print(clean_output)
+        else:
+            print(raw_content)
 
-    # For 3D Collections with INDEPENDENT dimensions:
-    d1 = random.randint(min_d1, max_d1)
-    d2 = random.randint(min_d2, max_d2)  # Can be different from d1
-    d3 = random.randint(min_d3, max_d3)  # Can be different from d1 and d2
-    total_elements = d1 * d2 * d3  # Calculate exact count needed
-    elements = [random.randint(min_val, max_val) for _ in range(total_elements)]  # EXACTLY d1*d2*d3 elements
-    output = f"{{d1}} {{d2}} {{d3}} {{' '.join(map(str, elements))}}"
-    ```
+        raw_content = clean_output
+        raw_content = raw_content.replace("```", "")
+        # raw_content = raw_content.replace("```json", "")
+        # raw_content = raw_content.replace("json", "")
+        # print("Raw content received:", raw_content,type(raw_content))
 
-    ELEMENT COUNT VERIFICATION CHECKLIST:
+        response = json.loads(raw_content)
+        print("Generated test cases:", response)
+        return response
+    except Exception as e:
+        print("Error during API call:", e)
 
-    Before outputting any test case, VERIFY:
-    1. Count the declared size(s) in the prefix
-    2. Calculate total elements needed (multiply all dimensions)
-    3. Count actual elements generated
-    4. Ensure: declared_total == actual_element_count
-    5. If mismatch detected, regenerate with correct count
+    if not response:
+        raise Exception("Failed to generate test cases from description")
 
-    EXAMPLE VERIFICATION:
-    - If output starts with "5 3", then total elements needed = 5 * 3 = 15
-    - Count elements after "5 3": must be exactly 15 elements
-    - If output starts with "7", then total elements needed = 7
-    - Count elements after "7": must be exactly 7 elements
 
-    INPUT PARSING LOGIC:
-
-    1. ANALYZE INPUT FORMAT SPECIFICATION:
-    - Look for dimensional indicators: "m x n", "rows x cols", "height x width"
-    - Check if different variables are used for different dimensions
-    - Determine if dimensions can vary independently or are constrained to be equal
-
-    2. PARSE CONSTRAINTS:
-    - Extract constraint ranges for each dimension separately
-    - If same variable used for multiple dimensions → dependent dimensions
-    - If different variables used → independent dimensions
-
-    3. COLLECTION TYPE IDENTIFICATION:
-    - Single primitive values (like "integer n", "float x") → no size prefix
-    - 1D collections → {{size}} prefix required + EXACTLY {{size}} elements
-    - 2D collections → {{dim1}} {{dim2}} prefix required + EXACTLY {{dim1*dim2}} elements (can be different values)
-    - 3D collections → {{dim1}} {{dim2}} {{dim3}} prefix required + EXACTLY {{dim1*dim2*dim3}} elements (can be different values)
-    - nD collections → {{dim1}} {{dim2}} ... {{dimN}} prefix required + EXACTLY {{product of all dims}} elements (can be different values)
-
-    4. DIMENSIONAL RELATIONSHIP DETECTION:
-    - "n x n matrix" → dependent dimensions (square matrix) → generate size*size elements
-    - "m x n matrix" with separate m,n constraints → independent dimensions (rectangular matrix) → generate m*n elements
-    - "array of size n" → 1D collection → generate n elements
-    - "grid of height h and width w" → independent dimensions → generate h*w elements
-
-    PROBLEM SPECIFICATION SECTION:
-    {description}
-
-    FINAL REQUIREMENTS:
-    - Script must run without ANY errors
-    - Must generate exactly 20 test cases
-    - All test cases must be different (especially in dimensions when independent)
-    - All constraints must be respected for each dimension separately
-    - Size prefixes must match actual element counts for ALL collections EXACTLY - NO EXCEPTIONS
-    - For 1D collections: output as "size element1 element2 ... elementN" where element count = size
-    - For 2D+ collections: output as "dim1 dim2 ... dimN element1 element2 ... elementN" where element count = dim1*dim2*...*dimN
-    - ALL VALUES MUST BE RANDOM - NO PATTERNS
-    - Output format: single line per test case, space-separated
-    - For independent dimensions: Generate variety in dimensional combinations (rectangular shapes)
-    - For dependent dimensions: Focus on content variety while maintaining dimensional constraints
-    - IGNORE sample test case formatting - apply size prefixing rules regardless
-    - DO NOT import any problem-solving libraries - only basic Python functionality
-    - MATHEMATICAL VERIFICATION: declared_size_product MUST EQUAL actual_element_count for every test case
-
-    Generate ONLY the complete, error-free Python script with RANDOM value generation, proper dimensional analysis, and EXACT element count matching. No explanations, no comments about the prompt - just the working code.
-    """
-
-    model = genai.GenerativeModel("gemini-1.5-flash-latest")
-    response = model.generate_content(prompt2)
-    return response.text
 
 
 def get_CPP_code(val, list1):
@@ -636,313 +473,458 @@ def get_leetcode_problem_description(request):
             val = json.loads(description)
             del val["sample_testcases"]
 
-            return Response(
-                {"question": val, "challange": description}, status=200
-            )
-        
+            return Response({"question": val, "challange": description}, status=200)
+
         if not question_number:
             return Response({"error": "Question number is required"}, status=400)
 
         try:
-            description, val = get_leetcode_problem_description_Gemini(
-                question_number
-            )
-            print(type(description),type(val))
+            description, val = get_leetcode_problem_description_Gemini(question_number)
+            print(type(description), type(val))
             print(f"Received description type: {json.loads(description)}")
 
-            leetcode=Leetcode_Description(
-                number=question_number,
-                description=description
+            leetcode = Leetcode_Description(
+                number=question_number, description=description,
             )
             leetcode.save()
-            return Response(
-                {"question": val, "challange": description}, status=200
-            )
+            return Response({"question": val, "challange": description}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
     return Response({"error": "Invalid request method"}, status=405)
 
 
 @api_view(["POST"])
-def generate_test_cases(request):
+def get_test_cases(request):
     if request.method == "POST":
         description = request.data.get("description")
-        print(f"Received description: {type(description)}")
-        question_number = request.data.get("question_number")
+        question_number = description["question_number"]
+        print(f"Received question number: {question_number}")
         if not description:
             return Response({"error": "Description is required"}, status=400)
-        
-        if Testcase.objects.filter(question_number=question_number).exists():
-            test = Testcase.objects.get(question_number=question_number)
-            return Response({
-                "message": "Test cases already generated",
-                "test_cases": test.test_cases.split("\n")[0:10],
-                "output_cases": test.output_cases.split("\n"),
-            }, status=200)
+
+        # if Testcase.objects.filter(question_number=question_number).exists():
+        #     test = Testcase.objects.get(question_number=question_number)
+        #     return Response(
+        #         {"input": test.input, "output": test.output},
+        #         status=200,
+        #     )
 
         try:
-            file_name = "code.py"
-            code = get_python_code(description)
+            if isinstance(description, dict):
+                extracted_description = json.dumps(description, indent=2)
+            else:
+                extracted_description = description
+            print("1")
+            test_cases = get_python_code(extracted_description)
+
+            # test_cases = test_cases.replace("```json", "")
+            # test_cases = test_cases.replace("```", "")
+
+            print(f"Generated test cases: {test_cases}")
+
+            print(question_number)
+
+            new_test_cases = Testcase(
+                question_number=question_number,
+                input=test_cases["input"],
+                output=test_cases["output"],
+            )
+            new_test_cases.save()
+
             
-            code = code.replace("```python", "")
-            code = code.replace("```", "")
-            code = code.strip()
-            
-            print(f"Generated code: {code}")
-            
-            with open(file_name, "w") as file:
-                file.write(code)
-                file.flush()
-            
-            execute_command = "python code.py"
+
+            return Response(test_cases, status=200)
+        except Exception as e:
+            print(f"Exception in get_test_cases: {str(e)}")
+            return Response({"error": str(e)}, status=500)
+
+
+CODE_EXECUTION_TIMEOUT = 5  # seconds
+
+@api_view(["POST"])
+def run_code(request):
+    code = request.data.get("code")
+    language = request.data.get("language", "").lower()
+    input_data = request.data.get("input", "")
+    expected_output = request.data.get("expected_output", "")
+
+    if not code or not language:
+        return Response(
+            {"success": False, "error": "Code and language are required"}, status=400
+        )
+
+    if language != "cpp":
+        return Response(
+            {"success": False, "error": "Only C++ is supported currently."}, status=400
+        )
+    
+    # Use a temporary directory to securely handle file creation and automatic cleanup.
+    # This creates a unique folder for each request, preventing race conditions.
+    with tempfile.TemporaryDirectory() as temp_dir:
+        cpp_path = os.path.join(temp_dir, "code.cpp")
+        executable_path = os.path.join(temp_dir, "code_executable") # Platform-neutral name
+
+        # Write the user's code to the temporary .cpp file
+        with open(cpp_path, "w") as file:
+            file.write(code)
+
+        # --- Compilation Step ---
+        # Build the command as a list to avoid shell injection vulnerabilities (no shell=True)
+        compile_command = ["g++", cpp_path, "-o", executable_path]
+        
+        compile_process = subprocess.Popen(
+            compile_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        _, compile_stderr = compile_process.communicate()
+
+        if compile_process.returncode != 0:
+            return Response({"success": False, "error": "Compilation Failed", "details": compile_stderr})
+
+        # --- Execution Step ---
+        try:
             execute_process = subprocess.Popen(
-                execute_command,
-                shell=True,
+                [executable_path],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
             )
-            execute_stdout, execute_stderr = execute_process.communicate()
+
+            # Pass input and wait for output with a timeout
+            actual_output, runtime_stderr = execute_process.communicate(
+                input=input_data, timeout=CODE_EXECUTION_TIMEOUT
+            )
             
             if execute_process.returncode != 0:
-                return Response(
-                    {"error": "Error in code execution", "details": execute_stderr},
-                    status=500,
-                )
-            
-            test_cases = execute_stdout.strip().split("\n")
-            test_cases_file = "test_cases.txt"
-            
-            with open(test_cases_file, "w") as file:
-                for case in test_cases:
-                    file.write(case + "\n")
-                    file.flush()
-            
-            list1 = test_cases[0:5]
-            print(f"Generated list: {list1}")
-            print(f"Parsed problem description: {description}")
-            
-            val = description.copy() if isinstance(description, dict) else description
-            
-            if isinstance(val, dict) and "sample_testcases" in val:
-                del val["sample_testcases"]
-                print("sample_testcases removed")
+                return Response({"success": False, "error": "Runtime Error", "details": runtime_stderr})
+
+            # --- Comparison Step ---
+            if actual_output.strip() == expected_output.strip():
+                return Response({"success": True, "message": "Congratulations! All test cases passed."})
             else:
-                print("sample_testcases not found in description")
-            
-            get_cpp_code = get_CPP_code(val, list1)
-            
-            get_cpp_code = get_cpp_code.replace("```cpp", "")
-            get_cpp_code = get_cpp_code.replace("```c++", "")
-            get_cpp_code = get_cpp_code.replace("```", "")
-            get_cpp_code = get_cpp_code.strip()
-            
-            print(f"Generated C++ code: {get_cpp_code}")
-            
-            cpp_result = cpp_create_output_file(get_cpp_code, test_cases_file)
-            
-            if not cpp_result:
-                print("⚠️ Local C++ compilation failed, trying alternative approach...")
                 return Response({
-                    "message": "Test cases generated successfully", 
-                    "test_cases": list1,
-                    "warning": "C++ compilation skipped - no compiler available"
-                }, status=200)
-                
-                
-            with open("output.txt", "r") as f:
-                output_lines = [line.strip() for line in f.readlines()]
-            
-            test=Testcase(
-                question_number=question_number,
-                input="\n".join(test_cases),
-                output="\n".join(output_lines),
-                code_template=get_cpp_code,
-            )
-            test.save()
+                    "success": False,
+                    "error": "Wrong Answer",
+                    "your_output": actual_output.strip(),
+                    "expected_output": expected_output.strip(),
+                })
 
-            return Response({"message": "Test cases generated successfully", "test_cases": test_cases[0:10], "output_cases": output_lines}, status=200)
-                
+        except subprocess.TimeoutExpired:
+            # The process took too long to execute
+            execute_process.kill() # Ensure the hanging process is stopped
+            return Response({
+                "success": False,
+                "error": "Time Limit Exceeded",
+                "details": f"Your code took longer than {CODE_EXECUTION_TIMEOUT} seconds to run."
+            })
         except Exception as e:
-            print(f"Exception in generate_test_cases: {str(e)}")
-            return Response({"error": str(e)}, status=500)
+            return Response({"success": False, "error": "An unexpected error occurred", "details": str(e)})
+
+    # else:
+    #     file_name = "output.txt"
+    #     with open(challenge, "r") as test_file, open(file_name, "w") as out_file:
+    #         num_tests = int(test_file.readline())
+    #         for _ in range(num_tests):
+    #             test_input = test_file.readline().strip()
+    #             print("Test input:", test_input)
+
+    #             process = subprocess.Popen(
+    #                 execute_command,
+    #                 shell=True,
+    #                 stdin=subprocess.PIPE,
+    #                 stdout=subprocess.PIPE,
+    #                 stderr=subprocess.PIPE,
+    #                 text=True,
+    #             )
+    #             out, err = process.communicate(input=test_input)
+
+    #             if process.returncode != 0:
+    #                 return JsonResponse({"Error": err, "success": False})
+
+    #             out_file.write(out.strip() + "\n")
+    #             out_file.flush()
+
+    #     return JsonResponse({"msg": "Output generated successfully", "success": True})
 
 
-def cpp_create_output_file(code_template, challenge_file_path):
-    exe_file = "code.exe" if platform.system() == "Windows" else "code"
-    cpp_file = "code.cpp"
-    output_file = "output.txt"
-    
-    print("🔧 Starting code compilation and execution process...\n")
-    
-    if platform.system() == "Windows":
-        common_paths = [
-            "C:\\msys64\\mingw64\\bin",
-            "C:\\mingw64\\bin",
-            "C:\\MinGW\\bin",
-            "C:\\Program Files\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin"
-        ]
-        
-        current_path = os.environ.get('PATH', '')
-        for path in common_paths:
-            if os.path.exists(path) and path not in current_path:
-                os.environ['PATH'] = path + os.pathsep + current_path
-                print(f"✅ Added {path} to PATH")
-                break
-    
-    
-    try:
-        with open(cpp_file, "w") as file:
-            file.write(code_template)
-        print(f"📄 Successfully wrote code to {cpp_file}")
-    except Exception as e:
-        print(f"❌ Failed to write code to file: {e}")
-        return False
-    
-    # Step 2: Check for available C++ compilers and compile
-    compilers = []
-    if platform.system() == "Windows":
-        # Try different compiler options for Windows, including full paths
-        compilers = [
-            "g++",  # MinGW
-            "C:\\msys64\\mingw64\\bin\\g++.exe",  # Common MSYS2 path
-            "C:\\mingw64\\bin\\g++.exe",  # Alternative MinGW path
-            # Add your specific path here - run 'where g++' in cmd to find it
-            "clang++",  # Clang
-            "cl",  # Visual Studio
-        ]
-    else:
-        compilers = ["g++", "clang++"]
-    
-    compiled = False
-    for compiler in compilers:
-        try:
-            if compiler == "cl":
-                # Visual Studio compiler syntax
-                command = f"{compiler} {cpp_file} /Fe:{exe_file}"
-            else:
-                # GCC/Clang syntax
-                command = f"{compiler} {cpp_file} -o {exe_file}"
-            
-            print(f"⚙️ Trying to compile with: {command}")
-            
-            compile_process = subprocess.Popen(
-                command, 
-                shell=True, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            compile_stdout, compile_stderr = compile_process.communicate()
-            
-            if compile_process.returncode == 0:
-                print(f"✅ Compilation successful with {compiler}\n")
-                compiled = True
-                break
-            else:
-                print(f"❌ {compiler} failed: {compile_stderr}")
-                
-        except Exception as e:
-            print(f"❌ Exception with {compiler}: {e}")
-            continue
-    
-    if not compiled:
-        print("❌ No C++ compiler found. Please install one of the following:")
-        print("   - MinGW-w64 (includes g++)")
-        print("   - Visual Studio Build Tools")
-        print("   - Clang/LLVM")
-        print("   - Or use online compiler alternative")
-        return False
-    
-    
-    if not os.path.exists(exe_file):
-        print(f"❌ Executable {exe_file} was not created")
-        return False
-    
-    # Step 3: Run test cases
-    try:
-       
-        if not os.path.exists(challenge_file_path):
-            print(f"❌ Challenge file not found: {challenge_file_path}")
-            return False
-            
-        with open(challenge_file_path, "r") as test_file, open(output_file, "w") as out_file:
-            print(f"📂 Reading test cases from: {challenge_file_path}")
-            
-            
-            test_lines = test_file.readlines()
-            if not test_lines:
-                print("❌ No test cases found in file")
-                return False
-            
-            first_line ="19"
-            try:
-                num_tests = int(first_line)
-                print(f"✅ Number of test cases: {num_tests}\n")
-            except ValueError:
-                print(f"❌ Invalid number of test cases: {first_line}")
-                return False
-            
-           
-            if len(test_lines) < num_tests + 1:
-                print(f"❌ Not enough test cases in file. Expected {num_tests}, found {len(test_lines)-1}")
-                return False
-            
-            for i in range(num_tests):
-                if i + 1 < len(test_lines):
-                    test_input = test_lines[i + 1].strip()
-                    print(f"▶️ Running test case {i+1}: {test_input}")
-                    
-                    try:
-                        run_command = f"{exe_file}" if platform.system() == "Windows" else f"./{exe_file}"
-                        process = subprocess.Popen(
-                            run_command,
-                            shell=True,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            text=True,
-                        )
-                        out, err = process.communicate(input=test_input + "\n", timeout=10)  # FIX 9: Add timeout
-                        
-                        if process.returncode != 0:
-                            print(f"❌ Runtime error in test case {i+1}: {err.strip()}")
-                            out_file.write("ERROR\n")
-                        else:
-                            print(f"✅ Output: {out.strip()}")
-                            out_file.write(out.strip() + "\n")
-                    except subprocess.TimeoutExpired:
-                        print(f"❌ Test case {i+1} timed out")
-                        process.kill()
-                        out_file.write("TIMEOUT\n")
-                    except Exception as e:
-                        print(f"❌ Exception while running test case {i+1}: {e}")
-                        out_file.write("EXCEPTION\n")
-                        
-    except FileNotFoundError:
-        print(f"❌ Challenge file not found: {challenge_file_path}")
-        return False
-    except Exception as e:
-        print(f"❌ Error during test execution: {e}")
-        return False
-    
-    print(f"\n📄 Outputs saved in: {output_file}")
-    return True
+# @api_view(["POST"])
+# def generate_test_cases(request):
+#     if request.method == "POST":
+#         description = request.data.get("description")
+#         print(f"Received description: {type(description)}")
+#         question_number = request.data.get("question_number")
+#         if not description:
+#             return Response({"error": "Description is required"}, status=400)
+
+#         if Testcase.objects.filter(question_number=question_number).exists():
+#             test = Testcase.objects.get(question_number=question_number)
+#             return Response({
+#                 "message": "Test cases already generated",
+#                 "test_cases": test.test_cases.split("\n")[0:10],
+#                 "output_cases": test.output_cases.split("\n"),
+#             }, status=200)
+
+#         try:
+#             file_name = "code.py"
+#             code = get_python_code(description)
+
+#             code = code.replace("```python", "")
+#             code = code.replace("```", "")
+#             code = code.strip()
+
+#             print(f"Generated code: {code}")
+
+#             with open(file_name, "w") as file:
+#                 file.write(code)
+#                 file.flush()
+
+#             execute_command = "python code.py"
+#             execute_process = subprocess.Popen(
+#                 execute_command,
+#                 shell=True,
+#                 stdin=subprocess.PIPE,
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE,
+#                 text=True,
+#             )
+#             execute_stdout, execute_stderr = execute_process.communicate()
+
+#             if execute_process.returncode != 0:
+#                 return Response(
+#                     {"error": "Error in code execution", "details": execute_stderr},
+#                     status=500,
+#                 )
+
+#             test_cases = execute_stdout.strip().split("\n")
+#             test_cases_file = "test_cases.txt"
+
+#             with open(test_cases_file, "w") as file:
+#                 for case in test_cases:
+#                     file.write(case + "\n")
+#                     file.flush()
+
+#             list1 = test_cases[0:5]
+#             print(f"Generated list: {list1}")
+#             print(f"Parsed problem description: {description}")
+
+#             val = description.copy() if isinstance(description, dict) else description
+
+#             if isinstance(val, dict) and "sample_testcases" in val:
+#                 del val["sample_testcases"]
+#                 print("sample_testcases removed")
+#             else:
+#                 print("sample_testcases not found in description")
+
+#             get_cpp_code = get_CPP_code(val, list1)
+
+#             get_cpp_code = get_cpp_code.replace("```cpp", "")
+#             get_cpp_code = get_cpp_code.replace("```c++", "")
+#             get_cpp_code = get_cpp_code.replace("```", "")
+#             get_cpp_code = get_cpp_code.strip()
+
+#             print(f"Generated C++ code: {get_cpp_code}")
+
+#             cpp_result = cpp_create_output_file(get_cpp_code, test_cases_file)
+
+#             if not cpp_result:
+#                 print("⚠️ Local C++ compilation failed, trying alternative approach...")
+#                 return Response({
+#                     "message": "Test cases generated successfully",
+#                     "test_cases": list1,
+#                     "warning": "C++ compilation skipped - no compiler available"
+#                 }, status=200)
 
 
-def cleanup_files():
-    """Clean up temporary files"""
-    files_to_remove = ["code.py", "code.cpp", "code.exe", "code", "test_cases.txt", "output.txt"]
-    for file_name in files_to_remove:
-        try:
-            if os.path.exists(file_name):
-                os.remove(file_name)
-                print(f"🗑️ Removed {file_name}")
-        except Exception as e:
-            print(f"❌ Failed to remove {file_name}: {e}")
+#             with open("output.txt", "r") as f:
+#                 output_lines = [line.strip() for line in f.readlines()]
+
+#             test=Testcase(
+#                 question_number=question_number,
+#                 input="\n".join(test_cases),
+#                 output="\n".join(output_lines),
+#                 code_template=get_cpp_code,
+#             )
+#             test.save()
+
+#             return Response({"message": "Test cases generated successfully", "test_cases": test_cases[0:10], "output_cases": output_lines}, status=200)
+
+#         except Exception as e:
+#             print(f"Exception in generate_test_cases: {str(e)}")
+#             return Response({"error": str(e)}, status=500)
 
 
+# def cpp_create_output_file(code_template, challenge_file_path):
+#     exe_file = "code.exe" if platform.system() == "Windows" else "code"
+#     cpp_file = "code.cpp"
+#     output_file = "output.txt"
+
+#     print("🔧 Starting code compilation and execution process...\n")
+
+#     if platform.system() == "Windows":
+#         common_paths = [
+#             "C:\\msys64\\mingw64\\bin",
+#             "C:\\mingw64\\bin",
+#             "C:\\MinGW\\bin",
+#             "C:\\Program Files\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin"
+#         ]
+
+#         current_path = os.environ.get('PATH', '')
+#         for path in common_paths:
+#             if os.path.exists(path) and path not in current_path:
+#                 os.environ['PATH'] = path + os.pathsep + current_path
+#                 print(f"✅ Added {path} to PATH")
+#                 break
+
+
+#     try:
+#         with open(cpp_file, "w") as file:
+#             file.write(code_template)
+#         print(f"📄 Successfully wrote code to {cpp_file}")
+#     except Exception as e:
+#         print(f"❌ Failed to write code to file: {e}")
+#         return False
+
+#     # Step 2: Check for available C++ compilers and compile
+#     compilers = []
+#     if platform.system() == "Windows":
+#         # Try different compiler options for Windows, including full paths
+#         compilers = [
+#             "g++",  # MinGW
+#             "C:\\msys64\\mingw64\\bin\\g++.exe",  # Common MSYS2 path
+#             "C:\\mingw64\\bin\\g++.exe",  # Alternative MinGW path
+#             # Add your specific path here - run 'where g++' in cmd to find it
+#             "clang++",  # Clang
+#             "cl",  # Visual Studio
+#         ]
+#     else:
+#         compilers = ["g++", "clang++"]
+
+#     compiled = False
+#     for compiler in compilers:
+#         try:
+#             if compiler == "cl":
+#                 # Visual Studio compiler syntax
+#                 command = f"{compiler} {cpp_file} /Fe:{exe_file}"
+#             else:
+#                 # GCC/Clang syntax
+#                 command = f"{compiler} {cpp_file} -o {exe_file}"
+
+#             print(f"⚙️ Trying to compile with: {command}")
+
+#             compile_process = subprocess.Popen(
+#                 command,
+#                 shell=True,
+#                 stdout=subprocess.PIPE,
+#                 stderr=subprocess.PIPE,
+#                 text=True
+#             )
+#             compile_stdout, compile_stderr = compile_process.communicate()
+
+#             if compile_process.returncode == 0:
+#                 print(f"✅ Compilation successful with {compiler}\n")
+#                 compiled = True
+#                 break
+#             else:
+#                 print(f"❌ {compiler} failed: {compile_stderr}")
+
+#         except Exception as e:
+#             print(f"❌ Exception with {compiler}: {e}")
+#             continue
+
+#     if not compiled:
+#         print("❌ No C++ compiler found. Please install one of the following:")
+#         print("   - MinGW-w64 (includes g++)")
+#         print("   - Visual Studio Build Tools")
+#         print("   - Clang/LLVM")
+#         print("   - Or use online compiler alternative")
+#         return False
+
+
+#     if not os.path.exists(exe_file):
+#         print(f"❌ Executable {exe_file} was not created")
+#         return False
+
+#     # Step 3: Run test cases
+#     try:
+
+#         if not os.path.exists(challenge_file_path):
+#             print(f"❌ Challenge file not found: {challenge_file_path}")
+#             return False
+
+#         with open(challenge_file_path, "r") as test_file, open(output_file, "w") as out_file:
+#             print(f"📂 Reading test cases from: {challenge_file_path}")
+
+
+#             test_lines = test_file.readlines()
+#             if not test_lines:
+#                 print("❌ No test cases found in file")
+#                 return False
+
+#             first_line ="19"
+#             try:
+#                 num_tests = int(first_line)
+#                 print(f"✅ Number of test cases: {num_tests}\n")
+#             except ValueError:
+#                 print(f"❌ Invalid number of test cases: {first_line}")
+#                 return False
+
+
+#             if len(test_lines) < num_tests + 1:
+#                 print(f"❌ Not enough test cases in file. Expected {num_tests}, found {len(test_lines)-1}")
+#                 return False
+
+#             for i in range(num_tests):
+#                 if i + 1 < len(test_lines):
+#                     test_input = test_lines[i + 1].strip()
+#                     print(f"▶️ Running test case {i+1}: {test_input}")
+
+#                     try:
+#                         run_command = f"{exe_file}" if platform.system() == "Windows" else f"./{exe_file}"
+#                         process = subprocess.Popen(
+#                             run_command,
+#                             shell=True,
+#                             stdin=subprocess.PIPE,
+#                             stdout=subprocess.PIPE,
+#                             stderr=subprocess.PIPE,
+#                             text=True,
+#                         )
+#                         out, err = process.communicate(input=test_input + "\n", timeout=10)  # FIX 9: Add timeout
+
+#                         if process.returncode != 0:
+#                             print(f"❌ Runtime error in test case {i+1}: {err.strip()}")
+#                             out_file.write("ERROR\n")
+#                         else:
+#                             print(f"✅ Output: {out.strip()}")
+#                             out_file.write(out.strip() + "\n")
+#                     except subprocess.TimeoutExpired:
+#                         print(f"❌ Test case {i+1} timed out")
+#                         process.kill()
+#                         out_file.write("TIMEOUT\n")
+#                     except Exception as e:
+#                         print(f"❌ Exception while running test case {i+1}: {e}")
+#                         out_file.write("EXCEPTION\n")
+
+#     except FileNotFoundError:
+#         print(f"❌ Challenge file not found: {challenge_file_path}")
+#         return False
+#     except Exception as e:
+#         print(f"❌ Error during test execution: {e}")
+#         return False
+
+#     print(f"\n📄 Outputs saved in: {output_file}")
+#     return True
+
+
+# def cleanup_files():
+#     """Clean up temporary files"""
+#     files_to_remove = ["code.py", "code.cpp", "code.exe", "code", "test_cases.txt", "output.txt"]
+#     for file_name in files_to_remove:
+#         try:
+#             if os.path.exists(file_name):
+#                 os.remove(file_name)
+#                 print(f"🗑️ Removed {file_name}")
+#         except Exception as e:
+#             print(f"❌ Failed to remove {file_name}: {e}")
 
 
 # OLD Code
@@ -1409,5 +1391,3 @@ def cpp(code_template, challenge, val):
                 out_file.flush()
 
         return JsonResponse({"msg": "Output generated successfully", "success": True})
-
-

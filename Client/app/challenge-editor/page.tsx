@@ -61,6 +61,7 @@ interface Challenge {
   input_testcase: File;
   output_testcase: File;
   isLeetCode?: boolean;
+  leetCodeNumber?: string;
   cpp_code?: string;
   java_code?: string;
   python_code?: string;
@@ -100,6 +101,7 @@ export default function ChallengeEditor() {
     input_testcase: null as unknown as File,
     output_testcase: null as unknown as File,
     isLeetCode: true,
+    leetCodeNumber: "",
     cpp_code: "",
     java_code: "",
     python_code: "",  
@@ -180,13 +182,14 @@ export default function ChallengeEditor() {
             : 300,
         problem_statement: leetcodeData.problem_statement,
         constraints: leetcodeData.constraints,
-        input_form: "Standard LeetCode format",
-        output_form: "Standard LeetCode format",
+        input_form: leetcodeData.input_form,
+        output_form: leetcodeData.output_form,
         sample_testcase: leetcodeData.sample_testcase,
         sample_output: leetcodeData.sample_output,
         input_testcase: new File([""], "leetcode_input.txt"),
         output_testcase: new File([""], "leetcode_output.txt"),
         isLeetCode: true,
+        leetCodeNumber: leetcodeData.leetCodeNumber || "",
         cpp_code: leetcodeData.cpp_code,
         java_code: leetcodeData.java_code,
         python_code: leetcodeData.python_code,
@@ -216,6 +219,7 @@ export default function ChallengeEditor() {
       formData.append("output_testcase", challengeData.output_testcase);
       if (challengeData.isLeetCode) {
         formData.append("isLeetCode", true as unknown as string);
+        formData.append("leetCodeNumber", challengeData.leetCodeNumber || "");
         formData.append("cpp_code", challengeData.cpp_code || "");
         formData.append("java_code", challengeData.java_code || "");
         formData.append("python_code", challengeData.python_code || "");
@@ -363,16 +367,10 @@ export default function ChallengeEditor() {
        const response = await axios.post("http://localhost:8000/api/generate_test_cases", {"description":backendChallenge})
       console.log(response);
 
-      const outputCases = response.data.output_cases
-      .split(",")
-      .map((line: string) => line.trim())
-      .join("\n");
-
-
+      const data = response.data;
        setLeetcodeTestCases({
-        input:
-          response.data.test_cases,
-        output:outputCases,
+        input:data.input,
+        output:data.output,
       });
       
     } catch (error) {
@@ -550,6 +548,7 @@ export default function ChallengeEditor() {
         python_code: data.solutions?.python || "",
         input_form: data.input_format,
         output_form: data.output_format,
+        leetCodeNumber: data.question_number || "",
         max_score:
           leetcodeData.difficulty_level === "Easy"
             ? 100
@@ -920,7 +919,7 @@ export default function ChallengeEditor() {
                           id="constraints"
                           placeholder="e.g., 1 ≤ n ≤ 10^5, 1 ≤ arr[i] ≤ 10^9"
                           rows={2}
-                          value={currentChallenge.constraints}
+                          value={currentChallenge.constraints.split(",").join("\n")}
                           onChange={(e) =>
                             handleInputChange("constraints", e.target.value)
                           }

@@ -407,7 +407,11 @@ export function AddChallengeModal({
       
       const problemData = response.data.challange;
       console.log("Received problem data:", problemData);
-      const parsedData = JSON.parse(problemData);
+      let parsedData = JSON.parse(problemData);
+      parsedData = {
+        ...parsedData,
+        question_number: leetcodeNumber,
+      };
 
       if (problemData) {
         onSelectMode("leetcode", parsedData);
