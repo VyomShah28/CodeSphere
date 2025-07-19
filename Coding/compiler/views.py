@@ -19,7 +19,7 @@ import platform
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 import tempfile
-import time as time_module
+import time as time_mod
 from groq import Groq
 
 
@@ -364,9 +364,7 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
 
     try:
 
-        client = Groq(
-            api_key=os.environ.get("GROQ_API_KEY")
-        )
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         completion = client.chat.completions.create(
             model="deepseek-r1-distill-llama-70b",
             messages=[{"role": "user", "content": prompt2}],
@@ -403,8 +401,6 @@ You MUST provide your response in the following exact JSON format. Do NOT includ
 
     if not response:
         raise Exception("Failed to generate test cases from description")
-
-
 
 
 def get_CPP_code(val, list1):
@@ -484,7 +480,8 @@ def get_leetcode_problem_description(request):
             print(f"Received description type: {json.loads(description)}")
 
             leetcode = Leetcode_Description(
-                number=question_number, description=description,
+                number=question_number,
+                description=description,
             )
             leetcode.save()
             return Response({"question": val, "challange": description}, status=200)
@@ -531,18 +528,56 @@ def get_test_cases(request):
             )
             new_test_cases.save()
 
-            
-
             return Response(test_cases, status=200)
         except Exception as e:
             print(f"Exception in get_test_cases: {str(e)}")
             return Response({"error": str(e)}, status=500)
 
 
-CODE_EXECUTION_TIMEOUT = 5  # seconds
+CODE_EXECUTION_TIMEOUT = 5
+
+
+def get_windows_compilers_env():
+    """
+    On Windows, finds potential MinGW paths and returns a modified environment
+    if a valid g++ is found. This helps the compiler find its required DLLs.
+    """
+
+    common_paths = [
+        "C:\\msys64\\mingw64\\bin",
+        "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin",
+        "C:\\Program Files\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin",
+        "C:\\MinGW\\bin",
+    ]
+
+    env = os.environ.copy()
+
+    for path in common_paths:
+
+        if os.path.exists(os.path.join(path, "g++.exe")):
+            print(f"[*] Found potential g++ compiler in: {path}")
+
+            env["PATH"] = path + os.pathsep + env["PATH"]
+            return ["g++", "clang++"], env
+
+    return ["g++", "clang++"], env
+
+
+def get_compilers():
+    """Returns a list of potential C++ compilers to try and a suitable environment."""
+    if platform.system() == "Windows":
+        return get_windows_compilers_env()
+    else:
+        return ["g++", "clang++"], os.environ.copy()
+
 
 @api_view(["POST"])
 def run_code(request):
+    """
+    Securely compiles and runs C++ code by trying multiple compilers in an
+    isolated temporary directory, with detailed logging for each step.
+    """
+
     code = request.data.get("code")
     language = request.data.get("language", "").lower()
     input_data = request.data.get("input", "")
@@ -553,98 +588,212 @@ def run_code(request):
             {"success": False, "error": "Code and language are required"}, status=400
         )
 
+    if language == "python":
+        return Response(run_python_code(code, input_data, expected_output), status=200)
+    
+    if language == "java":
+        return Response(run_java_code(code, input_data, expected_output), status=200)
+
     if language != "cpp":
         return Response(
             {"success": False, "error": "Only C++ is supported currently."}, status=400
         )
-    
-    # Use a temporary directory to securely handle file creation and automatic cleanup.
-    # This creates a unique folder for each request, preventing race conditions.
+
     with tempfile.TemporaryDirectory() as temp_dir:
-        cpp_path = os.path.join(temp_dir, "code.cpp")
-        executable_path = os.path.join(temp_dir, "code_executable") # Platform-neutral name
 
-        # Write the user's code to the temporary .cpp file
-        with open(cpp_path, "w") as file:
-            file.write(code)
+        cpp_path = os.path.join(temp_dir, "source.cpp")
+        executable_name = "program.exe" if platform.system() == "Windows" else "program"
+        executable_path = os.path.join(temp_dir, executable_name)
 
-        # --- Compilation Step ---
-        # Build the command as a list to avoid shell injection vulnerabilities (no shell=True)
-        compile_command = ["g++", cpp_path, "-o", executable_path]
-        
-        compile_process = subprocess.Popen(
-            compile_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-        _, compile_stderr = compile_process.communicate()
+        with open(cpp_path, "w") as source_file:
+            source_file.write(code)
 
-        if compile_process.returncode != 0:
-            return Response({"success": False, "error": "Compilation Failed", "details": compile_stderr})
+        compilers_to_try, env = get_compilers()
+        compilation_successful = False
+        compile_stderr_details = ""
 
-        # --- Execution Step ---
+        for compiler in compilers_to_try:
+            compile_command = [compiler, "-std=c++17", cpp_path, "-o", executable_path]
+
+            try:
+                # Pass the modified environment to the subprocess
+                compile_process = subprocess.Popen(
+                    compile_command,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
+                )
+                _, compile_stderr = compile_process.communicate()
+
+                if compile_process.returncode == 0:
+                    print(f"[*] Compilation successful with '{compiler}'.")
+                    compilation_successful = True
+                    break
+                else:
+                    compile_stderr_details += f"--- {compiler} ---\n{compile_stderr or 'No error message produced.'}\n"
+
+            except FileNotFoundError:
+                compile_stderr_details += (
+                    f"--- {compiler} ---\nCompiler not found in system PATH.\n"
+                )
+                continue
+
+        if not compilation_successful:
+            print("[ERROR] All compilation attempts failed.")
+            return Response(
+                {
+                    "success": False,
+                    "error": "Compilation Failed",
+                    "details": compile_stderr_details,
+                },
+                status=400,
+            )
+
         try:
+            run_command = [executable_path]
             execute_process = subprocess.Popen(
-                [executable_path],
+                run_command,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
             )
-
-            # Pass input and wait for output with a timeout
             actual_output, runtime_stderr = execute_process.communicate(
                 input=input_data, timeout=CODE_EXECUTION_TIMEOUT
             )
-            
-            if execute_process.returncode != 0:
-                return Response({"success": False, "error": "Runtime Error", "details": runtime_stderr})
 
-            # --- Comparison Step ---
-            if actual_output.strip() == expected_output.strip():
-                return Response({"success": True, "message": "Congratulations! All test cases passed."})
-            else:
-                return Response({
-                    "success": False,
-                    "error": "Wrong Answer",
-                    "your_output": actual_output.strip(),
-                    "expected_output": expected_output.strip(),
-                })
+            if execute_process.returncode != 0:
+                return Response(
+                    {
+                        "success": False,
+                        "error": "Runtime Error",
+                        "details": runtime_stderr,
+                    },
+                    status=400,
+                )
 
         except subprocess.TimeoutExpired:
-            # The process took too long to execute
-            execute_process.kill() # Ensure the hanging process is stopped
-            return Response({
-                "success": False,
-                "error": "Time Limit Exceeded",
-                "details": f"Your code took longer than {CODE_EXECUTION_TIMEOUT} seconds to run."
-            })
+            execute_process.kill()
+            return Response(
+                {"success": False, "error": "Time Limit Exceeded"}, status=400
+            )
         except Exception as e:
-            return Response({"success": False, "error": "An unexpected error occurred", "details": str(e)})
+            return Response(
+                {
+                    "success": False,
+                    "error": "Server execution error.",
+                    "details": str(e),
+                },
+                status=500,
+            )
 
-    # else:
-    #     file_name = "output.txt"
-    #     with open(challenge, "r") as test_file, open(file_name, "w") as out_file:
-    #         num_tests = int(test_file.readline())
-    #         for _ in range(num_tests):
-    #             test_input = test_file.readline().strip()
-    #             print("Test input:", test_input)
+        if actual_output.strip() == expected_output.strip():
+            print("[*] SUCCESS: Output matches expected.")
+            return Response(
+                {
+                    "success": True,
+                    "result": {
+                        "status": "passed",
+                        "output": actual_output.strip(),
+                        "execution_time": "0.1ms",
+                        "memory_used": "N/A",
+                    },
+                },
+                status=200,
+            )
+        else:
+            return Response(
+                {
+                    "success": True,
+                    "result": {
+                        "status": "failed",
+                        "actual_output": actual_output.strip(),
+                        "expected_output": expected_output.strip(),
+                        "execution_time": "0.1ms",
+                        "memory_used": "N/A",
+                    },
+                },
+                status=200,
+            )
+def run_python_code(code, input_data, expected_output):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        py_path = os.path.join(temp_dir, "source.py")
+        with open(py_path, "w") as source_file:
+            source_file.write(code)
+        
+        try:
+            start_time = time_mod.time()
+            execute_process = subprocess.Popen(
+                ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            actual_output, runtime_stderr = execute_process.communicate(input=input_data, timeout=CODE_EXECUTION_TIMEOUT)
+            end_time = time_mod.time()
+            execution_time = round(end_time - start_time, 4)
 
-    #             process = subprocess.Popen(
-    #                 execute_command,
-    #                 shell=True,
-    #                 stdin=subprocess.PIPE,
-    #                 stdout=subprocess.PIPE,
-    #                 stderr=subprocess.PIPE,
-    #                 text=True,
-    #             )
-    #             out, err = process.communicate(input=test_input)
+            if execute_process.returncode != 0:
+                return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
 
-    #             if process.returncode != 0:
-    #                 return JsonResponse({"Error": err, "success": False})
+        except subprocess.TimeoutExpired:
+            execute_process.kill()
+            return {"success": False, "error": "Time Limit Exceeded"}
+        except FileNotFoundError:
+            return {"success": False, "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH."}
 
-    #             out_file.write(out.strip() + "\n")
-    #             out_file.flush()
+        if actual_output.strip() == expected_output.strip():
+            return {"success": True, "result": {"status": "passed", "output": actual_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+        else:
+            return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
 
-    #     return JsonResponse({"msg": "Output generated successfully", "success": True})
+def run_java_code(code, input_data, expected_output):
+    match = re.search(r'public\s+class\s+(\w+)', code)
+    if not match:
+        return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."}
+    main_class_name = match.group(1)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        java_path = os.path.join(temp_dir, f"{main_class_name}.java")
+        with open(java_path, "w") as source_file:
+            source_file.write(code)
+
+        try:
+            compile_process = subprocess.Popen(
+                ["javac", java_path], cwd=temp_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            _, compile_stderr = compile_process.communicate(timeout=CODE_EXECUTION_TIMEOUT)
+            if compile_process.returncode != 0:
+                return {"success": False, "error": f"Compilation Failed:\n{compile_stderr.strip()}"}
+        except FileNotFoundError:
+            return {"success": False, "error": "JDK not found. Please ensure 'javac' is in the system's PATH."}
+        except subprocess.TimeoutExpired:
+            return {"success": False, "error": "Compilation Timed Out"}
+
+        try:
+            start_time = time_mod.time()
+            execute_process = subprocess.Popen(
+                ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            actual_output, runtime_stderr = execute_process.communicate(input=input_data, timeout=CODE_EXECUTION_TIMEOUT)
+            end_time = time_mod.time()
+            execution_time = round(end_time - start_time, 4)
+
+            if execute_process.returncode != 0:
+                return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+
+        except subprocess.TimeoutExpired:
+            execute_process.kill()
+            return {"success": False, "error": "Time Limit Exceeded"}
+        except FileNotFoundError:
+            return {"success": False, "error": "JRE not found. Please ensure 'java' is in the system's PATH."}
+
+        if actual_output.strip() == expected_output.strip():
+            return {"success": True, "result": {"status": "passed", "output": actual_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+        else:
+            return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+
+
+
+
 
 
 # @api_view(["POST"])
