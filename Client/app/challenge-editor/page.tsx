@@ -45,6 +45,7 @@ import { LeetCodeViewModal } from "@/components/leetcode-view-modal";
 import { TestCaseGenerator } from "@/components/test-case-generator";
 import { SafePreview } from "@/components/safePreview";
 import { OTPInput } from "input-otp";
+import { set } from "date-fns";
 
 
 interface Challenge {
@@ -109,8 +110,7 @@ export default function ChallengeEditor() {
   const [isGeneratingTestCase, setIsGeneratingTestCase] = useState(false);
   const [isGeneratingLeetCodeTestCases, setIsGeneratingLeetCodeTestCases] =
     useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [leetcodeTestCases, setLeetcodeTestCases] = useState<any>(null);
   const [generatedTestCases, setGeneratedTestCases] = useState<any>(null);
   const searchParams = useSearchParams();
@@ -568,8 +568,9 @@ export default function ChallengeEditor() {
   };
 
   useEffect(() => {
+    setIsLoading(true);
     const contestId = searchParams.get("contestId");
-    const EditChallenge = async () => {
+    const getChallenge = async () => {
       try {
         const response = await axios.get(
           "http://127.0.0.1:8000/api/get-challenges/?contestId=" + contestId
@@ -577,15 +578,29 @@ export default function ChallengeEditor() {
         if (response.status === 200) {
           setChallenges(response.data);
           console.log("Fetched challenges:", response.data);
+
         }
       } catch (error) {
         console.error("Error fetching challenges:", error);
       }
+      setIsLoading(false);
     };
     if (contestId) {
-      EditChallenge();
+      getChallenge();
     }
   }, [searchParams]);
+
+
+    if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading contest Challenges...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

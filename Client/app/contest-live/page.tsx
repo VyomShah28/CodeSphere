@@ -55,9 +55,9 @@ def solution():
 if __name__ == "__main__":
     solution()`)
   const [timeLeft, setTimeLeft] = useState({
-    hours: 2,
-    minutes: 45,
-    seconds: 30,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   })
   const [testResults, setTestResults] = useState<any[]>([])
   const [isDarkMode, setIsDarkMode] = useState(true)
@@ -66,6 +66,11 @@ if __name__ == "__main__":
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionResult, setSubmissionResult] = useState<any>(null)
   const [sampleTestCase, setSampleTestCase] = useState<{ input: [string]; output: [string]} | null>(null)
+  const [lastSubmittedTime, setLastSubmittedTime] = useState<any>({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  })
 
   const { isFullscreen, shouldEnforceFullscreen } = useContestFullscreen()
 
@@ -139,10 +144,26 @@ console.log(solution());`,
      const leetcode_input = response.data.input_leetcode_testcase
      const leetcode_output = response.data.output_leetcode_testcase
 
+    const d1 = new Date(`${response.data.start_date}T${response.data.start_time}`);
+    const d2 = new Date(`${response.data.end_date}T${response.data.end_time}`);
+
+    const today = new Date();
+
+    const hour = (d2.getTime() - today.getTime()) / (1000 * 60 * 60);
+    const minites = (d2.getTime() - today.getTime()) / (1000 * 60);
+    const seconds = (d2.getTime() - today.getTime()) / 1000
+
+    setTimeLeft({
+      hours: Math.floor(hour),
+      minutes: Math.floor(minites % 60),
+      seconds: Math.floor(seconds % 60),})
+
+      setLastSubmittedTime(timeLeft)
+
      setSampleTestCase({
       input: leetcode_input.split("\n").slice(0,3),
       output: leetcode_output.split("\n").slice(0,3),
-     })
+     }) 
 
       
     } catch (error) {
@@ -331,6 +352,8 @@ console.log(solution());`,
         body: JSON.stringify({
           contestId,
           challengeId,
+          "total_mark": currentProblem.max_score,
+          lastSubmittedTime,
           code,
           inputs: currentProblem.input_testcase,
           outputs: currentProblem.output_testcase,
@@ -339,6 +362,8 @@ console.log(solution());`,
       })
 
       const data = await response.json()
+
+      setLastSubmittedTime(timeLeft)
 
       if (data.success) {
         setSubmissionResult(data.submission)
@@ -614,6 +639,7 @@ console.log(solution());`,
                   code={code}
                   language={selectedLanguage}
                   challengeId={challengeId || "1"}
+                  total_mark={currentProblem.max_score}
                   onRunComplete={handleTestComplete}
                   onSubmitReady={handleSubmitReady}
                   isDarkMode={isDarkMode}

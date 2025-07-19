@@ -76,12 +76,13 @@ export default function ContestWaiting() {
   const router = useRouter();
   const [isStarted, setISStarted] = useState(true);
   const [timeLeft, setTimeLeft] = useState({
-    hours: 2,
-    minutes: 45,
-    seconds: 30,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   });
 
   const [showExitModal, setShowExitModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     violationCount,
@@ -120,6 +121,7 @@ export default function ContestWaiting() {
   const fetchContestInfo = async () => {
     try {
       // Simulate API call
+      setIsLoading(true);
       const response = await fetch(
         `http://localhost:8000/api/get-contest-by-id?contestId=${contestId}`
       );
@@ -148,6 +150,8 @@ export default function ContestWaiting() {
         } else if (d2.getTime() < today.getTime()) {
           status = "completed";
           console.log("Contest has ended");
+          setIsLoading(false);
+          // router.push("/final-leaderboard?contestId=" + contestId);
         } else {
           status = "upcoming";
           setISStarted(false);
@@ -173,6 +177,7 @@ export default function ContestWaiting() {
   };
 
   const fetchChallenge = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(
         "http://127.0.0.1:8000/api/get-challenges/?contestId=" + contestId
@@ -186,6 +191,7 @@ export default function ContestWaiting() {
     } catch (error) {
       console.error("Error fetching challenges:", error);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -209,7 +215,7 @@ export default function ContestWaiting() {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-          router.push("/final-leaderboard");
+          router.push("/final-leaderboard?contestId=" + contestId);
           return prev;
         }
 
@@ -310,7 +316,7 @@ export default function ContestWaiting() {
   };
 
   const handleExitContest = () => {
-    router.push("/final-leaderboard");
+    router.push("/final-leaderboard?contestId=" + contestId);
   };
 
   const handleSubmitContest = async () => {
@@ -322,10 +328,35 @@ export default function ContestWaiting() {
         console.warn("Failed to exit fullscreen:", error);
       }
     }
+ 
+    try{
+      
+     const response = await axios.post("http://localhost:8000/api/time", {
+         "contestId": contestId,
+         "timeLeft": timeLeft,
+         "userId": sessionStorage.getItem("userId") 
+      });
 
+      console.log(response.data);
+      
+    }
+    catch (error) {
+      console.error("Failed to submit contest data:", error);
+    }
     // Navigate to final leaderboard
-    router.push("/final-leaderboard");
+    router.push("/final-leaderboard?contestId=" + contestId);
   };
+
+     if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -670,7 +701,7 @@ export default function ContestWaiting() {
       {/* Auto-Submit Notification */}
       <AutoSubmitNotification
         isVisible={violationCount >= 3}
-        onComplete={() => router.push("/final-leaderboard")}
+        onComplete={() => router.push("/final-leaderboard?contestId=" + contestId)}
       />
 
       {/* Contest Exit Modal */}

@@ -21,6 +21,7 @@ interface TestcaseRunnerProps {
   code: string
   language: string
   challengeId: string
+  total_mark: number
   onRunComplete: (results: TestCase[]) => void
   onSubmitReady: (ready: boolean) => void
   isDarkMode: boolean
@@ -34,6 +35,7 @@ export function TestcaseRunner({
   code,
   language,
   challengeId,
+  total_mark,
   onRunComplete,
   onSubmitReady,
   isDarkMode,

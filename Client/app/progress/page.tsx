@@ -148,7 +148,7 @@ export default function ProgressPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
           {/* Rank Progress Chart */}
           <Card>
             <CardHeader>
@@ -181,7 +181,7 @@ export default function ProgressPage() {
           </Card>
 
           {/* Skill Assessment */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Skill Assessment</CardTitle>
               <CardDescription>Your performance across different topics</CardDescription>
@@ -199,7 +199,7 @@ export default function ProgressPage() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Contest History */}

@@ -22,6 +22,7 @@ import uuid
 import datetime
 from compiler.models import Testcase, Leetcode_Description
 import google.generativeai as genai
+from django.db.models import Q
 
 
 
@@ -177,7 +178,7 @@ def get_contests(request):
     userId = request.GET.get("userId")
     print(userId)
     user = get_object_or_404(User, id=userId)
-    contests = Contest.objects.filter(user=user)
+    contests = Contest.objects.filter(Q(user=user) | Q(is_public=True)).distinct()
 
     user_contest = []
 
@@ -200,6 +201,8 @@ def get_contests(request):
         val = {
             "id": contest.id,
             "name": contest.contest_name,
+            "userId": contest.user.id,
+            "userName": contest.user.full_name,
             "description": contest.description,
             "startDate": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
             "endDate": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
