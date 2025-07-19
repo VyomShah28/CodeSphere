@@ -4,15 +4,36 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Medal, Award, Users, Clock, Calendar, Home, XCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Footer } from "@/components/footer"
 import { useState, useEffect } from "react"
+import axios from "axios"
 
 export default function FinalLeaderboard() {
   const router = useRouter()
+   const searchParams = useSearchParams()
+   const contestId = searchParams.get("contestId")
 
   const [wasViolation, setWasViolation] = useState(false)
   const [violationReason, setViolationReason] = useState("")
+
+
+  const fatchLeaderboard = async () => {
+         try {
+
+      const response = await axios.post("localhost:8000/api/getLeaderboard",{
+        "contest": contestId
+      })
+
+     console.log("Contest leaderboard data:", response.data);
+     
+      
+    } catch (error) {
+      console.error("Error checking contest violations:", error)
+      
+    }
+  }
+
 
   useEffect(() => {
     // Check if user was redirected due to violations
@@ -23,6 +44,8 @@ export default function FinalLeaderboard() {
       setWasViolation(true)
       setViolationReason(reason || "Contest rule violations")
     }
+
+    fatchLeaderboard()
 
     // Clear ALL contest-related session storage when reaching final leaderboard
     sessionStorage.removeItem("contestViolation")

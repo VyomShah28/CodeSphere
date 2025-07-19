@@ -32,6 +32,8 @@ interface Challenge {
   sample_output: string
   input_testcase: File
   output_testcase: File
+  input_leetcode_testcase?: string
+  output_leetcode_testcase?: string
   isLeetCode?: boolean
   cpp_code?: string
   java_code?: string
@@ -55,9 +57,9 @@ def solution():
 if __name__ == "__main__":
     solution()`)
   const [timeLeft, setTimeLeft] = useState({
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
+    hours: 2,
+    minutes: 5,
+    seconds: 55,
   })
   const [testResults, setTestResults] = useState<any[]>([])
   const [isDarkMode, setIsDarkMode] = useState(true)
@@ -356,8 +358,8 @@ console.log(solution());`,
           "total_mark": currentProblem.max_score,
           lastSubmittedTime,
           code,
-          inputs: currentProblem.input_testcase,
-          outputs: currentProblem.output_testcase,
+          inputs: currentProblem.input_leetcode_testcase,
+          outputs: currentProblem.output_leetcode_testcase,
           language: selectedLanguage,
         }),
       })

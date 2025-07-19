@@ -741,13 +741,14 @@ def submit_code(request):
     language = request.data.get("language", "").lower()
     input_data = request.data.get("inputs", "")
     total_mark=int(request.data.get("total_mark", 0))/15
-    contest=Contest.objects.get(id=request.data.get("contestId", ""))
-    user=User.objects.get(id=request.data.get("userId", ""))
+    contest=Contest.objects.get(id=request.data.get("contestId"))
+    user=User.objects.get(id=request.data.get("userId"))
     challenge= Challenges.objects.get(id=request.data.get("challengeId", ""))
     time=request.data.get("lastSubmittedTime", {})
-    hour=int(time["hour"])
-    minute=int(time["minute"])
-    second=int(time["second"])
+    print(f"Received time data: {time}")
+    hour=int(time["hours"])
+    minute=int(time["minutes"])
+    second=int(time["seconds"])
 
     my_time = dt_time(hour, minute, second)
 
@@ -761,15 +762,21 @@ def submit_code(request):
         )
 
     if language == "python":
+        print("input data:", input_data)
+        print("expected output:", expected_output)
+        solution = submit_python_code(code, input_data, expected_output,total_mark,contest,user,challenge)
+        print(f"Solution: {solution}")
         score=Score.objects.filter(contest=contest, user=user,challenge=challenge).first()
+        print(f"Score object: {score}")
         score.time=my_time
         score.save()
-        return Response(submit_python_code(code, input_data, expected_output,total_mark,contest,user,challenge), status=200)
+        return Response(solution, status=200)
     
     if language == "java":
+        solution = submit_java_code(code, input_data, expected_output,total_mark,contest,user,challenge)
         score.time=my_time
         score.save()
-        return Response(submit_java_code(code, input_data, expected_output,total_mark,contest,user,challenge), status=200)
+        return Response(solution, status=200)
 
     # if language != "cpp":
     #     return Response(
@@ -908,9 +915,7 @@ def submit_python_code(code,input_data,expected_output,total_mark,contest,user,c
             source_file.write(code)
         
         start_time = time_mod.time()
-        execute_process = subprocess.Popen(
-            ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
+        
         if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
             max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
             solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
@@ -919,6 +924,9 @@ def submit_python_code(code,input_data,expected_output,total_mark,contest,user,c
         score=0
         for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
             try : 
+                execute_process = subprocess.Popen(
+                ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
                 actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
                 end_time = time_mod.time()
                 execution_time = round(end_time - start_time, 4)

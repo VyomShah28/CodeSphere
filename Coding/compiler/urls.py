@@ -5,6 +5,7 @@ urlpatterns=[
     path("api/generate_test_cases", views.get_test_cases, name="Generate_Test_Cases"),
     path("api/runcode",views.run_code,name="Run_Code"),
     path("api/submitContest", views.submit_code, name="Submit_Contest"),
+    path("api/getLeaderboard", views.leaderboard, name="Get_Leaderboard"),
     
     path('test1',views.test,name="Test_C"),
     path('start',views.start,name="Start"),
