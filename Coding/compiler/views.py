@@ -6,7 +6,7 @@ from Test.models import Contest, Challenges, User, Rank
 from .models import Score, Testcase, Leetcode_Description, slug_map
 import json
 from django.http import JsonResponse
-from datetime import datetime, date, time as dt_time
+from datetime import datetime, date, timedelta, time as dt_time
 import google.generativeai as genai
 import requests
 from bs4 import BeautifulSoup
@@ -740,6 +740,17 @@ def submit_code(request):
     code = request.data.get("code")
     language = request.data.get("language", "").lower()
     input_data = request.data.get("inputs", "")
+    total_mark=int(request.data.get("total_mark", 0))/15
+    contest=Contest.objects.get(id=request.data.get("contestId", ""))
+    user=User.objects.get(id=request.data.get("userId", ""))
+    challenge= Challenges.objects.get(id=request.data.get("challengeId", ""))
+    time=request.data.get("lastSubmittedTime", {})
+    hour=int(time["hour"])
+    minute=int(time["minute"])
+    second=int(time["second"])
+
+    my_time = dt_time(hour, minute, second)
+
     print(f"Input data: {input_data}")
     expected_output = request.data.get("outputs", "")
     print(f"Expected output: {expected_output}")
@@ -750,10 +761,15 @@ def submit_code(request):
         )
 
     if language == "python":
-        return Response(submit_python_code(code, input_data, expected_output), status=200)
+        score=Score.objects.filter(contest=contest, user=user,challenge=challenge).first()
+        score.time=my_time
+        score.save()
+        return Response(submit_python_code(code, input_data, expected_output,total_mark,contest,user,challenge), status=200)
     
     if language == "java":
-        return Response(submit_java_code(code, input_data, expected_output), status=200)
+        score.time=my_time
+        score.save()
+        return Response(submit_java_code(code, input_data, expected_output,total_mark,contest,user,challenge), status=200)
 
     # if language != "cpp":
     #     return Response(
@@ -820,6 +836,12 @@ def submit_code(request):
                 text=True,
             )
             testcase=input_data.split('\n')
+            if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
+                max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
+                solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
+            else:
+                max_score=0
+            score=0
             for test,out in zip(testcase,expected_output.split('\n')):
                 try : 
                     actual_output, runtime_stderr = execute_process.communicate(
@@ -836,12 +858,18 @@ def submit_code(request):
                             status=400,
                         )
                 except subprocess.TimeoutExpired:
+                    max_score=max(max_score,score)
+                    score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve,time=my_time)
+                    score.save()
                     execute_process.kill()
                     return Response(
                         {"success": False, "error": "Time Limit Exceeded"}, status=400
                     )
 
                 if actual_output.strip() != out.strip():
+                    max_score=max(max_score,score)
+                    score=Score(contest=contest, user=user, challenge=challenge, score=max_score,time=my_time,solved=solve)
+                    score.save()
                     return Response(
                         {
                             "success": True,
@@ -856,7 +884,7 @@ def submit_code(request):
                         status=200,
                     )
 
-                    
+                score+=total_mark   
         except Exception as e:
             return Response(
                 {
@@ -866,11 +894,14 @@ def submit_code(request):
                 },
                 status=500,
             )
-        
+        max_score=max(max_score,score)
+        score=Score(contest=contest, user=user, challenge=challenge, score=max_score,time=my_time,solved=solve+1)
+        score.save()
+
         return Response({"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}, status=200)
 
 
-def submit_python_code(code,input_data,expected_output):
+def submit_python_code(code,input_data,expected_output,total_mark,contest,user,challenge):
     with tempfile.TemporaryDirectory() as temp_dir:
         py_path = os.path.join(temp_dir, "source.py")
         with open(py_path, "w") as source_file:
@@ -880,6 +911,12 @@ def submit_python_code(code,input_data,expected_output):
         execute_process = subprocess.Popen(
             ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
+        if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
+            max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
+            solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
+        else:
+            max_score=0
+        score=0
         for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
             try : 
                 actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
@@ -889,17 +926,27 @@ def submit_python_code(code,input_data,expected_output):
                     return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
 
             except subprocess.TimeoutExpired:
+                max_score=max(max_score,score)
+                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
+                score.save()
                 execute_process.kill()
                 return {"success": False, "error": "Time Limit Exceeded"}
             except FileNotFoundError:
                 return {"success": False, "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH."}
 
             if actual_output.strip() != out.strip():
+                max_score=max(max_score,score)
+                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
+                score.save()
                 return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+            score+=total_mark
+        max_score=max(max_score,score)
+        score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve+1)
+        score.save()
         return {"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}
                 
 
-def submit_java_code(code,input_data,expected_output):    
+def submit_java_code(code,input_data,expected_output,total_mark,contest,user,challenge):    
     match = re.search(r'public\s+class\s+(\w+)', code)
     if not match:
         return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."}
@@ -926,24 +973,72 @@ def submit_java_code(code,input_data,expected_output):
         execute_process = subprocess.Popen(
             ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
+        if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
+            max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
+            solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
+        else:
+            max_score=0
+        score=0
         for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
             try :
-                actual_output, runtime_stderr = execute_process.communicate(input=input_data, timeout=CODE_EXECUTION_TIMEOUT)
+                actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
                 end_time = time_mod.time()
                 execution_time = round(end_time - start_time, 4)
 
                 if execute_process.returncode != 0:
                     return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
             except subprocess.TimeoutExpired:
+                max_score=max(max_score,score)
+                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
+                score.save()
                 execute_process.kill()
                 return {"success": False, "error": "Time Limit Exceeded"}
             except FileNotFoundError:
                 return {"success": False, "error": "JRE not found. Please ensure 'java' is in the system's PATH."}
 
             if actual_output.strip() != out.strip():
+                max_score=max(max_score,score)
+                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
+                score.save()
                 return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+            score+=total_mark
+        max_score=max(max_score,score)
+        score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve+1)
+        score.save()
         return {"success": True, "result": {"status": "passed", "execution_time": execution_time, "memory_used": "N/A"}}
 
+
+def leaderboard(request):
+    if request.POST:
+        contest_id = request.POST.get("contest")
+        contest = get_object_or_404(Contest, id=contest_id)
+        score = Score.objects.filter(contest=contest)
+        dict1 = {}
+        dict2={}
+        for score_obj in score:
+            dict1[score_obj.user.id] = dict1.get(score_obj.user.id, 0) + score_obj.score
+            t=score_obj.time
+            seconds = t.hour * 3600 + t.minute * 60 + t.second
+            dict2[score_obj.user.id] = dict2.get(score_obj.user.id, 0) + seconds
+        dict1 = sorted(
+            dict1.items(),
+            key=lambda x: (-x[1], dict2.get(x[0], 0))
+        )
+
+        data=[]
+        for rank ,(user_id, score) in enumerate(dict1) :
+            data.append({
+                "Rank": rank + 1,
+                "Name": User.objects.get(id=user_id).full_name, 
+                "Solved": Score.objects.get(user=User.objects.get(id=user_id), contest=contest).solved,
+                "Total_problem": len(Challenges.objects.filter(contest=contest)),
+                "Time_taken": str(timedelta(dict2[user_id])),
+                "Avatar": User.objects.get(id=user_id).profile_photo,
+                "score": score
+            })
+            rank=Rank(user=User.objects.get(id=user_id),rank={f"{contest_id}":rank+1})
+        # Rank, Name, Score, Solved, Total Problem ,Time_taken, Avatar
+        return Response({"finalRankings": data})
 
 
 # def get_CPP_code(val, list1):
@@ -1605,22 +1700,6 @@ def python(code_template, challenge, val, score, user):
         return JsonResponse(
             {"msg": "Congrats you passed all testcase ", "success": True}
         )
-
-
-def leaderboard(request):
-    if request.POST:
-        contest_id = request.POST.get("contest")
-        contest = get_object_or_404(Contest, id=contest_id)
-        score = Score.objects.filter(contest=contest)
-        dict1 = {}
-        for score_obj in score:
-            dict1[score_obj.user.id] = dict1.get(score_obj.user.id, 0) + score_obj.score
-        dict1 = sorted(dict1.items(), key=lambda x: x[1], reverse=True)
-        data = [
-            {"user": User.objects.get(id=user_id).full_name, "score": score}
-            for user_id, score in dict1
-        ]
-        return JsonResponse({"Leaderboard": data})
 
 
 def time(request):

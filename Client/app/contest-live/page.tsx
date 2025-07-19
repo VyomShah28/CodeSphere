@@ -352,6 +352,7 @@ console.log(solution());`,
         body: JSON.stringify({
           contestId,
           challengeId,
+          userId:sessionStorage.getItem("userId"),
           "total_mark": currentProblem.max_score,
           lastSubmittedTime,
           code,
@@ -360,7 +361,7 @@ console.log(solution());`,
           language: selectedLanguage,
         }),
       })
-
+      
       const data = await response.json()
 
       setLastSubmittedTime(timeLeft)

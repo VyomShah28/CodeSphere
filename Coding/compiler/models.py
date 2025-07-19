@@ -6,6 +6,7 @@ class Score(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
     challenge=models.ForeignKey(Challenges,on_delete=models.CASCADE)
     score=models.IntegerField(default=0)
+    solved=models.IntegerField(default=0)
     time=models.TimeField(default=None,null=True)
 
 class Testcase(models.Model):
