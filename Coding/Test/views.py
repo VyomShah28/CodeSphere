@@ -429,8 +429,6 @@ def get_contest_byId(request):
         )
 
 
-
-
 def format(description,list1):
     str1='\n'.join(list1)
     prompt2=f"""

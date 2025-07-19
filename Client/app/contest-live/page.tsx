@@ -331,13 +331,14 @@ console.log(solution());`,
         body: JSON.stringify({
           contestId,
           challengeId,
+          userId:sessionStorage.getItem("userId"),
           code,
           inputs: currentProblem.input_testcase,
           outputs: currentProblem.output_testcase,
           language: selectedLanguage,
         }),
       })
-
+      
       const data = await response.json()
 
       if (data.success) {
