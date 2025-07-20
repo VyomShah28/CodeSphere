@@ -201,48 +201,40 @@ def get_leetcode_problem_description_Gemini(question_number):
 
 
 def get_python_code(description):
-    response = None
+    response=None
     prompt3 = f"""
-        You are an expert in creating test cases for competitive programming problems. Your task is to generate exactly 15 test cases and their corresponding correct solutions based on the problem description provided, including all sample test cases from the problem specification.
+    You are an expert in creating test cases for competitive programming problems. Your task is to generate exactly 15 test cases based on the problem description provided, including all sample test cases from the problem specification.
 
         # PRIMARY OBJECTIVE
-        - Generate 15 formatted test case inputs and 15 corresponding correct solution outputs, incorporating all sample test cases from the PROBLEM SPECIFICATION SECTION and generating additional test cases to reach a total of 15.
+        - Generate 15 formatted test case inputs, incorporating all sample test cases from the PROBLEM SPECIFICATION SECTION and generating additional test cases to reach a total of 15.
 
         # OUTPUT STRUCTURE
         You MUST provide your response in the following exact JSON format. Do NOT include any explanations, Python code, or other text — only the JSON data.
 
         ## JSON Format:
-        - A JSON object with exactly two keys: "input" and "output".
-        - The "input" field contains all 15 test case inputs, each on a separate line (line-separated).Each test case must be on a new line, separated by a single newline character (`\n`). **There must be no extra blank lines between test cases.**
-        - The "output" field contains all 15 corresponding test case outputs, each on a separate line (line-separated).Each output must be on a new line, separated by a single newline character (`\n`). **There must be no extra blank lines between outputs.**
-        - The first \\(S\\) lines in both fields must be the sample test cases from the PROBLEM SPECIFICATION SECTION, reformatted to match the formatting rules below.
+        - A JSON object with a single key: "input".
+        - The "input" field's value MUST be a single string containing 15 lines, with each line separated by one and only one newline character (`\\n`). **The use of double newlines (`\\n\\n`) or any blank lines is strictly forbidden.**
+        - The first \\(S\\) lines must be the sample test cases from the PROBLEM SPECIFICATION SECTION, reformatted to match the formatting rules below.
         - The remaining \\(15 - S\\) lines are generated test cases.
-        - All input and output formatting rules below must be strictly followed.
+        - All input formatting rules below must be strictly followed.
 
         Example structure:
-        json
+        ```json
         {{
-        "input": "line1_input\nline2_input\nline3_input\n...\nline15_input",
-        "output": "line1_output\nline2_output\nline3_output\n...\nline15_output"
+        "input": "line1_input\\nline2_input\\n...\\nline15_input"
         }}
-                
-        ## Part 1: Test Case Inputs
+        ```
+        
+        ## Test Case Inputs
         - Exactly 15 lines of input data.
         - Each line is a complete, single-line, space-separated test case.
         - The first \\(S\\) lines must be the sample test cases from the PROBLEM SPECIFICATION SECTION, reformatted to match the formatting rules below.
         - The remaining \\(15 - S\\) lines are generated test cases.
         - All input formatting rules below must be strictly followed.
 
-        ## Part 2: Corresponding Outputs
-        - Exactly 15 lines of output data.
-        - The N-th line of output MUST be the correct solution for the N-th line of input.
-        - The first \\(S\\) lines correspond to the sample test case outputs, reformatted as needed.
-        - The remaining \\(15 - S\\) lines correspond to the generated test cases.
-        - All output formatting rules below must be strictly followed.
-
         # TEST CASE GENERATION RULES (15 Cases Total)
 
-        - **Incorporate Sample Test Cases**: Extract all sample test cases (inputs and outputs) from the `sample_testcases` section of the PROBLEM SPECIFICATION SECTION. Convert each sample input to a single-line, space-separated format, adding size prefixes for collections as per the formatting rules below. Include these as the first \\(S\\) lines in Part 1 (inputs) and Part 2 (outputs).
+        - **Incorporate Sample Test Cases**: Extract all sample inputs from the `sample_testcases` section of the PROBLEM SPECIFICATION SECTION. Convert each sample input to a single-line, space-separated format, adding size prefixes for collections as per the formatting rules below. Include these as the first \\(S\\) lines.
         - **Generate Additional Cases**: Generate \\(15 - S\\) additional test cases to reach a total of 15. These must be diverse, including basic, moderate, and edge cases. The values within a test case should be interrelated to test specific scenarios (e.g., sorted data, all identical values, etc.). *Do not simply use random, unrelated values.*
 
         ## Constraint Adherence:
@@ -251,9 +243,9 @@ def get_python_code(description):
         - **Value Range**: All element values (for both sample and generated test cases) must be within their full specified constraint ranges.
         - **Sample Test Cases**: Sample test cases may use any valid sizes within the problem constraints, as they are provided by the problem description, but must be formatted correctly.
 
-        # MANDATORY INPUT & OUTPUT FORMATTING (SIZE PREFIXING)
+        # MANDATORY INPUT FORMATTING (SIZE PREFIXING)
 
-        For ANY collection of data (arrays, lists, matrices, etc.) in both your inputs and outputs (including sample test cases), you MUST prefix it with its dimensional size information.
+        For ANY collection of data (arrays, lists, matrices, etc.) in your inputs (including sample test cases), you MUST prefix it with its dimensional size information.
 
         **CRITICAL: ELEMENT COUNT MUST EXACTLY MATCH THE DECLARED SIZE PREFIX.**
 
@@ -262,9 +254,9 @@ def get_python_code(description):
         **NO EXCEPTIONS.**
 
         ## Dimension-based Size Prefixing Rules:
-        - **1D Collections**: {{size}} {{elements...}}
-        - **2D Collections**: {{rows}} {{cols}} {{elements...}} (flattened row-by-row)
-        - **nD Collections**: {{dim1}} {{dim2}} ... {{dimN}} {{elements...}} (flattened)
+        - **1D Collections**: {{{{size}}}} {{{{elements...}}}}
+        - **2D Collections**: {{{{rows}}}} {{{{cols}}}} {{{{elements...}}}} (flattened row-by-row)
+        - **nD Collections**: {{{{dim1}}}} {{{{dim2}}}} ... {{{{dimN}}}} {{{{elements...}}}} (flattened)
 
         ---
 
@@ -285,16 +277,12 @@ def get_python_code(description):
 
         **Note**: Single values (like an integer or string) are *not* collections and must NOT be prefixed.
 
-        MANDATORY OUTPUT FORMATTING
-            -CRITICAL: Do NOT include size prefixes for any collection in the output.
-            -All output values on a single line MUST be space-separated.
-            -For any collection (array, matrix, etc.), flatten it into a single line of space-separated values.
-            
-            Examples (Output Only):
-            -Array [5, 3, 8] must be output as: 5 3 8
-            -Single integer 42 must be output as: 42
-            -Matrix [[1, 2], [3, 4]] must be output as: 1 2 3 4
-            -String "hello" must be output as: "hello"
+        ### CRITICAL RULE FOR STRINGS
+        - When a parameter is a string, you MUST output its value directly.
+        - DO NOT enclose the string value in double quotes (`"`).
+        - ✅ Correct: `hello_world`
+        - ❌ Incorrect: `"hello_world"`
+        - This rule is absolute and applies to all string parameters in all test cases.
 
         ### Collection Examples:
         - Array `[5, 3, 8]`: `3 5 3 8`
@@ -330,16 +318,6 @@ def get_python_code(description):
             
         ---
 
-        # PROBLEM ANALYSIS & SOLVING
-
-        - **Analyze the Problem**: Read the PROBLEM SPECIFICATION SECTION to identify input data structures, constraints, and the input order from the `sample_testcases` section.
-        - **Extract Sample Test Cases**: Identify all sample inputs and outputs from the PROBLEM SPECIFICATION SECTION. Convert sample inputs to single-line, space-separated format, adding size prefixes for collections. Use the provided sample outputs, reformatted if necessary to match output formatting rules.
-        - **Generate Additional Inputs**: Create \\(15 - S\\) additional inputs following all size restriction, formatting, and input order preservation rules.
-        - **Solve the Problem**: Compute the correct output for each of the 15 inputs (sample and generated).
-        - **Format Outputs**: Present the 15 answers as Part 2 of your response, ensuring sample outputs are listed first, followed by outputs for generated test cases.
-
-        ---
-
         # PROBLEM SPECIFICATION SECTION
 
         {description}
@@ -348,14 +326,12 @@ def get_python_code(description):
 
         # FINAL CHECKLIST
 
-        - [x] 15 Input Lines?
-        - [x] 15 Output Lines?
+        - [x] Exactly 15 Input Lines?
         - [x] First \\(S\\) inputs are sample test cases, correctly formatted?
         - [x] Generated input sizes ≤ 30% of max constraints?
-        - [x] All collections (input & output) have size prefixes?
+        - [x] All collections have size prefixes?
         - [x] Element counts match prefixes exactly?
         - [x] Input parameter order matches `sample_testcases`?
-        - [x] Outputs are correct solutions?
         - [x] Is there any extra text, code, or explanation? ❌ No
     """
 
@@ -386,9 +362,6 @@ def get_python_code(description):
 
         raw_content = clean_output
         raw_content = raw_content.replace("```", "")
-        # raw_content = raw_content.replace("```json", "")
-        # raw_content = raw_content.replace("json", "")
-        # print("Raw content received:", raw_content,type(raw_content))
 
         response = json.loads(raw_content)
         print("Generated test cases:", response)
@@ -449,37 +422,184 @@ def get_test_cases(request):
 
         # if Testcase.objects.filter(question_number=question_number).exists():
         #     test = Testcase.objects.get(question_number=question_number)
-        #     return Response(
-        #         {"input": test.input, "output": test.output},
-        #         status=200,
-        #     )
-
+        #     output = {
+        #         "input": test.input,
+        #         "output": test.output
+        #     }
+        #     return Response(output, status=200)
         try:
             if isinstance(description, dict):
                 extracted_description = json.dumps(description, indent=2)
             else:
                 extracted_description = description
-            print("1")
             test_cases = get_python_code(extracted_description)
-
-            # test_cases = test_cases.replace("```json", "")
-            # test_cases = test_cases.replace("```", "")
 
             print(f"Generated test cases: {test_cases}")
 
             print(question_number)
 
-            new_test_cases = Testcase(
-                question_number=question_number,
-                input=test_cases["input"],
-                output=test_cases["output"],
-            )
-            new_test_cases.save()
+            input_formate=format(description, test_cases["input"].split("\n"))
+            input_formate = input_formate.text.replace("```json", " ")
+            input_formate = input_formate.replace("```", " ")
+                
+            input_formate = json.loads(input_formate)
+            leetcode_problem = Leetcode_Description.objects.get(number=question_number)
+            leetcode_problem.input_description = input_formate["input_format_explanation"]
+            leetcode_problem.save()
 
-            return Response(test_cases, status=200)
+            output=get_output(description, test_cases["input"], input_formate["input_format_explanation"])
+
+
+            new_test_cases = Testcase.objects.update_or_create(
+                question_number=question_number,
+                defaults={
+                    "input":output["input"],
+                    "output":output["output"]
+                }
+            )
+
+            return Response(output, status=200)
         except Exception as e:
             print(f"Exception in get_test_cases: {str(e)}")
             return Response({"error": str(e)}, status=500)
+
+
+def get_output(description,testcase,input_format):
+    prompt_solver = f"""
+    You are a deterministic JSON-producing system. Your function is to accept a problem definition and a block of text-based test cases, solve them exactly as described, and return a single, perfectly formatted JSON object according to the following contract.
+
+    # ABSOLUTE OUTPUT CONTRACT
+    Failure to follow *any* term renders the response invalid.
+
+    ### Term 1: Output Format
+    Respond with ONLY a single, raw, syntactically correct JSON object. No markdown, explanations, extra text, or comments—just the JSON.
+
+    ### Term 2: JSON String Values and Newlines
+    The JSON object MUST contain exactly these two keys:
+    1.  "input"
+    2.  "output"
+    The values for both the "input" and "output" keys MUST be valid JSON strings.
+    -   Inside a JSON string, a newline character MUST be represented by the two-character escape sequence `\\n`.
+    -   Your final output for these keys must not contain raw, unescaped newline characters.
+
+    ### Term 3: "input" Key
+    - The "input" value MUST be a valid JSON string: the literal content of `INPUT_BLOCK` below, with every newline (`\n`) replaced by the two-character escape sequence `\\n`. 
+    - The string must match the original block content exactly (character-for-character), except with newlines escaped.
+    - **IMPORTANT:** *Absolutely no raw line breaks (actual newlines) are allowed in the string. Only use the exact two-character sequence `\\n` to indicate a newline, never actual newlines.*
+
+    ### Term 4: "output" Key
+    - The "output" value MUST be a JSON string produced by solving each line in the input according to the problem rules.
+    - It must contain exactly one "line" per input line, separated by `\\n`—**the actual two characters `\\n`, not a raw newline.**
+    - *You must generate a corresponding output line for every input line, in the exact same order.*
+    - **NO raw newlines or line breaks are allowed in the JSON value—each line is separated ONLY by `\\n`.**
+
+    ### Term 5: Strict Line Matching
+    - **Count Lines:** The number of input lines (including blanks and malformed lines) MUST EXACTLY equal the number of output lines.
+    - **Never Skip:** If an input line is blank or malformed, provide a corresponding output line (such as `0` or `invalid_input`). No input line may be skipped; DO NOT OMIT ANY OUTPUT LINES.
+
+    ---
+    # 1. PROBLEM DEFINITION
+
+    {description}
+
+    ---
+    # 2. INPUT LINE FORMAT
+
+    {input_format}
+
+    ---
+    # 3. INPUT_BLOCK
+
+    (For the "input" key: encode the following content, escaping newlines as strictly described. For the "output" key: solve each line and return one output line per corresponding input line.)
+
+    {testcase}
+
+    ---
+    ### ABSOLUTE ENCODING REQUIREMENT
+
+    **REMINDER AND EXAMPLE:**  
+    - Your JSON string values for "input" and "output" must NEVER contain actual newline characters (hex 0x0A or 0x0D).
+    - ONLY encode line breaks as the exact sequence of two characters: `\\n`.
+    - **Example:** If the INPUT_BLOCK is:
+    foo
+    bar
+    baz
+
+    text
+    Then `"input"` must be: `"foo\\nbar\\nbaz"`
+    (and ***must NOT*** use a real line break anywhere in the value).
+
+    ---
+    Execute. Return ONLY the required JSON—with exact structure and perfectly encoded newlines per contract.
+    """
+
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    response1 = model.generate_content(prompt_solver)
+    print(response1.text)
+    response3=response1.text.replace("```json","")
+    response3=response3.replace("```","")
+    response3=json.loads(response3)
+    return response3
+
+def format(description,list1):
+    str1='\n'.join(list1)
+    prompt2=f"""
+        You are an expert parsing system for competitive programming problems. Your sole function is to analyze a problem's description and raw test case inputs to produce a human-readable explanation of the input format. You must determine how the raw, single-line string of a test case maps to the data structures and variables described in the problem.
+        Your Task:
+        You will be given two pieces of information:
+
+        Problem JSON (<PROBLEM_JSON>): A JSON object containing the full problem details, including description, constraints, and format information from a platform like LeetCode.
+        Test Cases (<TEST_CASES>): A block of 5 separate, single-line raw test cases.
+        Based on this information, you must generate a single, valid JSON object and nothing else. Extraneous text, explanations, or conversational filler are strictly forbidden.
+
+        Output Requirements:
+
+        The output must be a valid JSON object.
+        The JSON object must contain a single key: "input_format_explanation".
+        The value for this key must be a string that provides a clear, precise, and accurate step-by-step description of how to parse the raw, single-line test case.
+        The explanation must connect the elements in the raw input string to the variables and data structures mentioned in the <PROBLEM_JSON> (e.g., N, M, grid, queries). It should describe the order, type, and meaning of each part of the input.
+        The explanation must be detailed enough for a programmer to write code that correctly reads the input.
+
+        Crucial Example
+        To ensure you understand the required output format and precision, here is an example.
+
+        EXAMPLE INPUT:
+
+        <PROBLEM_JSON>
+        {{
+        "title": "Matrix and Queries",
+        "description": "You are given a matrix of size N x M. After the matrix, you are given Q queries. Each query consists of two integers, r and c. For each query, find the value at matrix[r][c].",
+        "input_format": "The first line contains two integers, N and M. The next N lines contain M integers each. The next line contains an integer Q. The next Q lines contain two integers, r and c.",
+        "constraints": "1 <= N, M <= 100\n1 <= Q <= 1000"
+        }}
+        </PROBLEM_JSON>
+
+        <TEST_CASES>
+        2 3 1 2 3 4 5 6 2 0 1 1 2
+        3 3 9 8 7 6 5 4 3 2 1 1 2 2
+        1 1 100 1 0 0
+        </TEST_CASES>
+        REQUIRED OUTPUT FOR THE EXAMPLE:
+
+        JSON
+
+        {{
+        "input_format_explanation": "The input begins with two space-separated integers, N and M, representing the number of rows and columns of the matrix. These are followed by N * M space-separated integers, which represent the elements of the matrix provided in row-major order. After the matrix elements, there is a single integer Q, indicating the number of queries. Finally, this is followed by Q pairs of space-separated integers (r and c), representing the coordinates for each query."
+        }}
+        Now, analyze the following problem JSON and test cases and generate the required JSON output.
+
+        <PROBLEM_JSON>
+        {description}
+        </PROBLEM_JSON>
+
+        <TEST_CASES>
+        {str1}
+        </TEST_CASES>
+        """
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    print(model.generate_content(prompt2))
+    return model.generate_content(prompt2)
 
 
 CODE_EXECUTION_TIMEOUT = 5
@@ -735,6 +855,10 @@ def run_java_code(code, input_data, expected_output):
         else:
             return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
 
+
+def time_to_delta(t):
+    return timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+
 @api_view(["POST"])
 def submit_code(request):
     code = request.data.get("code")
@@ -744,7 +868,7 @@ def submit_code(request):
     contest=Contest.objects.get(id=request.data.get("contestId"))
     user=User.objects.get(id=request.data.get("userId"))
     challenge= Challenges.objects.get(id=request.data.get("challengeId", ""))
-    time=request.data.get("lastSubmittedTime", {})
+    time=request.data.get("timeLeft", {})
     print(f"Received time data: {time}")
     hour=int(time["hours"])
     minute=int(time["minutes"])
@@ -752,6 +876,10 @@ def submit_code(request):
 
     my_time = dt_time(hour, minute, second)
 
+    start_time=datetime.combine(contest.start_date, contest.start_time)
+    end_time=datetime.combine(contest.end_date, contest.end_time)
+
+    diff = end_time - start_time - time_to_delta(my_time)
     print(f"Input data: {input_data}")
     expected_output = request.data.get("outputs", "")
     print(f"Expected output: {expected_output}")
@@ -762,19 +890,23 @@ def submit_code(request):
         )
 
     if language == "python":
-        print("input data:", input_data)
-        print("expected output:", expected_output)
         solution = submit_python_code(code, input_data, expected_output,total_mark,contest,user,challenge)
         print(f"Solution: {solution}")
-        score=Score.objects.filter(contest=contest, user=user,challenge=challenge).first()
+        score=Score.objects.get(contest=contest, user=user,challenge=challenge)
         print(f"Score object: {score}")
-        score.time=my_time
+        score.time=diff
         score.save()
         return Response(solution, status=200)
     
     if language == "java":
+        print(diff)
         solution = submit_java_code(code, input_data, expected_output,total_mark,contest,user,challenge)
-        score.time=my_time
+        score=Score.objects.get(contest=contest, user=user,challenge=challenge)
+        total_seconds = int(diff.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        score.time = dt_time(hours, minutes, seconds)
         score.save()
         return Response(solution, status=200)
 
@@ -835,22 +967,23 @@ def submit_code(request):
 
         try:
             run_command = [executable_path]
-            execute_process = subprocess.Popen(
-                run_command,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
             testcase=input_data.split('\n')
             if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
                 max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
                 solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
             else:
                 max_score=0
+                solve={}
             score=0
             for test,out in zip(testcase,expected_output.split('\n')):
                 try : 
+                    execute_process = subprocess.Popen(
+                        run_command,
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    )
                     actual_output, runtime_stderr = execute_process.communicate(
                         input=test, timeout=CODE_EXECUTION_TIMEOUT
                     )
@@ -866,8 +999,16 @@ def submit_code(request):
                         )
                 except subprocess.TimeoutExpired:
                     max_score=max(max_score,score)
-                    score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve,time=my_time)
-                    score.save()
+                    score_obj = Score.objects.update_or_create(
+                        contest=contest,
+                        user=user,
+                        challenge=challenge,
+                        defaults={
+                            'score': max_score,
+                            'solved': solve,
+                            'time': diff
+                        }
+                    )
                     execute_process.kill()
                     return Response(
                         {"success": False, "error": "Time Limit Exceeded"}, status=400
@@ -875,8 +1016,16 @@ def submit_code(request):
 
                 if actual_output.strip() != out.strip():
                     max_score=max(max_score,score)
-                    score=Score(contest=contest, user=user, challenge=challenge, score=max_score,time=my_time,solved=solve)
-                    score.save()
+                    score_obj = Score.objects.update_or_create(
+                        contest=contest,
+                        user=user,
+                        challenge=challenge,
+                        defaults={
+                            'score': max_score,
+                            'solved': solve,
+                            'time': diff
+                        }
+                    )
                     return Response(
                         {
                             "success": True,
@@ -891,7 +1040,8 @@ def submit_code(request):
                         status=200,
                     )
 
-                score+=total_mark   
+                score+=total_mark  
+                print("Passed",test) 
         except Exception as e:
             return Response(
                 {
@@ -902,8 +1052,17 @@ def submit_code(request):
                 status=500,
             )
         max_score=max(max_score,score)
-        score=Score(contest=contest, user=user, challenge=challenge, score=max_score,time=my_time,solved=solve+1)
-        score.save()
+        solve[challenge.id]=1
+        score_obj = Score.objects.update_or_create(
+            contest=contest,
+            user=user,
+            challenge=challenge,
+            defaults={
+                'score': max_score,
+                'solved': solve,
+                'time': diff
+            }
+        )
 
         return Response({"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}, status=200)
 
@@ -921,12 +1080,13 @@ def submit_python_code(code,input_data,expected_output,total_mark,contest,user,c
             solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
         else:
             max_score=0
+            solve={}
         score=0
         for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
             try : 
                 execute_process = subprocess.Popen(
-                ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
+                    ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                )
                 actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
                 end_time = time_mod.time()
                 execution_time = round(end_time - start_time, 4)
@@ -935,8 +1095,15 @@ def submit_python_code(code,input_data,expected_output,total_mark,contest,user,c
 
             except subprocess.TimeoutExpired:
                 max_score=max(max_score,score)
-                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
-                score.save()
+                score_obj = Score.objects.update_or_create(
+                    contest=contest,
+                    user=user,
+                    challenge=challenge,
+                    defaults={
+                        'score': max_score,
+                        'solved': solve,
+                    }
+                )
                 execute_process.kill()
                 return {"success": False, "error": "Time Limit Exceeded"}
             except FileNotFoundError:
@@ -944,13 +1111,28 @@ def submit_python_code(code,input_data,expected_output,total_mark,contest,user,c
 
             if actual_output.strip() != out.strip():
                 max_score=max(max_score,score)
-                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
-                score.save()
+                score_obj = Score.objects.update_or_create(
+                    contest=contest,
+                    user=user,
+                    challenge=challenge,
+                    defaults={
+                        'score': max_score,
+                        'solved': solve,
+                    }
+                )
                 return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
             score+=total_mark
         max_score=max(max_score,score)
-        score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve+1)
-        score.save()
+        solve[challenge.id]=1
+        score_obj = Score.objects.update_or_create(
+            contest=contest,
+            user=user,
+            challenge=challenge,
+            defaults={
+                'score': max_score,
+                'solved': solve,
+            }
+        )
         return {"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}
                 
 
@@ -978,17 +1160,19 @@ def submit_java_code(code,input_data,expected_output,total_mark,contest,user,cha
             return {"success": False, "error": "Compilation Timed Out"}
 
         start_time = time_mod.time()
-        execute_process = subprocess.Popen(
-            ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
+        
         if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
             max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
             solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
         else:
             max_score=0
+            solve={}
         score=0
         for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
             try :
+                execute_process = subprocess.Popen(
+                    ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                )
                 actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
                 end_time = time_mod.time()
                 execution_time = round(end_time - start_time, 4)
@@ -996,26 +1180,54 @@ def submit_java_code(code,input_data,expected_output,total_mark,contest,user,cha
                 if execute_process.returncode != 0:
                     return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
             except subprocess.TimeoutExpired:
+                print("Failed Time")
                 max_score=max(max_score,score)
-                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
-                score.save()
+                score_obj = Score.objects.update_or_create(
+                    contest=contest,
+                    user=user,
+                    challenge=challenge,
+                    defaults={
+                        'score': max_score,
+                        'solved': solve,
+                    }
+                )
                 execute_process.kill()
                 return {"success": False, "error": "Time Limit Exceeded"}
             except FileNotFoundError:
+                print('Failed JRE')
                 return {"success": False, "error": "JRE not found. Please ensure 'java' is in the system's PATH."}
 
             if actual_output.strip() != out.strip():
+                print(test)
+                print(f"Failed Output : {actual_output.strip()}, Actual Output : {out.strip()}")
                 max_score=max(max_score,score)
-                score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve)
-                score.save()
+                score_obj = Score.objects.update_or_create(
+                    contest=contest,
+                    user=user,
+                    challenge=challenge,
+                    defaults={
+                        'score': max_score,
+                        'solved': solve,
+                    }
+                )
                 return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
             score+=total_mark
+            print("Passed")
+            print(test)
         max_score=max(max_score,score)
-        score=Score(contest=contest, user=user, challenge=challenge, score=max_score,solved=solve+1)
-        score.save()
+        solve[challenge.id]=1
+        score_obj = Score.objects.update_or_create(
+            contest=contest,
+            user=user,
+            challenge=challenge,
+            defaults={
+                'score': max_score,
+                'solved': solve,
+            }
+        )
         return {"success": True, "result": {"status": "passed", "execution_time": execution_time, "memory_used": "N/A"}}
 
-
+@api_view(["POST"])
 def leaderboard(request):
     if request.POST:
         contest_id = request.POST.get("contest")
@@ -1038,14 +1250,13 @@ def leaderboard(request):
             data.append({
                 "Rank": rank + 1,
                 "Name": User.objects.get(id=user_id).full_name, 
-                "Solved": Score.objects.get(user=User.objects.get(id=user_id), contest=contest).solved,
+                "Solved": len(Score.objects.get(user=User.objects.get(id=user_id), contest=contest).solved),
                 "Total_problem": len(Challenges.objects.filter(contest=contest)),
                 "Time_taken": str(timedelta(dict2[user_id])),
                 "Avatar": User.objects.get(id=user_id).profile_photo,
                 "score": score
             })
             rank=Rank(user=User.objects.get(id=user_id),rank={f"{contest_id}":rank+1})
-        # Rank, Name, Score, Solved, Total Problem ,Time_taken, Avatar
         return Response({"finalRankings": data})
     
     

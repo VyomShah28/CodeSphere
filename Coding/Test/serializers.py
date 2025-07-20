@@ -14,9 +14,9 @@ class ContestSerializer(serializers.ModelSerializer):
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
-     input_testcase = serializers.FileField(use_url=True)
-     output_testcase = serializers.FileField(use_url=True)
-    
-     class Meta:
-        model=Challenges
-        fields='__all__'        
+        input_testcase = serializers.FileField(use_url=True)
+        output_testcase = serializers.FileField(use_url=True)
+
+        class Meta:
+            model=Challenges
+            fields='__all__'        

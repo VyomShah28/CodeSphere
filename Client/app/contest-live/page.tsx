@@ -68,11 +68,6 @@ if __name__ == "__main__":
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submissionResult, setSubmissionResult] = useState<any>(null)
   const [sampleTestCase, setSampleTestCase] = useState<{ input: [string]; output: [string]} | null>(null)
-  const [lastSubmittedTime, setLastSubmittedTime] = useState<any>({
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  })
 
   const { isFullscreen, shouldEnforceFullscreen } = useContestFullscreen()
 
@@ -148,19 +143,22 @@ console.log(solution());`,
 
     const d1 = new Date(`${response.data.start_date}T${response.data.start_time}`);
     const d2 = new Date(`${response.data.end_date}T${response.data.end_time}`);
-
+   
     const today = new Date();
 
     const hour = (d2.getTime() - today.getTime()) / (1000 * 60 * 60);
     const minites = (d2.getTime() - today.getTime()) / (1000 * 60);
     const seconds = (d2.getTime() - today.getTime()) / 1000
-
-    setTimeLeft({
-      hours: Math.floor(hour),
-      minutes: Math.floor(minites % 60),
-      seconds: Math.floor(seconds % 60),})
-
-      setLastSubmittedTime(timeLeft)
+      
+    const newTimeLeft = {
+      "hours": Math.floor(hour),
+      "minutes": Math.floor(minites%60),
+      "seconds": Math.floor(seconds%60)
+    };  
+      
+      setTimeLeft(newTimeLeft)
+      
+      console.log("Time left:", newTimeLeft);
 
      setSampleTestCase({
       input: leetcode_input.split("\n").slice(0,3),
@@ -344,8 +342,8 @@ console.log(solution());`,
     if (!canSubmit || isSubmitting) return
 
     setIsSubmitting(true)
-
     try {
+      console.log("Hello" + timeLeft);
       const response = await fetch("http://localhost:8000/api/submitContest", {
         method: "POST",
         headers: {
@@ -356,7 +354,7 @@ console.log(solution());`,
           challengeId,
           userId:sessionStorage.getItem("userId"),
           "total_mark": currentProblem.max_score,
-          lastSubmittedTime,
+          "timeLeft":timeLeft,
           code,
           inputs: currentProblem.input_leetcode_testcase,
           outputs: currentProblem.output_leetcode_testcase,
@@ -365,8 +363,6 @@ console.log(solution());`,
       })
       
       const data = await response.json()
-
-      setLastSubmittedTime(timeLeft)
 
       if (data.success) {
         setSubmissionResult(data.submission)

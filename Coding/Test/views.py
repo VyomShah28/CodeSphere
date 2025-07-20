@@ -385,33 +385,25 @@ def get_challenge_byId(request):
         
         if challenge.isLeetCode:
             
-           test_case = Testcase.objects.filter(question_number=challenge.leetCodeNumber).first()
+            test_case = Testcase.objects.get(question_number=challenge.leetCodeNumber)
 
-           if test_case:
+            if test_case:
                 input_leetcode_testcase = test_case.input
                 output_leetcode_testcase = test_case.output
-           else:
+            else:
                 input_leetcode_testcase = output_leetcode_testcase = None
                 
-           leetcode_problem = Leetcode_Description.objects.filter(number=challenge.leetCodeNumber).first()
-           
-           if leetcode_problem.input_description == None:
-              input_formate = format(leetcode_problem.description, input_leetcode_testcase.split("\n")[0:5])
-              
-              input_formate = input_formate.text.replace("```json", " ")
-              input_formate = input_formate.replace("```", " ")
-              
-              input_formate = json.loads(input_formate)
-              leetcode_problem.input_description = input_formate["input_format_explanation"]
-              leetcode_problem.save()
-           else:
-                input_formate = leetcode_problem.input_description
-               
+            leetcode_problem = Leetcode_Description.objects.filter(number=challenge.leetCodeNumber).first()
+            input_formate = leetcode_problem.input_description
+
         response_data = ChallengeSerializer(challenge).data
         response_data['input_leetcode_testcase'] = input_leetcode_testcase
         response_data['output_leetcode_testcase'] = output_leetcode_testcase
         response_data['input_formate'] = input_formate if challenge.isLeetCode else challenge.input_form
-          
+        response_data["start_date"]=challenge.contest.start_date.strftime("%Y-%m-%d")
+        response_data["start_time"]=challenge.contest.start_time.strftime("%H:%M:%S")
+        response_data["end_date"]=challenge.contest.end_date.strftime("%Y-%m-%d")
+        response_data["end_time"]=challenge.contest.end_time.strftime("%H:%M:%S")  
         return Response(response_data, status=status.HTTP_200_OK)
     except Challenges.DoesNotExist:
         return Response(
@@ -430,67 +422,6 @@ def get_contest_byId(request):
         return Response(
             {"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND
         )
-
-
-def format(description,list1):
-    str1='\n'.join(list1)
-    prompt2=f"""
-        You are an expert parsing system for competitive programming problems. Your sole function is to analyze a problem's description and raw test case inputs to produce a human-readable explanation of the input format. You must determine how the raw, single-line string of a test case maps to the data structures and variables described in the problem.
-        Your Task:
-        You will be given two pieces of information:
-
-        Problem JSON (<PROBLEM_JSON>): A JSON object containing the full problem details, including description, constraints, and format information from a platform like LeetCode.
-        Test Cases (<TEST_CASES>): A block of 5 separate, single-line raw test cases.
-        Based on this information, you must generate a single, valid JSON object and nothing else. Extraneous text, explanations, or conversational filler are strictly forbidden.
-
-        Output Requirements:
-
-        The output must be a valid JSON object.
-        The JSON object must contain a single key: "input_format_explanation".
-        The value for this key must be a string that provides a clear, precise, and accurate step-by-step description of how to parse the raw, single-line test case.
-        The explanation must connect the elements in the raw input string to the variables and data structures mentioned in the <PROBLEM_JSON> (e.g., N, M, grid, queries). It should describe the order, type, and meaning of each part of the input.
-        The explanation must be detailed enough for a programmer to write code that correctly reads the input.
-
-        Crucial Example
-        To ensure you understand the required output format and precision, here is an example.
-
-        EXAMPLE INPUT:
-
-        <PROBLEM_JSON>
-        {{
-        "title": "Matrix and Queries",
-        "description": "You are given a matrix of size N x M. After the matrix, you are given Q queries. Each query consists of two integers, r and c. For each query, find the value at matrix[r][c].",
-        "input_format": "The first line contains two integers, N and M. The next N lines contain M integers each. The next line contains an integer Q. The next Q lines contain two integers, r and c.",
-        "constraints": "1 <= N, M <= 100\n1 <= Q <= 1000"
-        }}
-        </PROBLEM_JSON>
-
-        <TEST_CASES>
-        2 3 1 2 3 4 5 6 2 0 1 1 2
-        3 3 9 8 7 6 5 4 3 2 1 1 2 2
-        1 1 100 1 0 0
-        </TEST_CASES>
-        REQUIRED OUTPUT FOR THE EXAMPLE:
-
-        JSON
-
-        {{
-        "input_format_explanation": "The input begins with two space-separated integers, N and M, representing the number of rows and columns of the matrix. These are followed by N * M space-separated integers, which represent the elements of the matrix provided in row-major order. After the matrix elements, there is a single integer Q, indicating the number of queries. Finally, this is followed by Q pairs of space-separated integers (r and c), representing the coordinates for each query."
-        }}
-        Now, analyze the following problem JSON and test cases and generate the required JSON output.
-
-        <PROBLEM_JSON>
-        {description}
-        </PROBLEM_JSON>
-
-        <TEST_CASES>
-        {str1}
-        </TEST_CASES>
-        """
-
-    model = genai.GenerativeModel("gemini-2.5-flash")
-    print(model.generate_content(prompt2))
-    return model.generate_content(prompt2)
 
 
 
