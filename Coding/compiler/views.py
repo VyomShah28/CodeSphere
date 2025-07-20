@@ -1047,6 +1047,72 @@ def leaderboard(request):
             rank=Rank(user=User.objects.get(id=user_id),rank={f"{contest_id}":rank+1})
         # Rank, Name, Score, Solved, Total Problem ,Time_taken, Avatar
         return Response({"finalRankings": data})
+    
+    
+@api_view(["POST"])
+def get_user_progress(request):
+    if request.method == "POST":
+        print(request.data)
+        user_id = request.data.get("user_id")
+        
+        print(f"Received user_id: {user_id}")
+        
+
+        if not user_id:
+            return Response({"error": "User ID are required"}, status=400)
+
+        try:
+            user = User.objects.get(id=user_id)
+            scores = Score.objects.filter(user=user)
+            
+            if not scores:
+                return Response({"error": "No scores found for this user"}, status=200)
+            
+            stats = []
+            contestHistory = []
+            
+            total_score = 0
+            total_rank = 0
+            best_rank = 0
+            problemSolved = 0
+            for score in scores:
+                
+                total_score += score.score
+                total_rank += score.rank
+                best_rank = max(best_rank, score.rank)
+                problemSolved += score.solved              
+                
+                contestHistory.append({
+                    "id":score.contest.id,
+                    "name": score.challenge.name,
+                    "date": score.contest.start_date.strftime("%Y-%m-%d"),
+                    "rank": score.rank,
+                    "score": score.score,
+                    "problem":len(Challenges.objects.filter(contest=score.contest.id)),
+                    "solved": score.solved,
+                    "time": str(score.time),
+                    "participants": Contest.objects.get(id=score.contest.id).participants,
+                    "status":Contest.objects.get(id=score.contest.id).status,
+                })  
+            
+            stats.append({
+                "totalContests": scores.count(),
+                "averageRank": total_rank / scores.count() if scores.count() > 0 else 0,
+                "totalScore": total_score,
+                "bestRank": best_rank,
+                "problemsSolved": problemSolved,
+            })
+            
+            data = {
+                contestHistory: contestHistory,
+                stats: stats,
+            }
+
+            return Response(data, status=200)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        except Contest.DoesNotExist:
+            return Response({"error": "Contest not found"}, status=404)
 
 
 # def get_CPP_code(val, list1):
