@@ -51,10 +51,13 @@ export default function ContestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [contests, setContests] = useState<Contest[]>();
   const [deletedContestId, setDeletedContestId] = useState<string[]>();
+  const [isLoading, setIsLoading] = useState(true);
   const user = useUser();
 
   useEffect(() => {
+     setIsLoading(true)
     const fetchContests = async () => {
+     
       try {
         const response = await axios.get(
           "http://127.0.0.1:8000/api/get-contests?userId=" +
@@ -83,8 +86,10 @@ export default function ContestsPage() {
       } catch (error) {
         console.error("Error fetching contests:", error);
       }
+    
     };
     fetchContests();
+      setIsLoading(false)
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -137,6 +142,8 @@ export default function ContestsPage() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [deletedContestId]);
+
+ 
 
   return (
     <div className="min-h-screen bg-slate-50">

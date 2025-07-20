@@ -68,10 +68,18 @@ interface Challenge {
   solved?: boolean;
 }
 
+interface rankList{
+  name:string
+  rank:number
+  solved:number
+  score:number
+}
+
 export default function ContestWaiting() {
   const params = useSearchParams();
   const contestId = params.get("contestId") as string;
   const [problems, setProblems] = useState<Challenge[]>([]);
+  const [leaderboard,setLeaderboard] = useState<rankList[]>([])
 
   const router = useRouter();
   const [isStarted, setISStarted] = useState(true);
@@ -176,8 +184,28 @@ export default function ContestWaiting() {
     }
   };
 
+    const fetchLeaderboard = async () => {
+    
+         try {
+
+      const response = await axios.post("http://localhost:8000/api/getLeaderboard",{
+        "contest": contestId
+      })
+
+     console.log("Contest leaderboard data:", response.data);
+     setLeaderboard(response.data.finalRankings || [])
+     
+      
+    } catch (error) {
+      console.error("Error checking contest violations:", error)
+      
+    }
+
+
+  }
+
   const fetchChallenge = async () => {
-    setIsLoading(true);
+
     try {
       const response = await axios.get(
         "http://127.0.0.1:8000/api/get-challenges/?contestId=" + contestId
@@ -191,24 +219,16 @@ export default function ContestWaiting() {
     } catch (error) {
       console.error("Error fetching challenges:", error);
     }
-    setIsLoading(false);
+ 
   };
 
   useEffect(() => {
+    setIsLoading(true)
     fetchContestInfo();
     fetchChallenge();
+    fetchLeaderboard()
+    setIsLoading(false)
   }, [contestId]);
-
-  const leaderboard = [
-    { rank: 1, name: "AlgoMaster2024", score: 1200, solved: 5 },
-    { rank: 2, name: "CodeNinja", score: 1150, solved: 5 },
-    { rank: 3, name: "ByteWarrior", score: 1100, solved: 4 },
-    { rank: 4, name: "DevExpert", score: 950, solved: 4 },
-    { rank: 5, name: "PythonPro", score: 900, solved: 3 },
-    { rank: 6, name: "DataMaster", score: 850, solved: 3 },
-    { rank: 7, name: "CodeCrafter", score: 800, solved: 2 },
-    { rank: 8, name: "AlgoSolver", score: 750, solved: 2 },
-  ];
 
   // Contest duration countdown
   useEffect(() => {
@@ -329,20 +349,6 @@ export default function ContestWaiting() {
       }
     }
  
-    try{
-      
-     const response = await axios.post("http://localhost:8000/api/time", {
-         "contestId": contestId,
-         "timeLeft": timeLeft,
-         "userId": sessionStorage.getItem("userId") 
-      });
-
-      console.log(response.data);
-      
-    }
-    catch (error) {
-      console.error("Failed to submit contest data:", error);
-    }
     // Navigate to final leaderboard
     router.push("/final-leaderboard?contestId=" + contestId);
   };
