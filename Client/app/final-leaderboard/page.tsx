@@ -21,7 +21,7 @@ export default function FinalLeaderboard() {
   const fatchLeaderboard = async () => {
          try {
 
-      const response = await axios.post("localhost:8000/api/getLeaderboard",{
+      const response = await axios.post("http://localhost:8000/api/getLeaderboard",{
         "contest": contestId
       })
 

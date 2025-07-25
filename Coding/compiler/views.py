@@ -332,18 +332,18 @@ def get_python_code(description):
         - [x] All collections have size prefixes?
         - [x] Element counts match prefixes exactly?
         - [x] Input parameter order matches `sample_testcases`?
-        - [x] Is there any extra text, code, or explanation? ❌ No
+        - [x] Is there any extra text, code, or explanation? No
     """
 
     try:
 
         client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         completion = client.chat.completions.create(
-            model="deepseek-r1-distill-llama-70b",
+            model="moonshotai/kimi-k2-instruct",
             messages=[{"role": "user", "content": prompt3}],
-            temperature=0.4,
+            temperature=0.2,
             max_completion_tokens=8192,
-            top_p=0.95,
+            top_p=0.98,
             stream=False,
             stop=None,
         )
@@ -489,9 +489,12 @@ def get_output(description,testcase,input_format):
 
     ### Term 4: "output" Key
     - The "output" value MUST be a JSON string produced by solving each line in the input according to the problem rules.
-    - It must contain exactly one "line" per input line, separated by `\\n`—**the actual two characters `\\n`, not a raw newline.**
-    - *You must generate a corresponding output line for every input line, in the exact same order.*
-    - **NO raw newlines or line breaks are allowed in the JSON value—each line is separated ONLY by `\\n`.**
+    - It must contain exactly one "line" of output for each line of input, separated by `\\n`.
+    - **Output Line Format:**
+    - If a solution for a single input line consists of multiple values, they MUST be formatted as a single string with values separated by single spaces.
+    - **Example:** If a solution is the values `6`, `3`, and `2`, the corresponding output line MUST be the literal string `"6 3 2"`.
+    - **DO NOT** use commas, brackets (e.g., `[6, 3, 2]`), or any other delimiters or formatting. The output for a line must be a simple string of space-separated values.
+    - **NO raw newlines or line breaks are allowed in the final JSON value—each line is separated ONLY by the `\\n` sequence.**
 
     ### Term 5: Strict Line Matching
     - **Count Lines:** The number of input lines (including blanks and malformed lines) MUST EXACTLY equal the number of output lines.
@@ -517,15 +520,12 @@ def get_output(description,testcase,input_format):
     ---
     ### ABSOLUTE ENCODING REQUIREMENT
 
-    **REMINDER AND EXAMPLE:**  
-    - Your JSON string values for "input" and "output" must NEVER contain actual newline characters (hex 0x0A or 0x0D).
+    **REMINDER AND EXAMPLE:** - Your JSON string values for "input" and "output" must NEVER contain actual newline characters (hex 0x0A or 0x0D).
     - ONLY encode line breaks as the exact sequence of two characters: `\\n`.
     - **Example:** If the INPUT_BLOCK is:
     foo
     bar
     baz
-
-    text
     Then `"input"` must be: `"foo\\nbar\\nbaz"`
     (and ***must NOT*** use a real line break anywhere in the value).
 
@@ -894,7 +894,11 @@ def submit_code(request):
         print(f"Solution: {solution}")
         score=Score.objects.get(contest=contest, user=user,challenge=challenge)
         print(f"Score object: {score}")
-        score.time=diff
+        total_seconds = int(diff.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        score.time = dt_time(hours, minutes, seconds)
         score.save()
         return Response(solution, status=200)
     
@@ -1229,35 +1233,40 @@ def submit_java_code(code,input_data,expected_output,total_mark,contest,user,cha
 
 @api_view(["POST"])
 def leaderboard(request):
-    if request.POST:
-        contest_id = request.POST.get("contest")
-        contest = get_object_or_404(Contest, id=contest_id)
-        score = Score.objects.filter(contest=contest)
-        dict1 = {}
-        dict2={}
-        for score_obj in score:
-            dict1[score_obj.user.id] = dict1.get(score_obj.user.id, 0) + score_obj.score
-            t=score_obj.time
-            seconds = t.hour * 3600 + t.minute * 60 + t.second
-            dict2[score_obj.user.id] = dict2.get(score_obj.user.id, 0) + seconds
-        dict1 = sorted(
-            dict1.items(),
-            key=lambda x: (-x[1], dict2.get(x[0], 0))
-        )
+    contest_id = request.data.get("contest")
+    contest = get_object_or_404(Contest, id=contest_id)
+    score = Score.objects.filter(contest=contest)
+    dict1 = {}
+    dict2={}
+    for score_obj in score:
+        dict1[score_obj.user.id] = dict1.get(score_obj.user.id, 0) + score_obj.score
+        t=score_obj.time
+        seconds = t.hour * 3600 + t.minute * 60 + t.second
+        dict2[score_obj.user.id] = dict2.get(score_obj.user.id, 0) + seconds
+    dict1 = sorted(
+        dict1.items(),
+        key=lambda x: (-x[1], dict2.get(x[0], 0))
+    )
 
-        data=[]
-        for rank ,(user_id, score) in enumerate(dict1) :
-            data.append({
-                "Rank": rank + 1,
-                "Name": User.objects.get(id=user_id).full_name, 
-                "Solved": len(Score.objects.get(user=User.objects.get(id=user_id), contest=contest).solved),
-                "Total_problem": len(Challenges.objects.filter(contest=contest)),
-                "Time_taken": str(timedelta(dict2[user_id])),
-                "Avatar": User.objects.get(id=user_id).profile_photo,
-                "score": score
-            })
-            rank=Rank(user=User.objects.get(id=user_id),rank={f"{contest_id}":rank+1})
-        return Response({"finalRankings": data})
+    data=[]
+    for rank ,(user_id, score) in enumerate(dict1) :
+        data.append({
+            "Rank": rank + 1,
+            "Name": User.objects.get(id=user_id).full_name, 
+            "Solved": len(Score.objects.get(user=User.objects.get(id=user_id), contest=contest).solved),
+            "Total_problem": len(Challenges.objects.filter(contest=contest)),
+            "Time_taken": str(timedelta(seconds=dict2[user_id])),
+            "Avatar": User.objects.get(id=user_id).profile_photo,
+            "score": score
+        })
+        user = User.objects.get(id=user_id)
+        rank_obj, created = Rank.objects.get_or_create(user=user)
+        rank_data = rank_obj.rank or {}
+        rank_data[str(contest_id)] = rank + 1
+        rank_obj.rank = rank_data
+        rank_obj.save()        
+        print("Ranked Added")
+    return Response({"finalRankings": data})
     
     
 @api_view(["POST"])
@@ -1275,6 +1284,7 @@ def get_user_progress(request):
         try:
             user = User.objects.get(id=user_id)
             scores = Score.objects.filter(user=user)
+            rank=Rank.objects.get(user=user)
             
             if not scores:
                 return Response({"error": "No scores found for this user"}, status=200)
@@ -1283,27 +1293,26 @@ def get_user_progress(request):
             contestHistory = []
             
             total_score = 0
+            print(rank.rank)
             total_rank = 0
             best_rank = 0
             problemSolved = 0
-            for score in scores:
+            for (score,rank_) in zip(scores,rank.rank.values()):
                 
                 total_score += score.score
-                total_rank += score.rank
-                best_rank = max(best_rank, score.rank)
-                problemSolved += score.solved              
+                best_rank = max(best_rank,rank_)
+                problemSolved += len(score.solved)              
                 
                 contestHistory.append({
                     "id":score.contest.id,
-                    "name": score.challenge.name,
+                    "name": score.challenge.challenge_name,
                     "date": score.contest.start_date.strftime("%Y-%m-%d"),
-                    "rank": score.rank,
+                    "rank": rank_,
                     "score": score.score,
                     "problem":len(Challenges.objects.filter(contest=score.contest.id)),
                     "solved": score.solved,
                     "time": str(score.time),
-                    "participants": Contest.objects.get(id=score.contest.id).participants,
-                    "status":Contest.objects.get(id=score.contest.id).status,
+                    "participants": Contest.objects.get(id=score.contest.id).participants
                 })  
             
             stats.append({
@@ -1315,8 +1324,8 @@ def get_user_progress(request):
             })
             
             data = {
-                contestHistory: contestHistory,
-                stats: stats,
+                "contestHistory": contestHistory,
+                "stats": stats,
             }
 
             return Response(data, status=200)

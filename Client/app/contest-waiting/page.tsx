@@ -331,13 +331,13 @@ export default function ContestWaiting() {
  
     try{
       
-     const response = await axios.post("http://localhost:8000/api/time", {
-         "contestId": contestId,
-         "timeLeft": timeLeft,
-         "userId": sessionStorage.getItem("userId") 
-      });
+    //  const response = await axios.post("http://localhost:8000/api/time", {
+    //      "contestId": contestId,
+    //      "timeLeft": timeLeft,
+    //      "userId": sessionStorage.getItem("userId") 
+    //   });
 
-      console.log(response.data);
+    //   console.log(response.data);
       
     }
     catch (error) {
