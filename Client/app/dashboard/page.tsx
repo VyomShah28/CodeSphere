@@ -19,7 +19,7 @@ export default function Dashboard() {
   const fetchUserDetails = async (id: string, name: string, avatar: string) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/user-details/?user_id=${id}`
+        `https://codesphere-d69g.onrender.com/api/user-details/?user_id=${id}`
       );
 
       const completeUser = {

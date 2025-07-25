@@ -157,7 +157,7 @@ console.log(solution());`,
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/get-challenge-by-id?challengeId=${challengeId}`
+        `https://codesphere-d69g.onrender.com/api/get-challenge-by-id?challengeId=${challengeId}`
       );
 
       setCurrentProblem(response.data);
@@ -374,7 +374,7 @@ console.log(solution());`,
     setIsSubmitting(true);
     try {
       console.log("Hello" + timeLeft);
-      const response = await fetch("http://localhost:8000/api/submitContest", {
+      const response = await fetch("https://codesphere-d69g.onrender.com/api/submitContest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
