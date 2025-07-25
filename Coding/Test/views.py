@@ -27,9 +27,11 @@ from django.db.models import Q
 
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+google_creds_json = os.environ["GOOGLE_CLIENT_SECRET_JSON"]
+creds_dict = json.loads(google_creds_json)
 
-flow = Flow.from_client_secrets_file(
-    client_secrets_file="client_secret.json",
+flow = Flow.from_client_config(
+    client_config=creds_dict,
     scopes=[
         "openid",
         "https://www.googleapis.com/auth/userinfo.email",
