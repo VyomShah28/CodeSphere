@@ -7,15 +7,19 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     python3-dev \
     build-essential \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 
-COPY ./requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY . /app/
+COPY . .
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
