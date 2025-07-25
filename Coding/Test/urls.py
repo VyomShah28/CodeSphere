@@ -16,6 +16,7 @@ urlpatterns = [
     path(
         "api/get-challenge-by-id/", views.get_challenge_byId, name="Get_Challenge_By_Id"
     ),
+    path("api/valid-link/", views.valid_link, name="Valid_Link"),
     path("api/add-challenge/", views.add_challenge, name="add_Challenge"),
     path("api/update-challenge/", views.update_challenge, name="Edit_Challenge"),
     path("api/delete-challenge/", views.delete_challenge, name="Delete_Challenge"),

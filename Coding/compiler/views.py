@@ -1507,14 +1507,14 @@ def get_user_progress(request):
             print(rank.rank)
             total_rank = 0
             total_score = 0
-            best_rank = float('inf')  # smaller is better in ranking
+            best_rank = 0  
             problemSolved = 0
             for (score,rank_) in zip(scores,rank.rank.values()):
-                
+                print('Hello')
                 total_score += score.score
                 best_rank = max(best_rank,rank_)
                 problemSolved += len(score.solved)              
-                
+                total_rank+=rank_
                 contestHistory.append({
                     "id":score.contest.id,
                     "name": score.challenge.challenge_name,
@@ -1524,14 +1524,14 @@ def get_user_progress(request):
                     "problem": Challenges.objects.filter(contest=score.contest.id).count(),
                     "solved": sum(score.solved.values()) if isinstance(score.solved, dict) else score.solved,
                     "time": str(score.time),
-                    "participants": Contest.objects.get(id=score.contest.id).participants
+                    "participants": Contest.objects.get(id=score.contest.id).number_of_participants
                 })  
             
             stats.append({
                 "totalContests": scores.count(),
-                "averageRank": avg_rank,
+                "averageRank": total_rank / len(rank.rank.values()),
                 "totalScore": total_score,
-                "bestRank": best_rank_display,
+                "bestRank": best_rank,
                 "problemsSolved": problemSolved,
             })
             
