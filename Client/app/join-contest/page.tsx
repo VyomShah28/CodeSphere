@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
 import axios from "axios"
 import { getTime } from "date-fns"
+import { Varela_Round } from "next/font/google"
 
 interface Contest{
   id: string
@@ -49,6 +50,7 @@ export default function JoinContest() {
 
   const handleValidateLink = async () => {
     setIsValidating(true);
+    setErrorMessage("");
   if (!contestLink.trim()) return;
 
 
@@ -56,9 +58,10 @@ export default function JoinContest() {
   const tempStr = contestLink.split("/").pop() || "";
   const contestId = tempStr.split("=").pop();
 
-  try {
-    const response = await axios.get(`http://localhost:8000/api/get-contest-by-id?contestId=${contestId}`);
-    const data = response.data;
+    try {
+    console.log("Validating contest link:", contestLink);
+    const response = await axios.get(`http://localhost:8000/api/valid-link?link=${contestLink}&userId=${sessionStorage.getItem("userId")}`);
+    var data = response.data;
     console.log("Contest data:", data);
     
 
@@ -99,9 +102,10 @@ export default function JoinContest() {
     console.log(contestInfo);
     
     setShowContestBox(true);
-  } catch (error) {
+    } catch (error:any) {
+    console.log(error);
     console.error("Error validating link:", error);
-    setErrorMessage("Invalid contest link. Please check the URL and try again.");
+    setErrorMessage(error.response.data.error || "Failed to validate contest link. Please check the link and try again.");
     setIsValidating(false);
   }
 };
