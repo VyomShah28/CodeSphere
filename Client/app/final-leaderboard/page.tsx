@@ -9,16 +9,29 @@ import { Footer } from "@/components/footer"
 import { useState, useEffect } from "react"
 import axios from "axios"
 
+interface rankCard  {
+  rank: number
+  name: string
+  score: number
+  solved: number
+  totalProblems: number
+  timeTaken: string
+  avatar: string
+}
+
 export default function FinalLeaderboard() {
   const router = useRouter()
    const searchParams = useSearchParams()
    const contestId = searchParams.get("contestId")
+   const [isLoading,setIsLoading] = useState(false)
 
   const [wasViolation, setWasViolation] = useState(false)
   const [violationReason, setViolationReason] = useState("")
+  const [finalRankings,setFinalRankings] = useState<rankCard[]>([])
 
 
-  const fatchLeaderboard = async () => {
+  const fetchLeaderboard = async () => {
+     setIsLoading(true)
          try {
 
       const response = await axios.post("http://localhost:8000/api/getLeaderboard",{
@@ -26,12 +39,15 @@ export default function FinalLeaderboard() {
       })
 
      console.log("Contest leaderboard data:", response.data);
+     setFinalRankings(response.data.finalRankings || [])
      
       
     } catch (error) {
       console.error("Error checking contest violations:", error)
       
     }
+
+    setIsLoading(false)
   }
 
 
@@ -45,7 +61,7 @@ export default function FinalLeaderboard() {
       setViolationReason(reason || "Contest rule violations")
     }
 
-    fatchLeaderboard()
+    fetchLeaderboard()
 
     // Clear ALL contest-related session storage when reaching final leaderboard
     sessionStorage.removeItem("contestViolation")
@@ -61,99 +77,6 @@ export default function FinalLeaderboard() {
     duration: "3 hours",
     completedAt: "2024-01-25T17:00:00",
   }
-
-  const finalRankings = [
-    {
-      rank: 1,
-      name: "AlgoMaster2024",
-      score: 1450,
-      solved: 6,
-      totalProblems: 6,
-      timeTaken: "2h 15m",
-      avatar: "AM",
-    },
-    {
-      rank: 2,
-      name: "CodeNinja",
-      score: 1380,
-      solved: 6,
-      totalProblems: 6,
-      timeTaken: "2h 28m",
-      avatar: "CN",
-    },
-    {
-      rank: 3,
-      name: "ByteWarrior",
-      score: 1320,
-      solved: 5,
-      totalProblems: 6,
-      timeTaken: "2h 45m",
-      avatar: "BW",
-    },
-    {
-      rank: 4,
-      name: "DevExpert",
-      score: 1250,
-      solved: 5,
-      totalProblems: 6,
-      timeTaken: "2h 52m",
-      avatar: "DE",
-    },
-    {
-      rank: 5,
-      name: "PythonPro",
-      score: 1180,
-      solved: 4,
-      totalProblems: 6,
-      timeTaken: "2h 30m",
-      avatar: "PP",
-    },
-    {
-      rank: 6,
-      name: "JavaGuru",
-      score: 1120,
-      solved: 4,
-      totalProblems: 6,
-      timeTaken: "2h 48m",
-      avatar: "JG",
-    },
-    {
-      rank: 7,
-      name: "CppChampion",
-      score: 1050,
-      solved: 4,
-      totalProblems: 6,
-      timeTaken: "2h 55m",
-      avatar: "CC",
-    },
-    {
-      rank: 8,
-      name: "JSWizard",
-      score: 980,
-      solved: 3,
-      totalProblems: 6,
-      timeTaken: "2h 20m",
-      avatar: "JW",
-    },
-    {
-      rank: 9,
-      name: "DataStructureKing",
-      score: 920,
-      solved: 3,
-      totalProblems: 6,
-      timeTaken: "2h 35m",
-      avatar: "DK",
-    },
-    {
-      rank: 10,
-      name: "AlgorithmAce",
-      score: 850,
-      solved: 3,
-      totalProblems: 6,
-      timeTaken: "2h 58m",
-      avatar: "AA",
-    },
-  ]
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -189,6 +112,17 @@ export default function FinalLeaderboard() {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+    if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -272,7 +206,7 @@ export default function FinalLeaderboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {finalRankings.slice(0, 3).map((participant, index) => (
             <Card
-              key={participant.rank}
+              key={participant?.rank}
               className={`text-center ${
                 index === 0
                   ? "order-2 md:order-2 transform md:scale-110"
@@ -280,9 +214,9 @@ export default function FinalLeaderboard() {
                     ? "order-1 md:order-1"
                     : "order-3 md:order-3"
               } ${
-                participant.rank === 1
+                participant?.rank === 1
                   ? "border-yellow-300 bg-gradient-to-b from-yellow-50 to-yellow-100"
-                  : participant.rank === 2
+                  : participant?.rank === 2
                     ? "border-gray-300 bg-gradient-to-b from-gray-50 to-gray-100"
                     : "border-orange-300 bg-gradient-to-b from-orange-50 to-orange-100"
               }`}
@@ -290,7 +224,7 @@ export default function FinalLeaderboard() {
               <CardHeader className="pb-4">
                 <div className="flex justify-center mb-4">{getRankIcon(participant.rank)}</div>
                 <div className="w-16 h-16 mx-auto mb-4 bg-slate-200 rounded-full flex items-center justify-center text-xl font-bold text-slate-700">
-                  {participant.avatar}
+                   <img src={participant.avatar} className="rounded-full"></img>
                 </div>
                 <CardTitle className="text-lg">{participant.name}</CardTitle>
                 <Badge className={`${getRankBadge(participant.rank)} text-sm px-3 py-1`}>
@@ -333,7 +267,7 @@ export default function FinalLeaderboard() {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center justify-center w-10 h-10">{getRankIcon(participant.rank)}</div>
                     <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-700">
-                      {participant.avatar}
+                      <img src={participant.avatar} className="rounded-full"></img>
                     </div>
                     <div>
                       <h4 className="font-semibold text-slate-800">{participant.name}</h4>
