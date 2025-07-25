@@ -399,12 +399,13 @@ export function AddChallengeModal({
     // Simulate API call delay
 
     try {
+      const response = await axios.post(
+        "https://codesphere-d69g.onrender.com/api/get_leetcode_problem_description",
+        {
+          question_number: leetcodeNumber,
+        }
+      );
 
-      const response = await axios.post("http://localhost:8000/api/get_leetcode_problem_description", {
-        question_number: leetcodeNumber,
-      });
-     
-      
       const problemData = response.data.challange;
       console.log("Received problem data:", problemData);
       let parsedData = JSON.parse(problemData);
