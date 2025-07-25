@@ -412,15 +412,39 @@ def get_challenge_byId(request):
 
 
 @api_view(["GET"])
-def get_contest_byId(request):
+def valid_link(request):
     try:
-        contest_id = request.GET.get("contestId")
-        contest = get_object_or_404(Contest, id=contest_id)
-        print(contest.user.full_name)
+        userId= request.GET.get("userId")
+        link = request.GET.get("link")
+        contest = Contest.objects.get(link=link)
+        if Score.objects.filter(user=User.objects.get(id=userId), contest=contest).exists():
+            return Response(
+                {"error": "You have already attended this contest"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if contest.number_of_participants > contest.number_of_entries:
+            return Response(
+                {"error": "Contest is full"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        contest.number_of_participants = contest.number_of_participants+1
+        contest.save()
         return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
     except Contest.DoesNotExist:
+        print("Contest not found")
         return Response(
-            {"error": "Contest not found"}, status=status.HTTP_404_NOT_FOUND
+            {"error": "Contest not found"}, status=status.HTTP_400_BAD_REQUEST
+        )
+    
+@api_view(["GET"])
+def get_contest_byId(request):
+    try:
+        contest_id= request.GET.get("contestId")
+        contest = get_object_or_404(Contest,id=contest_id)
+        return Response(ContestSerializer(contest).data, status=status.HTTP_200_OK)
+    except Contest.DoesNotExist:
+        print("Contest not found")
+        return Response(
+            {"error": "Contest not found"}, status=status.HTTP_404_BAD_REQUEST
         )
 
 
