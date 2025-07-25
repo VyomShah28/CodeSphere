@@ -201,7 +201,7 @@ def get_leetcode_problem_description_Gemini(question_number):
 
 
 def get_python_code(description):
-    response=None
+    response = None
     prompt3 = f"""
     You are an expert in creating test cases for competitive programming problems. Your task is to generate exactly 15 test cases based on the problem description provided, including all sample test cases from the problem specification.
 
@@ -438,24 +438,26 @@ def get_test_cases(request):
 
             print(question_number)
 
-            input_formate=format(description, test_cases["input"].split("\n"))
+            input_formate = format(description, test_cases["input"].split("\n"))
             input_formate = input_formate.text.replace("```json", " ")
             input_formate = input_formate.replace("```", " ")
-                
+
             input_formate = json.loads(input_formate)
             leetcode_problem = Leetcode_Description.objects.get(number=question_number)
-            leetcode_problem.input_description = input_formate["input_format_explanation"]
+            leetcode_problem.input_description = input_formate[
+                "input_format_explanation"
+            ]
             leetcode_problem.save()
 
-            output=get_output(description, test_cases["input"], input_formate["input_format_explanation"])
-
+            output = get_output(
+                description,
+                test_cases["input"],
+                input_formate["input_format_explanation"],
+            )
 
             new_test_cases = Testcase.objects.update_or_create(
                 question_number=question_number,
-                defaults={
-                    "input":output["input"],
-                    "output":output["output"]
-                }
+                defaults={"input": output["input"], "output": output["output"]},
             )
 
             return Response(output, status=200)
@@ -464,7 +466,7 @@ def get_test_cases(request):
             return Response({"error": str(e)}, status=500)
 
 
-def get_output(description,testcase,input_format):
+def get_output(description, testcase, input_format):
     prompt_solver = f"""
     You are a deterministic JSON-producing system. Your function is to accept a problem definition and a block of text-based test cases, solve them exactly as described, and return a single, perfectly formatted JSON object according to the following contract.
 
@@ -533,17 +535,18 @@ def get_output(description,testcase,input_format):
     Execute. Return ONLY the required JSON—with exact structure and perfectly encoded newlines per contract.
     """
 
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel("gemini-2.5-flash")
     response1 = model.generate_content(prompt_solver)
     print(response1.text)
-    response3=response1.text.replace("```json","")
-    response3=response3.replace("```","")
-    response3=json.loads(response3)
+    response3 = response1.text.replace("```json", "")
+    response3 = response3.replace("```", "")
+    response3 = json.loads(response3)
     return response3
 
-def format(description,list1):
-    str1='\n'.join(list1)
-    prompt2=f"""
+
+def format(description, list1):
+    str1 = "\n".join(list1)
+    prompt2 = f"""
         You are an expert parsing system for competitive programming problems. Your sole function is to analyze a problem's description and raw test case inputs to produce a human-readable explanation of the input format. You must determine how the raw, single-line string of a test case maps to the data structures and variables described in the problem.
         Your Task:
         You will be given two pieces of information:
@@ -638,7 +641,6 @@ def get_compilers():
 @api_view(["POST"])
 def run_code(request):
 
-
     code = request.data.get("code")
     language = request.data.get("language", "").lower()
     input_data = request.data.get("input", "")
@@ -651,7 +653,7 @@ def run_code(request):
 
     if language == "python":
         return Response(run_python_code(code, input_data, expected_output), status=200)
-    
+
     if language == "java":
         return Response(run_java_code(code, input_data, expected_output), status=200)
 
@@ -783,36 +785,68 @@ def run_python_code(code, input_data, expected_output):
         py_path = os.path.join(temp_dir, "source.py")
         with open(py_path, "w") as source_file:
             source_file.write(code)
-        
+
         try:
             start_time = time_mod.time()
             execute_process = subprocess.Popen(
-                ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                ["python", py_path],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-            actual_output, runtime_stderr = execute_process.communicate(input=input_data, timeout=CODE_EXECUTION_TIMEOUT)
+            actual_output, runtime_stderr = execute_process.communicate(
+                input=input_data, timeout=CODE_EXECUTION_TIMEOUT
+            )
             end_time = time_mod.time()
             execution_time = round(end_time - start_time, 4)
 
             if execute_process.returncode != 0:
-                return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+                return {
+                    "success": False,
+                    "error": f"Runtime Error:\n{runtime_stderr.strip()}",
+                }
 
         except subprocess.TimeoutExpired:
             execute_process.kill()
             return {"success": False, "error": "Time Limit Exceeded"}
         except FileNotFoundError:
-            return {"success": False, "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH."}
+            return {
+                "success": False,
+                "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH.",
+            }
 
         if actual_output.strip() == expected_output.strip():
-            return {"success": True, "result": {"status": "passed", "output": actual_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+            return {
+                "success": True,
+                "result": {
+                    "status": "passed",
+                    "output": actual_output.strip(),
+                    "execution_time": execution_time,
+                    "memory_used": "N/A",
+                },
+            }
         else:
-            return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+            return {
+                "success": True,
+                "result": {
+                    "status": "failed",
+                    "actual_output": actual_output.strip(),
+                    "expected_output": expected_output.strip(),
+                    "execution_time": execution_time,
+                    "memory_used": "N/A",
+                },
+            }
 
 
 def run_java_code(code, input_data, expected_output):
-    match = re.search(r'public\s+class\s+(\w+)', code)
+    match = re.search(r"public\s+class\s+(\w+)", code)
     if not match:
-        return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."} 
-    
+        return {
+            "success": False,
+            "error": "Compilation Failed: Could not find a 'public class' declaration in the code.",
+        }
+
     main_class_name = match.group(1)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -822,62 +856,105 @@ def run_java_code(code, input_data, expected_output):
 
         try:
             compile_process = subprocess.Popen(
-                ["javac", java_path], cwd=temp_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                ["javac", java_path],
+                cwd=temp_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-            _, compile_stderr = compile_process.communicate(timeout=CODE_EXECUTION_TIMEOUT)
+            _, compile_stderr = compile_process.communicate(
+                timeout=CODE_EXECUTION_TIMEOUT
+            )
             if compile_process.returncode != 0:
-                return {"success": False, "error": f"Compilation Failed:\n{compile_stderr.strip()}"}
+                return {
+                    "success": False,
+                    "error": f"Compilation Failed:\n{compile_stderr.strip()}",
+                }
         except FileNotFoundError:
-            return {"success": False, "error": "JDK not found. Please ensure 'javac' is in the system's PATH."}
+            return {
+                "success": False,
+                "error": "JDK not found. Please ensure 'javac' is in the system's PATH.",
+            }
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Compilation Timed Out"}
 
         try:
             start_time = time_mod.time()
             execute_process = subprocess.Popen(
-                ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                ["java", main_class_name],
+                cwd=temp_dir,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-            actual_output, runtime_stderr = execute_process.communicate(input=input_data, timeout=CODE_EXECUTION_TIMEOUT)
+            actual_output, runtime_stderr = execute_process.communicate(
+                input=input_data, timeout=CODE_EXECUTION_TIMEOUT
+            )
             end_time = time_mod.time()
             execution_time = round(end_time - start_time, 4)
 
             if execute_process.returncode != 0:
-                return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+                return {
+                    "success": False,
+                    "error": f"Runtime Error:\n{runtime_stderr.strip()}",
+                }
 
         except subprocess.TimeoutExpired:
             execute_process.kill()
             return {"success": False, "error": "Time Limit Exceeded"}
         except FileNotFoundError:
-            return {"success": False, "error": "JRE not found. Please ensure 'java' is in the system's PATH."}
+            return {
+                "success": False,
+                "error": "JRE not found. Please ensure 'java' is in the system's PATH.",
+            }
 
         if actual_output.strip() == expected_output.strip():
-            return {"success": True, "result": {"status": "passed", "output": actual_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+            return {
+                "success": True,
+                "result": {
+                    "status": "passed",
+                    "output": actual_output.strip(),
+                    "execution_time": execution_time,
+                    "memory_used": "N/A",
+                },
+            }
         else:
-            return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
+            return {
+                "success": True,
+                "result": {
+                    "status": "failed",
+                    "actual_output": actual_output.strip(),
+                    "expected_output": expected_output.strip(),
+                    "execution_time": execution_time,
+                    "memory_used": "N/A",
+                },
+            }
 
 
 def time_to_delta(t):
     return timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+
 
 @api_view(["POST"])
 def submit_code(request):
     code = request.data.get("code")
     language = request.data.get("language", "").lower()
     input_data = request.data.get("inputs", "")
-    total_mark=int(request.data.get("total_mark", 0))/15
-    contest=Contest.objects.get(id=request.data.get("contestId"))
-    user=User.objects.get(id=request.data.get("userId"))
-    challenge= Challenges.objects.get(id=request.data.get("challengeId", ""))
-    time=request.data.get("timeLeft", {})
+    total_mark = int(request.data.get("total_mark", 0)) / 15
+    contest = Contest.objects.get(id=request.data.get("contestId"))
+    user = User.objects.get(id=request.data.get("userId"))
+    challenge = Challenges.objects.get(id=request.data.get("challengeId", ""))
+    time = request.data.get("timeLeft", {})
     print(f"Received time data: {time}")
-    hour=int(time["hours"])
-    minute=int(time["minutes"])
-    second=int(time["seconds"])
+    hour = int(time["hours"])
+    minute = int(time["minutes"])
+    second = int(time["seconds"])
 
     my_time = dt_time(hour, minute, second)
 
-    start_time=datetime.combine(contest.start_date, contest.start_time)
-    end_time=datetime.combine(contest.end_date, contest.end_time)
+    start_time = datetime.combine(contest.start_date, contest.start_time)
+    end_time = datetime.combine(contest.end_date, contest.end_time)
 
     diff = end_time - start_time - time_to_delta(my_time)
     print(f"Input data: {input_data}")
@@ -890,18 +967,26 @@ def submit_code(request):
         )
 
     if language == "python":
-        solution = submit_python_code(code, input_data, expected_output,total_mark,contest,user,challenge)
+        solution = submit_python_code(
+            code, input_data, expected_output, total_mark, contest, user, challenge
+        )
         print(f"Solution: {solution}")
-        score=Score.objects.get(contest=contest, user=user,challenge=challenge)
+        score = Score.objects.get(contest=contest, user=user, challenge=challenge)
         print(f"Score object: {score}")
-        score.time=diff
+        total_seconds = int(diff.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        score.time = dt_time(hours, minutes, seconds)
         score.save()
         return Response(solution, status=200)
-    
+
     if language == "java":
         print(diff)
-        solution = submit_java_code(code, input_data, expected_output,total_mark,contest,user,challenge)
-        score=Score.objects.get(contest=contest, user=user,challenge=challenge)
+        solution = submit_java_code(
+            code, input_data, expected_output, total_mark, contest, user, challenge
+        )
+        score = Score.objects.get(contest=contest, user=user, challenge=challenge)
         total_seconds = int(diff.total_seconds())
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
@@ -967,16 +1052,22 @@ def submit_code(request):
 
         try:
             run_command = [executable_path]
-            testcase=input_data.split('\n')
-            if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
-                max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
-                solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
+            testcase = input_data.split("\n")
+            if Score.objects.filter(
+                contest=contest, user=user, challenge=challenge
+            ).exists():
+                max_score = Score.objects.get(
+                    contest=contest, user=user, challenge=challenge
+                ).score
+                solve = Score.objects.get(
+                    contest=contest, user=user, challenge=challenge
+                ).solved
             else:
-                max_score=0
-                solve={}
-            score=0
-            for test,out in zip(testcase,expected_output.split('\n')):
-                try : 
+                max_score = 0
+                solve = {}
+            score = 0
+            for test, out in zip(testcase, expected_output.split("\n")):
+                try:
                     execute_process = subprocess.Popen(
                         run_command,
                         stdin=subprocess.PIPE,
@@ -998,16 +1089,12 @@ def submit_code(request):
                             status=400,
                         )
                 except subprocess.TimeoutExpired:
-                    max_score=max(max_score,score)
+                    max_score = max(max_score, score)
                     score_obj = Score.objects.update_or_create(
                         contest=contest,
                         user=user,
                         challenge=challenge,
-                        defaults={
-                            'score': max_score,
-                            'solved': solve,
-                            'time': diff
-                        }
+                        defaults={"score": max_score, "solved": solve, "time": diff},
                     )
                     execute_process.kill()
                     return Response(
@@ -1015,16 +1102,12 @@ def submit_code(request):
                     )
 
                 if actual_output.strip() != out.strip():
-                    max_score=max(max_score,score)
+                    max_score = max(max_score, score)
                     score_obj = Score.objects.update_or_create(
                         contest=contest,
                         user=user,
                         challenge=challenge,
-                        defaults={
-                            'score': max_score,
-                            'solved': solve,
-                            'time': diff
-                        }
+                        defaults={"score": max_score, "solved": solve, "time": diff},
                     )
                     return Response(
                         {
@@ -1040,8 +1123,8 @@ def submit_code(request):
                         status=200,
                     )
 
-                score+=total_mark  
-                print("Passed",test) 
+                score += total_mark
+                print("Passed", test)
         except Exception as e:
             return Response(
                 {
@@ -1051,95 +1134,177 @@ def submit_code(request):
                 },
                 status=500,
             )
-        max_score=max(max_score,score)
-        solve[challenge.id]=1
+        max_score = max(max_score, score)
+        solve[challenge.id] = 1
         score_obj = Score.objects.update_or_create(
             contest=contest,
             user=user,
             challenge=challenge,
-            defaults={
-                'score': max_score,
-                'solved': solve,
-                'time': diff
-            }
+            defaults={"score": max_score, "solved": solve, "time": diff},
         )
 
-        return Response({"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}, status=200)
+        return Response(
+            {
+                "success": True,
+                "result": {
+                    "status": "passed",
+                    "execution_time": "0.1ms",
+                    "memory_used": "N/A",
+                },
+            },
+            status=200,
+        )
 
 
-def submit_python_code(code,input_data,expected_output,total_mark,contest,user,challenge):
+
+def submit_python_code(code, input_data, expected_output, total_mark, contest, user, challenge):
     with tempfile.TemporaryDirectory() as temp_dir:
         py_path = os.path.join(temp_dir, "source.py")
         with open(py_path, "w") as source_file:
             source_file.write(code)
-        
+
         start_time = time_mod.time()
-        
-        if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
-            max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
-            solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
+
+        # Fetch previous score if exists
+        if Score.objects.filter(contest=contest, user=user, challenge=challenge).exists():
+            previous_score = Score.objects.get(contest=contest, user=user, challenge=challenge)
+            max_score = previous_score.score
+            solve = previous_score.solved
         else:
-            max_score=0
-            solve={}
-        score=0
-        for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
-            try : 
+            max_score = 0
+            solve = {}
+
+        score = 0
+        testcases_passed = 0
+        total_testcases = len(input_data.strip().split("\n"))
+
+        inputs = input_data.strip().split("\n")
+        outputs = expected_output.strip().split("\n")
+
+        for test, out in zip(inputs, outputs):
+            try:
                 execute_process = subprocess.Popen(
-                    ["python", py_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                    ["python", py_path],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
                 )
-                actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
-                end_time = time_mod.time()
-                execution_time = round(end_time - start_time, 4)
+                actual_output, runtime_stderr = execute_process.communicate(
+                    input=test, timeout=CODE_EXECUTION_TIMEOUT
+                )
+
                 if execute_process.returncode != 0:
-                    return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+                    return {
+                        "success": False,
+                        "error": f"Runtime Error:\n{runtime_stderr.strip()}",
+                    }
+
+                if actual_output.strip() == out.strip():
+                    score += total_mark
+                    testcases_passed += 1
+                else:
+                    end_time = time_mod.time()
+                    execution_time = round(end_time - start_time, 4)
+
+                    # Save partial score
+                    Score.objects.update_or_create(
+                        contest=contest,
+                        user=user,
+                        challenge=challenge,
+                        defaults={
+                            "score": max(max_score, score),
+                            "solved": solve,
+                        },
+                    )
+
+                    return {
+                        "success": True,
+                        "result": {
+                            "status": "rejected",
+                            "score": score,
+                            "maxScore": total_mark * total_testcases,
+                            "testcasesPassed": testcases_passed,
+                            "totalTestcases": total_testcases,
+                            "executionTime": f"{execution_time}s",
+                            "memoryUsed": "N/A",
+                        },
+                    }
 
             except subprocess.TimeoutExpired:
-                max_score=max(max_score,score)
-                score_obj = Score.objects.update_or_create(
-                    contest=contest,
-                    user=user,
-                    challenge=challenge,
-                    defaults={
-                        'score': max_score,
-                        'solved': solve,
-                    }
-                )
                 execute_process.kill()
-                return {"success": False, "error": "Time Limit Exceeded"}
-            except FileNotFoundError:
-                return {"success": False, "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH."}
+                end_time = time_mod.time()
+                execution_time = round(end_time - start_time, 4)
 
-            if actual_output.strip() != out.strip():
-                max_score=max(max_score,score)
-                score_obj = Score.objects.update_or_create(
+                Score.objects.update_or_create(
                     contest=contest,
                     user=user,
                     challenge=challenge,
                     defaults={
-                        'score': max_score,
-                        'solved': solve,
-                    }
+                        "score": max(max_score, score),
+                        "solved": solve,
+                    },
                 )
-                return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
-            score+=total_mark
-        max_score=max(max_score,score)
-        solve[challenge.id]=1
-        score_obj = Score.objects.update_or_create(
+
+                return {
+                    "success": False,
+                    "error": "Time Limit Exceeded",
+                    "result": {
+                        "status": "rejected",
+                        "score": score,
+                        "maxScore": total_mark * total_testcases,
+                        "testcasesPassed": testcases_passed,
+                        "totalTestcases": total_testcases,
+                        "executionTime": f"{execution_time}s",
+                        "memoryUsed": "N/A",
+                    },
+                }
+
+            except FileNotFoundError:
+                return {
+                    "success": False,
+                    "error": "Python interpreter not found. Please ensure 'python' is in the system's PATH.",
+                }
+
+        # All testcases passed
+        end_time = time_mod.time()
+        execution_time = round(end_time - start_time, 4)
+
+        solve[challenge.id] = 1
+
+        Score.objects.update_or_create(
             contest=contest,
             user=user,
             challenge=challenge,
             defaults={
-                'score': max_score,
-                'solved': solve,
-            }
+                "score": max(max_score, score),
+                "solved": solve,
+            },
         )
-        return {"success":True, "result": {"status": "passed", "execution_time": "0.1ms", "memory_used": "N/A"}}
-                
 
-def submit_java_code(code,input_data,expected_output,total_mark,contest,user,challenge):    
-    match = re.search(r'public\s+class\s+(\w+)', code)
+        return {
+            "success": True,
+            "result": {
+                "status": "accepted",
+                "score": score,
+                "maxScore": total_mark * total_testcases,
+                "testcasesPassed": testcases_passed,
+                "totalTestcases": total_testcases,
+                "executionTime": f"{execution_time}s",
+                "memoryUsed": "N/A",
+            },
+        }
+
+
+def submit_java_code(
+    code, input_data, expected_output, total_mark, contest, user, challenge
+):
+    match = re.search(r"public\s+class\s+(\w+)", code)
     if not match:
-        return {"success": False, "error": "Compilation Failed: Could not find a 'public class' declaration in the code."}
+        return {
+            "success": False,
+            "error": "Compilation Failed: Could not find a 'public class' declaration in the code.",
+        }
     main_class_name = match.group(1)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -1149,230 +1314,293 @@ def submit_java_code(code,input_data,expected_output,total_mark,contest,user,cha
 
         try:
             compile_process = subprocess.Popen(
-                ["javac", java_path], cwd=temp_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                ["javac", java_path],
+                cwd=temp_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-            _, compile_stderr = compile_process.communicate(timeout=CODE_EXECUTION_TIMEOUT)
+            _, compile_stderr = compile_process.communicate(
+                timeout=CODE_EXECUTION_TIMEOUT
+            )
             if compile_process.returncode != 0:
-                return {"success": False, "error": f"Compilation Failed:\n{compile_stderr.strip()}"}
+                return {
+                    "success": False,
+                    "error": f"Compilation Failed:\n{compile_stderr.strip()}",
+                }
         except FileNotFoundError:
-            return {"success": False, "error": "JDK not found. Please ensure 'javac' is in the system's PATH."}
+            return {
+                "success": False,
+                "error": "JDK not found. Please ensure 'javac' is in the system's PATH.",
+            }
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Compilation Timed Out"}
 
         start_time = time_mod.time()
-        
-        if Score.objects.filter(contest=contest, user=user,challenge=challenge).exists():
-            max_score= Score.objects.get(contest=contest, user=user,challenge=challenge).score
-            solve= Score.objects.get(contest=contest, user=user,challenge=challenge).solved
+
+        if Score.objects.filter(
+            contest=contest, user=user, challenge=challenge
+        ).exists():
+            max_score = Score.objects.get(
+                contest=contest, user=user, challenge=challenge
+            ).score
+            solve = Score.objects.get(
+                contest=contest, user=user, challenge=challenge
+            ).solved
         else:
-            max_score=0
-            solve={}
-        score=0
-        for test,out in zip(input_data.split('\n'),expected_output.split('\n')):
-            try :
+            max_score = 0
+            solve = {}
+        score = 0
+        for test, out in zip(input_data.split("\n"), expected_output.split("\n")):
+            try:
                 execute_process = subprocess.Popen(
-                    ["java", main_class_name], cwd=temp_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                    ["java", main_class_name],
+                    cwd=temp_dir,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
                 )
-                actual_output, runtime_stderr = execute_process.communicate(input=test, timeout=CODE_EXECUTION_TIMEOUT)
+                actual_output, runtime_stderr = execute_process.communicate(
+                    input=test, timeout=CODE_EXECUTION_TIMEOUT
+                )
                 end_time = time_mod.time()
                 execution_time = round(end_time - start_time, 4)
 
                 if execute_process.returncode != 0:
-                    return {"success": False, "error": f"Runtime Error:\n{runtime_stderr.strip()}"}
+                    return {
+                        "success": False,
+                        "error": f"Runtime Error:\n{runtime_stderr.strip()}",
+                    }
             except subprocess.TimeoutExpired:
                 print("Failed Time")
-                max_score=max(max_score,score)
+                max_score = max(max_score, score)
                 score_obj = Score.objects.update_or_create(
                     contest=contest,
                     user=user,
                     challenge=challenge,
                     defaults={
-                        'score': max_score,
-                        'solved': solve,
-                    }
+                        "score": max_score,
+                        "solved": solve,
+                    },
                 )
                 execute_process.kill()
                 return {"success": False, "error": "Time Limit Exceeded"}
             except FileNotFoundError:
-                print('Failed JRE')
-                return {"success": False, "error": "JRE not found. Please ensure 'java' is in the system's PATH."}
+                print("Failed JRE")
+                return {
+                    "success": False,
+                    "error": "JRE not found. Please ensure 'java' is in the system's PATH.",
+                }
 
             if actual_output.strip() != out.strip():
                 print(test)
-                print(f"Failed Output : {actual_output.strip()}, Actual Output : {out.strip()}")
-                max_score=max(max_score,score)
+                print(
+                    f"Failed Output : {actual_output.strip()}, Actual Output : {out.strip()}"
+                )
+                max_score = max(max_score, score)
                 score_obj = Score.objects.update_or_create(
                     contest=contest,
                     user=user,
                     challenge=challenge,
                     defaults={
-                        'score': max_score,
-                        'solved': solve,
-                    }
+                        "score": max_score,
+                        "solved": solve,
+                    },
                 )
-                return {"success": True, "result": {"status": "failed", "actual_output": actual_output.strip(), "expected_output": expected_output.strip(), "execution_time": execution_time, "memory_used": "N/A"}}
-            score+=total_mark
+                return {
+                    "success": True,
+                    "result": {
+                        "status": "failed",
+                        "actual_output": actual_output.strip(),
+                        "expected_output": expected_output.strip(),
+                        "execution_time": execution_time,
+                        "memory_used": "N/A",
+                    },
+                }
+            score += total_mark
             print("Passed")
             print(test)
-        max_score=max(max_score,score)
-        solve[challenge.id]=1
+        max_score = max(max_score, score)
+        solve[challenge.id] = 1
         score_obj = Score.objects.update_or_create(
             contest=contest,
             user=user,
             challenge=challenge,
             defaults={
-                'score': max_score,
-                'solved': solve,
-            }
+                "score": max_score,
+                "solved": solve,
+            },
         )
-        return {"success": True, "result": {"status": "passed", "execution_time": execution_time, "memory_used": "N/A"}}
+        return {
+            "success": True,
+            "result": {
+                "status": "passed",
+                "execution_time": execution_time,
+                "memory_used": "N/A",
+            },
+        }
+
 
 @api_view(["POST"])
 def leaderboard(request):
-    if request.POST:
-        contest_id = request.POST.get("contest")
-        contest = get_object_or_404(Contest, id=contest_id)
-        score = Score.objects.filter(contest=contest)
-        dict1 = {}
-        dict2={}
-        for score_obj in score:
-            dict1[score_obj.user.id] = dict1.get(score_obj.user.id, 0) + score_obj.score
-            t=score_obj.time
-            seconds = t.hour * 3600 + t.minute * 60 + t.second
-            dict2[score_obj.user.id] = dict2.get(score_obj.user.id, 0) + seconds
-        dict1 = sorted(
-            dict1.items(),
-            key=lambda x: (-x[1], dict2.get(x[0], 0))
-        )
+    contest_id = request.data.get("contest")
+    print(contest_id)
+    contest = get_object_or_404(Contest, id=contest_id)
+    score = Score.objects.filter(contest=contest)
+    dict1 = {}
+    dict2 = {}
+    for score_obj in score:
+        dict1[score_obj.user.id] = dict1.get(score_obj.user.id, 0) + score_obj.score
+        t = score_obj.time
+        seconds = t.hour * 3600 + t.minute * 60 + t.second
+        dict2[score_obj.user.id] = dict2.get(score_obj.user.id, 0) + seconds
+    dict1 = sorted(dict1.items(), key=lambda x: (-x[1], dict2.get(x[0], 0)))
 
-        data=[]
-        for rank ,(user_id, score) in enumerate(dict1) :
-            data.append({
-                "Rank": rank + 1,
-                "Name": User.objects.get(id=user_id).full_name, 
-                "Solved": len(Score.objects.get(user=User.objects.get(id=user_id), contest=contest).solved),
-                "Total_problem": len(Challenges.objects.filter(contest=contest)),
-                "Time_taken": str(timedelta(dict2[user_id])),
-                "Avatar": User.objects.get(id=user_id).profile_photo,
-                "score": score
-            })
-            rank=Rank(user=User.objects.get(id=user_id),rank={f"{contest_id}":rank+1})
-        return Response({"finalRankings": data})
-    
-    
+    print(dict1)
+
+    data = []
+    for rank, (user_id, score) in enumerate(dict1):
+        data.append(
+            {
+                "rank": rank + 1,
+                "name": User.objects.get(id=user_id).full_name,
+                "solved": len(
+                    Score.objects.get(
+                        user=User.objects.get(id=user_id), contest=contest
+                    ).solved
+                ),
+                "totalProblems": len(Challenges.objects.filter(contest=contest)),
+                "timeTaken": str(timedelta(seconds=dict2[user_id])),
+                "avatar": User.objects.get(id=user_id).profile_photo,
+                "score": score,
+            }
+        )
+        rank = Rank(user=User.objects.get(id=user_id), rank={f"{contest_id}": rank + 1})
+        print(data)
+    return Response({"finalRankings": data}, status=200)
+
 @api_view(["POST"])
 def get_user_progress(request):
     if request.method == "POST":
-        print(request.data)
         user_id = request.data.get("user_id")
-        
-        print(f"Received user_id: {user_id}")
-        
-
         if not user_id:
-            return Response({"error": "User ID are required"}, status=400)
+            return Response({"error": "User ID is required"}, status=400)
 
         try:
             user = User.objects.get(id=user_id)
             scores = Score.objects.filter(user=user)
-            
+            rank_obj = Rank.objects.filter(user=user).first()
+
             if not scores:
                 return Response({"error": "No scores found for this user"}, status=200)
-            
+
             stats = []
             contestHistory = []
-            
-            total_score = 0
+
             total_rank = 0
-            best_rank = 0
+            total_score = 0
+            best_rank = float('inf')  # smaller is better in ranking
             problemSolved = 0
+
             for score in scores:
-                
+                contest_id_str = str(score.contest.id)
+                rank = None
+
+                if rank_obj and rank_obj.rank and contest_id_str in rank_obj.rank:
+                    rank = rank_obj.rank.get(contest_id_str)
+                    total_rank += rank
+                    best_rank = max(best_rank, rank)
+                else:
+                    rank = "N/A"  # or -1 if you want a number
+                    best_rank = max(best_rank, float('inf'))
+
                 total_score += score.score
-                total_rank += score.rank
-                best_rank = max(best_rank, score.rank)
-                problemSolved += score.solved              
-                
+                problemSolved += sum(1 for val in score.solved.values() if val)
+
+
                 contestHistory.append({
-                    "id":score.contest.id,
-                    "name": score.challenge.name,
+                    "id": score.contest.id,
+                    "name": score.contest.contest_name,
                     "date": score.contest.start_date.strftime("%Y-%m-%d"),
-                    "rank": score.rank,
+                    "rank": rank,
                     "score": score.score,
-                    "problem":len(Challenges.objects.filter(contest=score.contest.id)),
-                    "solved": score.solved,
+                    "problem": Challenges.objects.filter(contest=score.contest.id).count(),
+                    "solved": sum(score.solved.values()) if isinstance(score.solved, dict) else score.solved,
                     "time": str(score.time),
                     "participants": Contest.objects.get(id=score.contest.id).participants,
-                    "status":Contest.objects.get(id=score.contest.id).status,
-                })  
-            
+                    "bestRank":best_rank
+                    # "status": Contest.objects.get(id=score.contest.id).status,
+                })
+
+            avg_rank = total_rank / scores.count() if total_rank > 0 else "N/A"
+            best_rank_display = best_rank if best_rank != float('inf') else "N/A"
+
             stats.append({
                 "totalContests": scores.count(),
-                "averageRank": total_rank / scores.count() if scores.count() > 0 else 0,
+                "averageRank": avg_rank,
                 "totalScore": total_score,
-                "bestRank": best_rank,
+                "bestRank": best_rank_display,
                 "problemsSolved": problemSolved,
             })
-            
-            data = {
-                contestHistory: contestHistory,
-                stats: stats,
-            }
 
-            return Response(data, status=200)
+            return Response({
+                "contestHistory": contestHistory,
+                "stats": stats,
+            }, status=200)
+
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
         except Contest.DoesNotExist:
             return Response({"error": "Contest not found"}, status=404)
 
-
 # def get_CPP_code(val, list1):
 
-    # prompt3 = f"""
-    # You are an expert C++ programmer and a master of algorithm design. Your task is to write a complete, single-file C++ solution for the problem described below. Your code must be robust, generalized, and should not be hardcoded for specific examples.
+# prompt3 = f"""
+# You are an expert C++ programmer and a master of algorithm design. Your task is to write a complete, single-file C++ solution for the problem described below. Your code must be robust, generalized, and should not be hardcoded for specific examples.
 
-    # ** Problem Description : **
-    # {val}
+# ** Problem Description : **
+# {val}
 
-    # ### 2. Input Format Specification
+# ### 2. Input Format Specification
 
-    # Your C++ code's `main()` function must parse input delivered as a single stream of **space-separated values**. You should use standard input streams (e.g., `std::cin`) to read the data.
+# Your C++ code's `main()` function must parse input delivered as a single stream of **space-separated values**. You should use standard input streams (e.g., `std::cin`) to read the data.
 
-    # **Input Structure:**
-    # The input will be provided in the following specific order, with each item separated by one or more spaces:
-    # 1.  An integer `m` (the number of rows in the grid).
-    # 2.  An integer `n` (the number of columns in the grid).
-    # 3.  `m * n` characters, representing the grid's content, provided in row-major order.
-    # 4.  The string `word` to be searched for in the grid.
+# **Input Structure:**
+# The input will be provided in the following specific order, with each item separated by one or more spaces:
+# 1.  An integer `m` (the number of rows in the grid).
+# 2.  An integer `n` (the number of columns in the grid).
+# 3.  `m * n` characters, representing the grid's content, provided in row-major order.
+# 4.  The string `word` to be searched for in the grid.
 
-    # **Example Input:**
-    # For a grid `[['A','B','C'],['S','F','S']]` and the word `SEE`, the corresponding space-separated input stream would be:
-    # `2 3 A B C S F S SEE`
+# **Example Input:**
+# For a grid `[['A','B','C'],['S','F','S']]` and the word `SEE`, the corresponding space-separated input stream would be:
+# `2 3 A B C S F S SEE`
 
-    # **Guiding Principle for Deduction:**
-    # -When you analyze the sample test cases, you should look for a general, underlying pattern. As a universal hint for the problems you'll receive, this pattern is:
-    # -Multi-Element Collections (e.g., vectors, arrays): Are always preceded in the input stream by their dimension(s) as integers. A 1D collection will be preceded by its size; a 2D collection by its rows and columns.
-    # -Single Values (e.g., int, std::string): Are given directly in the input stream without any preceding size integer.
-    # -Your generated code must be a direct implementation of the format you deduce by applying this principle to the problem description and the provided test cases.
+# **Guiding Principle for Deduction:**
+# -When you analyze the sample test cases, you should look for a general, underlying pattern. As a universal hint for the problems you'll receive, this pattern is:
+# -Multi-Element Collections (e.g., vectors, arrays): Are always preceded in the input stream by their dimension(s) as integers. A 1D collection will be preceded by its size; a 2D collection by its rows and columns.
+# -Single Values (e.g., int, std::string): Are given directly in the input stream without any preceding size integer.
+# -Your generated code must be a direct implementation of the format you deduce by applying this principle to the problem description and the provided test cases.
 
 
-    # Your parsing logic must be robust enough to handle any valid input that follows this structure, not just the example provided. The sample test cases in the next section will also adhere to this space-separated format.
+# Your parsing logic must be robust enough to handle any valid input that follows this structure, not just the example provided. The sample test cases in the next section will also adhere to this space-separated format.
 
-    # **Sample Test Cases (for logic validation):**
-    # {list1}
+# **Sample Test Cases (for logic validation):**
+# {list1}
 
-    # ### 3. Code Generation Requirements
+# ### 3. Code Generation Requirements
 
-    # * Generate a complete C++ solution in a single code block.
-    # * The solution must include a `main()` function.
-    # * The `main()` function must contain all necessary code to read the input according to the **space-separated format** specified above.
-    # * Implement the full logic required to solve the problem efficiently using a backtracking algorithm.
-    # * Adhere to modern C++ best practices (e.g., use `<vector>`, `<string>`, `<iostream>`).
-    # * `#include <cstddef>` ← *Add this to safely use `size_t` and related types.*
-    # * Do not add any explanatory text or comments outside of the code block in your final output.
-    # """
-    # response2 = model.generate_content(prompt3)
-    # return response2.text
+# * Generate a complete C++ solution in a single code block.
+# * The solution must include a `main()` function.
+# * The `main()` function must contain all necessary code to read the input according to the **space-separated format** specified above.
+# * Implement the full logic required to solve the problem efficiently using a backtracking algorithm.
+# * Adhere to modern C++ best practices (e.g., use `<vector>`, `<string>`, `<iostream>`).
+# * `#include <cstddef>` ← *Add this to safely use `size_t` and related types.*
+# * Do not add any explanatory text or comments outside of the code block in your final output.
+# """
+# response2 = model.generate_content(prompt3)
+# return response2.text
 
 
 # @api_view(["POST"])

@@ -41,7 +41,7 @@ interface ContestHistory {
   rank: number;
   participants: number;
   score: number;
-  problems: number;
+  problem: number;
   solved: number;
   status: "completed" | "ongoing" | "upcoming";
 }
@@ -49,6 +49,7 @@ interface ContestHistory {
 export default function ProgressPage() {
   const router = useRouter();
   const [contestHistory, setContestHistory] = useState<ContestHistory[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [rankData, setRankData] = useState([]);
   const [stats, setStats] = useState({
     totalContests: 0,
@@ -59,44 +60,61 @@ export default function ProgressPage() {
     currentStreak: 0,
   });
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       console.log(sessionStorage.getItem("userId"));
-      
-      const response = await axios.post("http://localhost:8000/api/userProgress", {
-        "user_id": sessionStorage.getItem("userId"),
-      });
+
+      const response = await axios.post(
+        "http://localhost:8000/api/userProgress",
+        {
+          user_id: sessionStorage.getItem("userId"),
+        }
+      );
+
+      console.log(response.data);
 
       setContestHistory(response.data.contestHistory || []);
-      if(!response.data.stats) {
+      if (!response.data.stats[0]) {
         setStats({
-          totalContests: 0, 
+          totalContests: 0,
           averageRank: 0,
           bestRank: 0,
           totalScore: 0,
           problemsSolved: 0,
           currentStreak: 0,
-        })}
-        else{
-        setStats(response.data.stats);
-        }
-
-      if (!response.data.contestHistory || response.data.contestHistory.length === 0) {
-        setRankData([]);
-      
+        });
+      } else {
+        setStats(
+          response.data.stats[0] || {
+            totalContests: 0,
+            averageRank: 0,
+            bestRank: 0,
+            totalScore: 0,
+            problemsSolved: 0,
+            currentStreak: 0,
+          }
+        );
       }
-      else{
-      setRankData(() => {
-        return response.data.contestHistory.map((item: any) => ({
-          contest: item.contest,
-          rank: item.rank,
-          participants: item.participants,
-        }));
-      });
-    }
+
+      if (
+        !response.data.contestHistory ||
+        response.data.contestHistory.length === 0
+      ) {
+        setRankData([]);
+      } else {
+        setRankData(() => {
+          return response.data.contestHistory.map((item: any) => ({
+            contest: item.contest,
+            rank: item.rank,
+            participants: item.participants,
+          }));
+        });
+      }
     } catch (error) {
       console.error("Error fetching progress data:", error);
       return [];
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -167,6 +185,17 @@ export default function ProgressPage() {
   //     status: "completed",
   //   },
   // ]
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -328,64 +357,65 @@ export default function ProgressPage() {
             <CardContent className="text-center text-slate-500">
               No contest history available
             </CardContent>
-          ):(<CardContent>
-            <div className="space-y-4">
-              {contestHistory.map((contest) => (
-                <div
-                  key={contest?.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-lg">
-                      <Trophy className="h-6 w-6 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{contest.name}</h4>
-                      <div className="flex items-center space-x-4 text-sm text-slate-500">
-                        <span className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {new Date(contest.date).toLocaleDateString()}
-                        </span>
-                        <span className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
-                          {contest.participants} participants
-                        </span>
-                        <span>
-                          {contest.solved}/{contest.problems} solved
-                        </span>
+          ) : (
+            <CardContent>
+              <div className="space-y-4">
+                {contestHistory.map((contest) => (
+                  <div
+                    key={contest?.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-lg">
+                        <Trophy className="h-6 w-6 text-emerald-600" />
                       </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center space-x-3">
                       <div>
-                        <p className="font-bold text-lg">#{contest.rank}</p>
-                        <p className="text-sm text-slate-500">
-                          {contest.score} pts
-                        </p>
+                        <h4 className="font-medium">{contest.name}</h4>
+                        <div className="flex items-center space-x-4 text-sm text-slate-500">
+                          <span className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            {new Date(contest.date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center">
+                            <Users className="h-4 w-4 mr-1" />
+                            {contest.participants} participants
+                          </span>
+                          <span>
+                            {contest.solved}/{contest.problem} solved
+                          </span>
+                        </div>
                       </div>
-                      <Badge
-                        variant={
-                          contest.rank <= 10
-                            ? "default"
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <p className="font-bold text-lg">#{contest.rank}</p>
+                          <p className="text-sm text-slate-500">
+                            {contest.score} pts
+                          </p>
+                        </div>
+                        <Badge
+                          variant={
+                            contest.rank <= 10
+                              ? "default"
+                              : contest.rank <= 50
+                              ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {contest.rank <= 10
+                            ? "Excellent"
                             : contest.rank <= 50
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {contest.rank <= 10
-                          ? "Excellent"
-                          : contest.rank <= 50
-                          ? "Good"
-                          : "Average"}
-                      </Badge>
+                            ? "Good"
+                            : "Average"}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>)}
-          
+                ))}
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
       <Footer />
