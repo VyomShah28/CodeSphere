@@ -1,75 +1,131 @@
-<h1>CodeSphere - Online Competitive Programming Platform </h1>
-<h3>Overview</h3>
+<h1>CodeSphere – Online Competitive Programming Platform</h1>
+
+<h2>Overview</h2>
 <p>
-CodeSphere is an online competitive programming platform built using Django. It provides an interactive coding environment where users can write, compile, and execute 
-code in multiple programming languages like Java and Python. The platform supports coding challenges, hosting contests, user rankings, and problem submissions. Additionally, it offers real-time code execution, test case evaluations, and a leaderboard system to track user performance.
+<b>CodeSphere</b> is a modern, full-stack online competitive programming platform. The main feature is the ability to take contests on real <b>LeetCode</b> problems, with <b>AI-generated test cases</b>. All contests are conducted in a protected environment: <b>no tab switching is allowed</b> (anti-cheat, 3 strikes system). Users can write, compile, and execute code in multiple languages (Java, Python, and more), attempt curated coding challenges, participate in programming contests, and see real-time test case evaluations. Track your performance on leaderboards.
 </p>
 
-<h3>Getting Started</h3>
+<hr>
+
+<h2>Features</h2>
+<ul>
+  <li><b>LeetCode Problem Contests:</b> Participate in contests using real LeetCode problems with AI-generated test cases.</li>
+  <li><b>Protected Environment:</b> Secure contests—no tab switching, anti-cheat enabled (3 strikes system).</li>
+  <li><b>Multi-language Support:</b> Write code in Java, Python, and more.</li>
+  <li><b>Live Code Execution:</b> Secure, real-time code compilation and output.</li>
+  <li><b>Real-Time Test Case Evaluation:</b> Get instant feedback on your solutions.</li>
+  <li><b>User Rankings and Leaderboard:</b> Climb the leaderboard as you solve challenges.</li>
+  <li><b>Admin Dashboard:</b> Manage problems, users, and contests.</li>
+</ul>
+
+<hr>
+
+<h2>Getting Started</h2>
+
+<h3>1. Set Up Your Environment</h3>
+<ul>
+  <li>
+    <b>Install Java:</b><br>
+    <a href="https://www.oracle.com/java/technologies/downloads/?er=221886" target="_blank">Download from Oracle</a><br>
+    Verify installation:<br>
+    <code>java -version</code>
+  </li>
+  <li>
+    <b>Install Python:</b><br>
+    <a href="https://www.python.org/downloads/" target="_blank">Download from Python.org</a><br>
+    Verify installation:<br>
+    <code>python --version</code>
+  </li>
+  <li>
+    <b>Install Node.js and npm:</b><br>
+    <a href="https://nodejs.org/" target="_blank">Download from Node.js</a><br>
+    Verify installation:<br>
+    <code>node -v</code><br>
+    <code>npm -v</code>
+  </li>
+  <li>
+    <b>(Optional but recommended) Create a Python Virtual Environment</b>
+    <ul>
+      <li>
+        <b>Windows:</b>
+        <pre>python -m venv env
+env\Scripts\activate</pre>
+      </li>
+      <li>
+        <b>Mac/Linux:</b>
+        <pre>python3 -m venv env
+source env/bin/activate</pre>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <b>Install Python dependencies:</b><br>
+    <code>pip install -r requirements.txt</code>
+  </li>
+  <li>
+    <b>Set up environment variables:</b><br>
+    Create a <code>.env</code> file in the root directory and configure credentials and secrets (database credentials, API keys, etc.).
+  </li>
+</ul>
+
+<hr>
+
+<h3>2. Database Setup</h3>
+<ul>
+  <li>
+    <b>Apply migrations:</b><br>
+    <code>python manage.py migrate</code>
+  </li>
+  <li>
+    <b>(Optional) Create an admin user:</b><br>
+    <code>python manage.py createsuperuser</code>
+  </li>
+</ul>
+
+<hr>
+
+<h3>3. Run the Backend</h3>
+<ul>
+  <li>
+    Start the Django backend server:<br>
+    <code>
+      cd ./Cping<br>
+      python manage.py runserver
+    </code>
+  </li>
+</ul>
+
+<hr>
+
+<h3>4. Run the Frontend</h3>
+<ul>
+  <li>
+    Start the frontend development server:<br>
+    <code>
+      cd ./Client<br>
+      npm install<br>
+      npm run dev
+    </code>
+  </li>
+</ul>
+
+<hr>
+
+<h2>Contributing</h2>
 <p>
-Follow these steps to set up the project on your local machine.
-<h3><b>1. Clone the Repository</b></h3>
-  
-<pre>
-git clone https://github.com/yourusername/CodeSphere.git
-cd CodeSphere
-</pre>
+We welcome contributions! Fork the repository and submit a pull request. For major changes, please open an issue to discuss your ideas first.
+</p>
 
-<h3><b>2. Install Java and Python</b></h3>
-Since the website uses subprocess.popen() for executing code in different languages, ensure that both Java and Python are installed on your system.
+<hr>
 
-<b>Install Java</b>
-* Download and install Java from [Oracle](https://www.oracle.com/java/technologies/downloads/?er=221886).
-* Verify installation:
+<h2>License</h2>
+<p>
+MIT License.
+</p>
 
-<pre>java -version</pre>
+<hr>
 
-<b>Install Python</b>
-* Download and install Python from [Python.org](https://www.python.org/downloads/).
-* Verify installation:
-
-<pre>python --version</pre>
-
-<h3><b>3. Create and Activate Virtual Environment</b></h3>
-
-It is recommended to use a virtual environment to manage dependencies.<br>
-
-* Windows
-
-  <pre>python -m venv env
-       env\Scripts\activate</pre>
-
-* Mac/Linux
-
-  <pre>python3 -m venv env
-       source env/bin/activate</pre>
-
-<h3><b>4. Install Dependencies</b></h3>
-
-All required packages are listed in requirements.txt. Install them using:
-
-  <pre>pip install -r requirements.txt</pre>
-
-<h3><b>5. Database Setup</b></h3>
-
-Since the database is not included in the repository (ignored via .gitignore), you need to set up a new database manually.
-
-  <b>a) Apply Migrations</b>
-
-  <pre>python manage.py migrate</pre>
-
-  <b>b) Create a Superuser (Optional, for Admin Access)</b>
-
-  <pre>python manage.py createsuperuser</pre>
-
-<h3><b>6. Running the Project</b></h3>
-
-Start the Django development server:
-
-<pre>python manage.py runserver</pre>
-
-<h3><b>7. Environment Variables</b></h3>
-
-As the project requires environment variables (e.g., database credentials, API keys), create a .env file in the root directory and define them there.
-
+<h2>Contact</h2>
+<p>
+For support or questions, open an issue or contact the repository owner via GitHub.
 </p>
