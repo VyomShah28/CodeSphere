@@ -58,7 +58,7 @@ def google_callback(request):
     google_creds_json = os.environ["GOOGLE_CLIENT_SECRET_JSON"]
     creds_dict = json.loads(google_creds_json)
     flow = Flow.from_client_config(
-        client_secrets_file=creds_dict,
+        client_config=creds_dict,
         scopes=[
             "openid",
             "https://www.googleapis.com/auth/userinfo.email",
