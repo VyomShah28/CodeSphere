@@ -12,7 +12,7 @@ const fetchFileFromURL = async (url: string) => {
     // Prepend backend URL if it's a relative path
     const fullURL = url.startsWith("http")
       ? url
-      : `http://localhost:8000${url}`;
+      : `https://codesphere-d69g.onrender.com${url}`;
 
     const response = await fetch(fullURL);
 
@@ -30,7 +30,6 @@ const fetchFileFromURL = async (url: string) => {
   }
 };
 
-
 export const SafePreview = ({ type, file }: FileData) => {
   const [content, setContent] = useState<string | null>(null);
   const [filename, setFilename] = useState<string>("");
@@ -41,7 +40,7 @@ export const SafePreview = ({ type, file }: FileData) => {
         const fetched = await fetchFileFromURL(file);
         if (fetched) {
           setContent(fetched.content);
-          setFilename(fetched.filename?? "");
+          setFilename(fetched.filename ?? "");
         }
       } else if (file instanceof File) {
         const reader = new FileReader();

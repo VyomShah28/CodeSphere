@@ -79,7 +79,7 @@ export default function LandingPage() {
                   <div className="space-y-4">
                     <Button
                       className="w-full bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => window.location.href = "http://127.0.0.1:8000/api/google-login"}
+                      onClick={() => window.location.href = "https://codesphere-d69g.onrender.com/api/google-login"}
                       disabled={isLoading}
                       size="lg"
                     >

@@ -9,7 +9,6 @@ import { ArrowLeft, Link, Users, Calendar, Clock, Trophy } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
 import axios from "axios"
-import { getTime } from "date-fns"
 import { Varela_Round } from "next/font/google"
 
 interface Contest{
@@ -58,10 +57,9 @@ export default function JoinContest() {
   const tempStr = contestLink.split("/").pop() || "";
   const contestId = tempStr.split("=").pop();
 
-    try {
-    console.log("Validating contest link:", contestLink);
-    const response = await axios.get(`http://localhost:8000/api/valid-link?link=${contestLink}&userId=${sessionStorage.getItem("userId")}`);
-    var data = response.data;
+  try {
+    const response = await axios.get(`https://codesphere-d69g.onrender.com/api/valid-link?link=${contestLink}&userId=${sessionStorage.getItem("userId")}`);
+    const data = response.data;
     console.log("Contest data:", data);
     
 
