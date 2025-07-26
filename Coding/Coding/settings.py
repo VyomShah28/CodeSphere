@@ -50,15 +50,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://codesphere-wwyy.onrender.com",
-]
+CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
-    "https://codesphere-wwyy.onrender.com",
-]
+CSRF_TRUSTED_ORIGINS = ["https://codesphere-wwyy.onrender.com"]
 
 ROOT_URLCONF = 'Coding.urls'
 
