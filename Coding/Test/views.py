@@ -37,10 +37,8 @@ flow = Flow.from_client_config(
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
     ],
-    redirect_uri="http://127.0.0.1:8000/auth/google/callback/",
+    redirect_uri="https://codesphere-d69g.onrender.com/auth/google/callback/",
 )
-
-# user login and authentication
 
 
 def Login(request):
@@ -64,7 +62,7 @@ def google_callback(request):
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile",
         ],
-        redirect_uri="http://127.0.0.1:8000/auth/google/callback/",
+        redirect_uri="https://codesphere-d69g.onrender.com/auth/google/callback/",
     )
 
     try:
@@ -94,7 +92,7 @@ def google_callback(request):
 
         query_string = urlencode(params)
 
-        return HttpResponseRedirect(f"http://localhost:3000/dashboard?{query_string}")
+        return HttpResponseRedirect(f"https://codesphere-wwyy.onrender.com/dashboard?{query_string}")
 
     except Exception as e:
         return HttpResponse(
@@ -146,7 +144,7 @@ def create_contest(request):
         max_entries = request.data.get("maxEntries", "")
         number_of_entries = int(max_entries) if max_entries.strip() else 2147483647
 
-        link = "http://localhost:3000/"
+        link = "https://codesphere-wwyy.onrender.com/"
 
         contest = Contest.objects.create(
             user=user,
