@@ -55,8 +55,10 @@ def google_callback(request):
         return HttpResponse({"error": "Invalid state parameter."}, status=400)
 
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
-    flow = Flow.from_client_secrets_file(
-        client_secrets_file="client_secret.json",
+    google_creds_json = os.environ["GOOGLE_CLIENT_SECRET_JSON"]
+    creds_dict = json.loads(google_creds_json)
+    flow = Flow.from_client_secrets_config(
+        client_secrets_file=creds_dict,
         scopes=[
             "openid",
             "https://www.googleapis.com/auth/userinfo.email",
