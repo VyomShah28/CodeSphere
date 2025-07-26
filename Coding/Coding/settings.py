@@ -22,7 +22,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = 'django-insecure-$x0@c7w$v*7q339)ty1n(n1n6rpsc2n*7#i2zu93d5^3$rkgas'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
