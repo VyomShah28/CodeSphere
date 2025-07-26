@@ -55,6 +55,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://codesphere-wwyy.onrender.com",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://codesphere-wwyy.onrender.com",
+]
+
 ROOT_URLCONF = 'Coding.urls'
 
 TEMPLATES = [
