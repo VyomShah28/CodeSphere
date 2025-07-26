@@ -9,7 +9,6 @@ import { ArrowLeft, Link, Users, Calendar, Clock, Trophy } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
 import axios from "axios"
-import { getTime } from "date-fns"
 import { Varela_Round } from "next/font/google"
 
 interface Contest{
