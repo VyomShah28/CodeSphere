@@ -65,7 +65,7 @@ export default function ProgressPage() {
       console.log(sessionStorage.getItem("userId"));
 
       const response = await axios.post(
-        "https://codesphere-d69g.onrender.com/api/userProgress",
+        "https://codesphere-4hd5.onrender.com/api/userProgress",
         {
           user_id: sessionStorage.getItem("userId"),
         }

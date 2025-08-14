@@ -76,7 +76,7 @@ export default function CreateContest() {
 
     setIsSubmitting(true)
     // Simulate form submission
-    const response = await axios.post("https://codesphere-d69g.onrender.com/api/create-contest/", {...formData, userId: user.user.id})
+    const response = await axios.post("https://codesphere-4hd5.onrender.com/api/create-contest/", {...formData, userId: user.user.id})
       console.log(response.data.id);
       
       setIsSubmitting(false)

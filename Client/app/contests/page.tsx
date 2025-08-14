@@ -60,7 +60,7 @@ export default function ContestsPage() {
      
       try {
         const response = await axios.get(
-          "https://codesphere-d69g.onrender.com/api/get-contests?userId=" +
+          "https://codesphere-4hd5.onrender.com/api/get-contests?userId=" +
             sessionStorage.getItem("userId")
         );
         if (response.status === 200) {
@@ -132,7 +132,7 @@ export default function ContestsPage() {
   const handleBeforeUnload = (event: BeforeUnloadEvent) => {
     if (deletedContestId && deletedContestId.length > 0) {
       navigator.sendBeacon(
-        "https://codesphere-d69g.onrender.com/api/delete-contests/",
+        "https://codesphere-4hd5.onrender.com/api/delete-contests/",
         JSON.stringify({ ids: deletedContestId })
       );
     }

@@ -34,7 +34,7 @@ export default function FinalLeaderboard() {
      setIsLoading(true)
          try {
 
-      const response = await axios.post("https://codesphere-d69g.onrender.com/api/getLeaderboard",{
+      const response = await axios.post("https://codesphere-4hd5.onrender.com/api/getLeaderboard",{
         "contest": contestId
       })
 

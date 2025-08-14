@@ -400,7 +400,7 @@ export function AddChallengeModal({
 
     try {
       const response = await axios.post(
-        "https://codesphere-d69g.onrender.com/api/get_leetcode_problem_description",
+        "https://codesphere-4hd5.onrender.com/api/get_leetcode_problem_description",
         {
           question_number: leetcodeNumber,
         }

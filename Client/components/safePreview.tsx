@@ -12,7 +12,7 @@ const fetchFileFromURL = async (url: string) => {
     // Prepend backend URL if it's a relative path
     const fullURL = url.startsWith("http")
       ? url
-      : `https://codesphere-d69g.onrender.com${url}`;
+      : `https://codesphere-4hd5.onrender.com${url}`;
 
     const response = await fetch(fullURL);
 

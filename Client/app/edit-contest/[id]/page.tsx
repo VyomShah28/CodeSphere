@@ -35,7 +35,7 @@ export default function EditContest() {
     const fetchContestDetails = async () => {
       setIsLoading(true)
       try {
-        const response = await axios.get('https://codesphere-d69g.onrender.com/api/contest_details?contestId=' + params.id)
+        const response = await axios.get('https://codesphere-4hd5.onrender.com/api/contest_details?contestId=' + params.id)
         if (response.status !== 200) {
           console.error("Failed to fetch contest details")
         }
@@ -89,7 +89,7 @@ export default function EditContest() {
       return
     }
     setIsSaving(true)
-    await axios.put('https://codesphere-d69g.onrender.com/api/create-contest/?contestId='+params.id, {
+    await axios.put('https://codesphere-4hd5.onrender.com/api/create-contest/?contestId='+params.id, {
       editedData : formData
     })
     setIsSaving(false);

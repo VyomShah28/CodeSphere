@@ -19,7 +19,7 @@ genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 print("API Key Configured Successfully")
 model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
-slaves_servers=["","",""]
+slaves_servers=["https://codesphere-slave-1.onrender.com","https://codesphere-slave-2.onrender.com","https://codesphere-slave-3.onrender.com"]
 slave_index=0
 slave_index_lock = threading.Lock()
 

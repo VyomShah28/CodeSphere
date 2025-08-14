@@ -58,7 +58,7 @@ export default function JoinContest() {
   const contestId = tempStr.split("=").pop();
 
   try {
-    const response = await axios.get(`https://codesphere-d69g.onrender.com/api/valid-link?link=${contestLink}&userId=${sessionStorage.getItem("userId")}`);
+    const response = await axios.get(`https://codesphere-4hd5.onrender.com/api/valid-link?link=${contestLink}&userId=${sessionStorage.getItem("userId")}`);
     const data = response.data;
     console.log("Contest data:", data);
     

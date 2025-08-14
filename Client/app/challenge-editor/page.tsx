@@ -227,7 +227,7 @@ export default function ChallengeEditor() {
         formData.append("isLeetCode", false as unknown as string);
       }
       const response = await axios.post(
-        "https://codesphere-d69g.onrender.com/api/add-challenge/",
+        "https://codesphere-4hd5.onrender.com/api/add-challenge/",
         formData
       );
       console.log(response);
@@ -306,7 +306,7 @@ export default function ChallengeEditor() {
       console.log(currentChallenge);
       
       const response = axios.put(
-        `https://codesphere-d69g.onrender.com/api/update-challenge/`,
+        `https://codesphere-4hd5.onrender.com/api/update-challenge/`,
         formData
       );
       console.log(response);
@@ -364,7 +364,7 @@ export default function ChallengeEditor() {
     setIsGeneratingLeetCodeTestCases(true);
 
     try {
-       const response = await axios.post("https://codesphere-d69g.onrender.com/api/generate_test_cases", {"description":backendChallenge})
+       const response = await axios.post("https://codesphere-4hd5.onrender.com/api/generate_test_cases", {"description":backendChallenge})
       console.log(response);
 
       const data = response.data;
@@ -404,7 +404,7 @@ export default function ChallengeEditor() {
     try {
       console.log("Deleting challenge with ID:", id);
       const response = await axios.post(
-        "https://codesphere-d69g.onrender.com/api/delete-challenge/",
+        "https://codesphere-4hd5.onrender.com/api/delete-challenge/",
         { challenge_id: id }
       );
       setChallenges(challenges.filter((c) => c.id !== id));
@@ -573,7 +573,7 @@ export default function ChallengeEditor() {
     const getChallenge = async () => {
       try {
         const response = await axios.get(
-          "https://codesphere-d69g.onrender.com/api/get-challenges/?contestId=" + contestId
+          "https://codesphere-4hd5.onrender.com/api/get-challenges/?contestId=" + contestId
         );
         if (response.status === 200) {
           setChallenges(response.data);

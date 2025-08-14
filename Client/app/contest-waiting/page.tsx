@@ -131,7 +131,7 @@ export default function ContestWaiting() {
       // Simulate API call
       setIsLoading(true);
       const response = await fetch(
-        `https://codesphere-d69g.onrender.com/api/get-contest-by-id?contestId=${contestId}`
+        `https://codesphere-4hd5.onrender.com/api/get-contest-by-id?contestId=${contestId}`
       );
       const data = await response.json();
 
@@ -188,7 +188,7 @@ export default function ContestWaiting() {
     
          try {
 
-      const response = await axios.post("https://codesphere-d69g.onrender.com/api/getLeaderboard",{
+      const response = await axios.post("https://codesphere-4hd5.onrender.com/api/getLeaderboard",{
         "contest": contestId
       })
 
@@ -208,7 +208,7 @@ export default function ContestWaiting() {
 
     try {
       const response = await axios.get(
-        "https://codesphere-d69g.onrender.com/api/get-challenges/?contestId=" + contestId
+        "https://codesphere-4hd5.onrender.com/api/get-challenges/?contestId=" + contestId
       );
       if (response.status === 200) {
         const data = response.data;

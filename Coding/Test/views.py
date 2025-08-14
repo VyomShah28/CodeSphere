@@ -1,10 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404, redirect
 from .models import Challenges, Contest, User, Rank
-from django.urls import reverse
 import json
-from bs4 import BeautifulSoup
-from django.http import Http404, JsonResponse, HttpResponse, HttpResponseRedirect
-import re
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.dateformat import time_format
 from compiler.models import Score
 from requests import get as httprequests
@@ -21,7 +18,6 @@ from .serializers import ContestSerializer, ChallengeSerializer
 import uuid
 import datetime
 from compiler.models import Testcase, Leetcode_Description
-import google.generativeai as genai
 from django.db.models import Q
 
 
@@ -37,7 +33,7 @@ flow = Flow.from_client_config(
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
     ],
-    redirect_uri="https://codesphere-d69g.onrender.com/auth/google/callback/",
+    redirect_uri="https://codesphere-4hd5.onrender.com/auth/google/callback/",
 )
 
 
@@ -64,7 +60,7 @@ def google_callback(request):
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile",
         ],
-        redirect_uri="https://codesphere-d69g.onrender.com/auth/google/callback/",
+        redirect_uri="https://codesphere-4hd5.onrender.com/auth/google/callback/",
     )
 
     try:
