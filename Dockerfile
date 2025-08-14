@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
 
 RUN apt-get update && apt-get install -y \
     openjdk-17-jdk \
@@ -18,4 +18,5 @@ COPY . /app/
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-CMD ["sh", "-c", "cd Coding && python manage.py makemigrations && python manage.py migrate && gunicorn Coding.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "cd $PROJECT_DIR && python manage.py makemigrations && python manage.py migrate && gunicorn ${PROJECT_DIR}.wsgi:application --bind 0.0.0.0:8000"]
+
