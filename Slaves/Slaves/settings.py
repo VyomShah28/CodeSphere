@@ -45,9 +45,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "compile_code",
-    "Coding.Test",
-    "Coding.compiler",
+    'compile_code',
+    'Coding.Test.apps.TestConfig',
+    'Coding.compiler.apps.CompilerConfig',
     "rest_framework",
     "corsheaders",
 ]
@@ -81,17 +81,6 @@ TEMPLATES = [
 ]
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DATABASE_NAME'),
-        'USER': env('DATABASE_USER'),
-        'PASSWORD': env('DATABASE_PASSWORD'),
-        'HOST': env('DATABASE_HOST'),
-        'PORT': env('DATABASE_PORT'),
-    }
-}
-
 WSGI_APPLICATION = "Slaves.wsgi.application"
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -103,12 +92,15 @@ CSRF_TRUSTED_ORIGINS = ["https://codesphere-4hd5.onrender.com"]
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
