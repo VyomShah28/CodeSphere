@@ -1,8 +1,8 @@
 import subprocess
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from Test.models import Contest, Challenges, User, Rank
-from .models import Score, Testcase, Leetcode_Description, slug_map
+from Coding.Test.models import Contest, Challenges, User, Rank
+from Coding.compiler.models import Score, Leetcode_Description, slug_map
 import json
 from django.http import JsonResponse
 from datetime import datetime, date, timedelta, time as dt_time

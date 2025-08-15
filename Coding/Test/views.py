@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404, redirect
-from .models import Challenges, Contest, User, Rank
+from Coding.Test.models import Challenges, Contest, User, Rank
 import json
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.dateformat import time_format
-from compiler.models import Score
+from Coding.compiler.models import Score,Testcase, Leetcode_Description
 from requests import get as httprequests
 from datetime import timedelta
 from rest_framework.decorators import api_view
@@ -17,7 +17,6 @@ from rest_framework.decorators import parser_classes
 from .serializers import ContestSerializer, ChallengeSerializer
 import uuid
 import datetime
-from compiler.models import Testcase, Leetcode_Description
 from django.db.models import Q
 
 
