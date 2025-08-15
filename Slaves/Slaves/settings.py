@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'compile_code',
-    'Coding.Test.apps.TestConfig',
-    'Coding.compiler.apps.CompilerConfig',
+    'Test.apps.TestConfig',
+    'compiler.apps.CompilerConfig',
     "rest_framework",
     "corsheaders",
 ]
