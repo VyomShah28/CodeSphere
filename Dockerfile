@@ -14,7 +14,8 @@ COPY ./requirements.txt /app/requirements.txt
 
 RUN pip install -r requirements.txt
 
-COPY . /app/
+COPY ./Coding /app/Coding
+COPY ./Slaves /app/Slaves
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PYTHONPATH="/app:${PYTHONPATH}"
