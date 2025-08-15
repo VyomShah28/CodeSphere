@@ -17,6 +17,7 @@ RUN pip install -r requirements.txt
 COPY . /app/
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 CMD ["sh", "-c", "cd $PROJECT_DIR && python manage.py makemigrations && python manage.py migrate && gunicorn --workers 2 ${PROJECT_DIR}.wsgi:application --bind 0.0.0.0:8000"]
 
