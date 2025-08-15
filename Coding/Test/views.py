@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, redirect
-from Coding.Test.models import Challenges, Contest, User, Rank
+from Coding.Test.models import Challenges, Contest, User
 import json
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.dateformat import time_format
