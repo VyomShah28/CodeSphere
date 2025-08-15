@@ -16,6 +16,7 @@ __pycache__/
 local_settings.py
 
 Coding/.env
+Slaves/.env
 /venv
 Coding/media
 Coding/client_secret.json

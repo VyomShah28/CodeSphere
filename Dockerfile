@@ -19,5 +19,5 @@ COPY . /app/
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PYTHONPATH="/app:${PYTHONPATH}"
 
-CMD ["sh", "-c", "cd $PROJECT_DIR && python manage.py makemigrations && python manage.py migrate && gunicorn --workers 2 ${PROJECT_DIR}.wsgi:application --bind 0.0.0.0:8000"]
+CMD ["sh", "-c", "python $PROJECT_DIR/manage.py makemigrations && python $PROJECT_DIR/manage.py migrate && gunicorn --workers 2 ${PROJECT_DIR}.wsgi:application --bind 0.0.0.0:8000"]
 
