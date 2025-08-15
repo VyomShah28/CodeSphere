@@ -3,7 +3,7 @@ from .models import Challenges, Contest, User
 import json
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.dateformat import time_format
-from Coding.compiler.models import Score,Testcase, Leetcode_Description
+from compiler.models import Score,Testcase, Leetcode_Description
 from requests import get as httprequests
 from datetime import timedelta
 from rest_framework.decorators import api_view

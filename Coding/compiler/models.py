@@ -1,5 +1,5 @@
 from django.db import models
-from Coding.Test.models import Contest,User,Challenges
+from Test.models import Contest,User,Challenges
 
 class Score(models.Model):
     contest=models.ForeignKey(Contest,on_delete=models.CASCADE,default=None,null=True)
