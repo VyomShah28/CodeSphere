@@ -13,7 +13,6 @@ import time as time_mod
 import json
 from django.db import transaction
 from groq import Groq
-import asyncio
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 print("API Key Configured Successfully")
