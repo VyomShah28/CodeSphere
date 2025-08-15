@@ -13,6 +13,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import platform
 import threading
+import asyncio
 
 # New Code Added
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -27,7 +28,7 @@ slave_index_lock = threading.Lock()
 #Master code
 
 @api_view(["POST"])
-async def get_leetcode_problem_description(request):
+def get_leetcode_problem_description(request):
 
     if request.method == "POST":
         question_number = request.data.get("question_number")
@@ -45,7 +46,7 @@ async def get_leetcode_problem_description(request):
             return Response({"error": "Question number is required"}, status=400)
 
         try:
-            description, val = await get_leetcode_problem_description_Gemini(question_number)
+            description, val =  asyncio.run(get_leetcode_problem_description_Gemini(question_number))
 
             leetcode = Leetcode_Description(
                 number=question_number,

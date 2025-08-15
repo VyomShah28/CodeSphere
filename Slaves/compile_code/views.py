@@ -13,6 +13,7 @@ import time as time_mod
 import json
 from django.db import transaction
 from groq import Groq
+import asyncio
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 print("API Key Configured Successfully")
@@ -966,7 +967,7 @@ async def get_python_code(description):
         raise Exception("Failed to generate test cases from description")
 
 @api_view(["POST"])
-async def get_test_cases(request):
+def get_test_cases(request):
     if request.method == "POST":
         description = request.data.get("description")
         question_number = description["question_number"]
@@ -986,13 +987,13 @@ async def get_test_cases(request):
                 extracted_description = json.dumps(description, indent=2)
             else:
                 extracted_description = description
-            test_cases = await get_python_code(extracted_description)
+            test_cases = asyncio.run(get_python_code(extracted_description))
 
             print(f"Generated test cases: {test_cases}")
 
             print(question_number)
 
-            input_formate = await format(description, test_cases["input"].split("\n"))
+            input_formate = asyncio.run(format(description, test_cases["input"].split("\n")))
             input_formate = input_formate.text.replace("```json", " ")
             input_formate = input_formate.replace("```", " ")
 
@@ -1003,11 +1004,11 @@ async def get_test_cases(request):
                 
                 leetcode_problem.input_description = input_formate["input_format_explanation"]
                 leetcode_problem.save() 
-                output = await get_output(
+                output = asyncio.run(get_output(
                     description,
                     test_cases["input"],
                     input_formate["input_format_explanation"],
-                )
+                ))
 
                 new_test_cases = Testcase.objects.update_or_create(
                     question_number=question_number,
@@ -1017,7 +1018,6 @@ async def get_test_cases(request):
         except Exception as e:
             print(f"Exception in get_test_cases: {str(e)}")
             return Response({"error": str(e)}, status=500)
-
 
 async def get_output(description, testcase, input_format):
     prompt_solver = f"""
@@ -1094,7 +1094,6 @@ async def get_output(description, testcase, input_format):
     response3 = response3.replace("```", "")
     response3 = json.loads(response3)
     return response3
-
 
 async def format(description, list1):
     str1 = "\n".join(list1)
