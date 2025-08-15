@@ -13,7 +13,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import platform
 import threading
-import asyncio
 
 # New Code Added
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -46,7 +45,7 @@ def get_leetcode_problem_description(request):
             return Response({"error": "Question number is required"}, status=400)
 
         try:
-            description, val =  asyncio.run(get_leetcode_problem_description_Gemini(question_number))
+            description, val =  get_leetcode_problem_description_Gemini(question_number)
 
             leetcode = Leetcode_Description(
                 number=question_number,
@@ -71,7 +70,7 @@ def get_leetcode_slug_map():
         id_to_slug[qid] = slug
     return id_to_slug
 
-async def get_leetcode_problem_description_Gemini(question_number):
+def get_leetcode_problem_description_Gemini(question_number):
     description_html = get_leetcode_problem_data(question_number)
     prompt = f"""
     You are an expert LeetCode assistant AI designed to transform raw LeetCode problem content into two precise outputs:
@@ -135,7 +134,7 @@ async def get_leetcode_problem_description_Gemini(question_number):
     """
     print("ok")
 
-    response = await model.generate_content(prompt)
+    response = model.generate_content(prompt)
 
     val = json.loads(response.text)
 

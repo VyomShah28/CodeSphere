@@ -794,7 +794,7 @@ def run_java_code(code, input_data, expected_output):
             }
 
 
-async def get_python_code(description):
+def get_python_code(description):
     response = None
     prompt3 = f"""
     You are an expert in creating test cases for competitive programming problems. Your task is to generate exactly 15 test cases based on the problem description provided, including all sample test cases from the problem specification.
@@ -932,7 +932,7 @@ async def get_python_code(description):
     try:
 
         client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-        completion = await client.chat.completions.create(
+        completion = client.chat.completions.create(
             model="moonshotai/kimi-k2-instruct",
             messages=[{"role": "user", "content": prompt3}],
             temperature=0.2,
@@ -987,13 +987,13 @@ def get_test_cases(request):
                 extracted_description = json.dumps(description, indent=2)
             else:
                 extracted_description = description
-            test_cases = asyncio.run(get_python_code(extracted_description))
+            test_cases = get_python_code(extracted_description)
 
             print(f"Generated test cases: {test_cases}")
 
             print(question_number)
 
-            input_formate = asyncio.run(format(description, test_cases["input"].split("\n")))
+            input_formate = format(description, test_cases["input"].split("\n"))
             input_formate = input_formate.text.replace("```json", " ")
             input_formate = input_formate.replace("```", " ")
 
@@ -1004,11 +1004,11 @@ def get_test_cases(request):
                 
                 leetcode_problem.input_description = input_formate["input_format_explanation"]
                 leetcode_problem.save() 
-                output = asyncio.run(get_output(
+                output = get_output(
                     description,
                     test_cases["input"],
                     input_formate["input_format_explanation"],
-                ))
+                )
 
                 new_test_cases = Testcase.objects.update_or_create(
                     question_number=question_number,
@@ -1019,7 +1019,7 @@ def get_test_cases(request):
             print(f"Exception in get_test_cases: {str(e)}")
             return Response({"error": str(e)}, status=500)
 
-async def get_output(description, testcase, input_format):
+def get_output(description, testcase, input_format):
     prompt_solver = f"""
     You are a deterministic JSON-producing system. Your function is to accept a problem definition and a block of text-based test cases, solve them exactly as described, and return a single, perfectly formatted JSON object according to the following contract.
 
@@ -1089,13 +1089,13 @@ async def get_output(description, testcase, input_format):
     """
 
     model = genai.GenerativeModel("gemini-2.5-flash")
-    response1 = await model.generate_content(prompt_solver)
+    response1 = model.generate_content(prompt_solver)
     response3 = response1.text.replace("```json", "")
     response3 = response3.replace("```", "")
     response3 = json.loads(response3)
     return response3
 
-async def format(description, list1):
+def format(description, list1):
     str1 = "\n".join(list1)
     prompt2 = f"""
         You are an expert parsing system for competitive programming problems. Your sole function is to analyze a problem's description and raw test case inputs to produce a human-readable explanation of the input format. You must determine how the raw, single-line string of a test case maps to the data structures and variables described in the problem.
@@ -1152,4 +1152,4 @@ async def format(description, list1):
         """
 
     model = genai.GenerativeModel("gemini-2.5-flash")
-    return await model.generate_content(prompt2)
+    return model.generate_content(prompt2)
