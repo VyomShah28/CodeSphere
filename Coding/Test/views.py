@@ -90,7 +90,7 @@ def google_callback(request):
 
         query_string = urlencode(params)
 
-        return HttpResponseRedirect(f"https://codesphere-wwyy.onrender.com/dashboard?{query_string}")
+        return HttpResponseRedirect(f"https://codesphere-frontend-q5dw.onrender.com/dashboard?{query_string}")
 
     except Exception as e:
         return HttpResponse(
@@ -142,7 +142,7 @@ def create_contest(request):
         max_entries = request.data.get("maxEntries", "")
         number_of_entries = int(max_entries) if max_entries.strip() else 2147483647
 
-        link = "https://codesphere-wwyy.onrender.com/"
+        link = "https://codesphere-frontend-q5dw.onrender.com/"
 
         contest = Contest.objects.create(
             user=user,
