@@ -966,7 +966,7 @@ async def get_python_code(description):
         raise Exception("Failed to generate test cases from description")
 
 @api_view(["POST"])
-def get_test_cases(request):
+async def get_test_cases(request):
     if request.method == "POST":
         description = request.data.get("description")
         question_number = description["question_number"]
@@ -986,13 +986,13 @@ def get_test_cases(request):
                 extracted_description = json.dumps(description, indent=2)
             else:
                 extracted_description = description
-            test_cases = get_python_code(extracted_description)
+            test_cases = await get_python_code(extracted_description)
 
             print(f"Generated test cases: {test_cases}")
 
             print(question_number)
 
-            input_formate = format(description, test_cases["input"].split("\n"))
+            input_formate = await format(description, test_cases["input"].split("\n"))
             input_formate = input_formate.text.replace("```json", " ")
             input_formate = input_formate.replace("```", " ")
 
@@ -1003,7 +1003,7 @@ def get_test_cases(request):
                 
                 leetcode_problem.input_description = input_formate["input_format_explanation"]
                 leetcode_problem.save() 
-                output = get_output(
+                output = await get_output(
                     description,
                     test_cases["input"],
                     input_formate["input_format_explanation"],
