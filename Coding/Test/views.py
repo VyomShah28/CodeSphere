@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404, redirect
-from Coding.Test.models import Challenges, Contest, User
+from .models import Challenges, Contest, User
 import json
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.dateformat import time_format
-from Coding.compiler.models import Score,Testcase, Leetcode_Description
+from ..compiler.models import Score,Testcase, Leetcode_Description
 from requests import get as httprequests
 from datetime import timedelta
 from rest_framework.decorators import api_view
@@ -18,7 +18,6 @@ from .serializers import ContestSerializer, ChallengeSerializer
 import uuid
 import datetime
 from django.db.models import Q
-
 
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
