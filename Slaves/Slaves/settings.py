@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-o51bdzcb3)#97_=_i3sim&kf!deq^456%jr3)us3k)rd6nxkb5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -70,6 +70,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "Slaves.wsgi.application"
 
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = ["https://codesphere-4hd5.onrender.com"]
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

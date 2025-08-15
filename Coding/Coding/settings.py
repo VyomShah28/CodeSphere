@@ -53,7 +53,7 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = ["https://codesphere-wwyy.onrender.com"]
+CSRF_TRUSTED_ORIGINS = ["https://codesphere-frontend-q5dw.onrender.com"]
 
 ROOT_URLCONF = 'Coding.urls'
 
