@@ -18,6 +18,7 @@ local_settings.py
 Coding/.env
 Slaves/.env
 /venv
+code_env/
 Coding/media
 Coding/client_secret.json
 Coding/code.py

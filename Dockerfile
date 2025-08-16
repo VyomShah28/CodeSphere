@@ -14,9 +14,8 @@ COPY ./requirements.txt /app/requirements.txt
 
 RUN pip install -r requirements.txt
 
-COPY ./Coding /app/Coding
-COPY ./Slaves /app/Slaves
+COPY . /app/
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-CMD ["sh", "-c", "python $PROJECT_DIR/manage.py makemigrations && python $PROJECT_DIR/manage.py migrate && gunicorn --workers 2 --bind 0.0.0.0:8000 --timeout 600 --log-level=info --pythonpath /app $PROJECT_DIR.wsgi:application"]
+CMD ["sh", "-c", "cd $PROJECT_DIR && python manage.py makemigrations && python manage.py migrate && gunicorn ${PROJECT_DIR}.wsgi:application --bind 0.0.0.0:8000"]

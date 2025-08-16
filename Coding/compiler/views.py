@@ -1,7 +1,7 @@
 import subprocess
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from Coding.Test.models import Contest, Challenges, User, Rank
+from Test.models import Contest, Challenges, User, Rank
 from .models import Score, Leetcode_Description, slug_map
 import json
 from django.http import JsonResponse
