@@ -925,14 +925,14 @@ def get_python_code(description):
         - [x] All collections have size prefixes?
         - [x] Element counts match prefixes exactly?
         - [x] Input parameter order matches `sample_testcases`?
-        - [x] Is there any extra text, code, or explanation? No
+        - [x] Is there any extra text, code,backticks, explanation or any extra text? No
     """
 
     try:
 
         client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         completion = client.chat.completions.create(
-            model="moonshotai/kimi-k2-instruct",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt3}],
             temperature=0.2,
             max_completion_tokens=8192,
@@ -942,23 +942,28 @@ def get_python_code(description):
         )
 
         raw_content = completion.choices[0].message.content
+        raw_content = raw_content.strip().replace("```json", "").replace("```", "")
+        print(raw_content)
 
-        raw_content = completion.choices[0].message.content
-
-        start_index = raw_content.find("{")
-
-        if start_index != -1:
-            clean_output = raw_content[start_index:]
-            print(clean_output)
+        match = re.search(r"\{.*\}", raw_content, re.DOTALL)
+        if match:
+            json_str = match.group()
+            try:
+                response = json.loads(json_str)
+                if "input" in response:
+                    test_cases_str = response["input"]
+                    print("Generated test cases string:", test_cases_str)
+                    return
+                else:
+                    print("JSON does not contain 'input' key")
+            except json.JSONDecodeError as e:
+                print("JSON decode error:", e)
+                print("Raw JSON string was:", repr(json_str))
+                response = None
         else:
-            print(raw_content)
+            print("No JSON object found in the LLM output")
+            response = None
 
-        raw_content = clean_output
-        raw_content = raw_content.replace("```", "")
-
-        response = json.loads(raw_content)
-        print("Generated test cases:", response)
-        return response
     except Exception as e:
         print("Error during API call:", e)
 
