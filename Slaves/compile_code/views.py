@@ -953,7 +953,7 @@ def get_python_code(description):
                 if "input" in response:
                     test_cases_str = response["input"]
                     print("Generated test cases string:", test_cases_str)
-                    return
+                    return test_cases_str
                 else:
                     print("JSON does not contain 'input' key")
             except json.JSONDecodeError as e:
@@ -997,7 +997,7 @@ def get_test_cases(request):
 
             print(question_number)
 
-            input_formate = format(description, test_cases["input"].split("\n"))
+            input_formate = format(description, test_cases.split("\n"))
             input_formate = input_formate.text.replace("```json", " ")
             input_formate = input_formate.replace("```", " ")
 
@@ -1010,7 +1010,7 @@ def get_test_cases(request):
                 leetcode_problem.save() 
                 output = get_output(
                     description,
-                    test_cases["input"],
+                    test_cases,
                     input_formate["input_format_explanation"],
                 )
 
