@@ -309,7 +309,7 @@ def submit_code_master(request):
     slave_url = get_next_slave()
 
     try:
-        slave_response = requests.post(f"{slave_url}/submitCode", json=request.data, timeout=60)
+        slave_response = requests.post(f"{slave_url}/submitCode", json=request.data, timeout=90)
         return Response(slave_response.json(), status=slave_response.status_code)
     except requests.RequestException as e:
         return Response({"error": "Slave server unreachable", "details": str(e)}, status=500)
@@ -321,7 +321,7 @@ def run_code_master(request):
     slave_url = get_next_slave()
 
     try:
-        slave_response = requests.post(f"{slave_url}/runCode", json=request.data, timeout=60)
+        slave_response = requests.post(f"{slave_url}/runCode", json=request.data, timeout=90)
         return Response(slave_response.json(), status=slave_response.status_code)
     except requests.RequestException as e:
         return Response({"error": "Slave server unreachable", "details": str(e)}, status=500)
@@ -333,7 +333,7 @@ def get_test_cases_master(request):
     slave_url = get_next_slave()
 
     try:
-        slave_response = requests.post(f"{slave_url}/getTestCases", json=request.data, timeout=60)
+        slave_response = requests.post(f"{slave_url}/getTestCases", json=request.data, timeout=90)
         return Response(slave_response.json(), status=slave_response.status_code)
     except requests.RequestException as e:
         return Response({"error": "Slave server unreachable", "details": str(e)}, status=500)
